@@ -17,21 +17,21 @@ A React-based music visualizer that displays real-time audio analysis synchroniz
                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                      COMPUTER (This App - React)                        │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │  1. Get current track info from Spotify API                      │   │
-│  │  2. Search YouTube for the song (YouTube Data API v3)           │   │
-│  │  3. Download MP3 via backend server (yt-dlp)                    │   │
-│  │  4. Analyze audio with Essentia.js (WASM)                       │   │
-│  │  5. Sync visualization with Spotify playback position           │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │  1. Get current track info from Spotify API                     │    │
+│  │  2. Search YouTube for the song (YouTube Data API v3)           │    │
+│  │  3. Download MP3 via backend server (yt-dlp)                    │    │
+│  │  4. Analyze audio with Essentia.js (WASM)                       │    │
+│  │  5. Sync visualization with Spotify playback position           │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
 │                                                                         │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │                    VISUALIZATION OUTPUT                          │   │
-│  │  • Mel Spectrogram (frequency bands)                            │   │
-│  │  • HPCP Chroma (pitch classes C, C#, D... B)                   │   │
-│  │  • Pitch contour (melody tracking)                              │   │
-│  │  • Beat detection (BPM, beat position)                          │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                    VISUALIZATION OUTPUT                         │    │
+│  │  • Mel Spectrogram (frequency bands)                            │    │
+│  │  • HPCP Chroma (pitch classes C, C#, D... B)                    │    │
+│  │  • Pitch contour (melody tracking)                              │    │
+│  │  • Beat detection (BPM, beat position)                          │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -226,3 +226,7 @@ This project is for educational and research purposes only.
 - [Spotify Web API](https://developer.spotify.com/documentation/web-api/)
 - [YouTube Data API](https://developers.google.com/youtube/v3)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube downloader
+
+- Online server
+- <img width="633" height="1036" alt="image" src="https://github.com/user-attachments/assets/70fdedcb-5881-4115-b6cf-22588dd708db" />
+
