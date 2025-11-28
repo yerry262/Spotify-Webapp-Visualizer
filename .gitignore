@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Environment variables (contains API keys - DO NOT COMMIT)
+.env
+.env.local
+server/.env
+
+# Build output
+build/
+
+# Downloaded MP3 files (can be large)
+server/mp3files/*.mp3
+server/mp3files/*.webm
+
+# Binary executables (user must download/install these)
+server/yt-dlp.exe
+server/ffmpeg.exe
+server/ffprobe.exe
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Test coverage
+coverage/

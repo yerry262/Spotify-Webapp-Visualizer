@@ -1,0 +1,117 @@
+.playback-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  position: relative;
+  z-index: 10;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.control-btn:hover::before {
+  opacity: 1;
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+.control-btn svg {
+  position: relative;
+  z-index: 1;
+}
+
+.control-btn.primary {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1DB954, #1ed760);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
+}
+
+.control-btn.primary:hover {
+  background: linear-gradient(135deg, #1ed760, #22e066);
+  box-shadow: 0 6px 30px rgba(29, 185, 84, 0.6);
+  transform: scale(1.05);
+}
+
+.control-btn.primary:active {
+  transform: scale(0.98);
+}
+
+.control-btn.primary svg {
+  width: 28px;
+  height: 28px;
+}
+
+.control-btn.secondary {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+.control-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.control-btn.secondary svg {
+  width: 22px;
+  height: 22px;
+}
+
+@media (max-width: 600px) {
+  .playback-controls {
+    gap: 15px;
+    padding: 15px;
+  }
+  
+  .control-btn.primary {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .control-btn.primary svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .control-btn.secondary {
+    width: 42px;
+    height: 42px;
+  }
+  
+  .control-btn.secondary svg {
+    width: 18px;
+    height: 18px;
+  }
+}
