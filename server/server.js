@@ -336,10 +336,21 @@ app.post('/get-mp3', async (req, res) => {
   //   --audio-format mp3: Convert to MP3
   //   --audio-quality 0: Best quality
   //   --no-playlist: Don't download playlists
-  //   --ffmpeg-location: Specify ffmpeg path
-  const ytDlpPath = path.join(__dirname, 'yt-dlp.exe');
+  //   --ffmpeg-location: Specify ffmpeg path (Windows only)
+  
+  // Detect platform and use appropriate binary
+  const isWindows = process.platform === 'win32';
+  const ytDlpPath = isWindows ? path.join(__dirname, 'yt-dlp.exe') : 'yt-dlp';
   const ffmpegPath = __dirname;
-  const command = `"${ytDlpPath}" --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --audio-quality 0 --no-playlist -o "${outputPath}" "${youtubeUrl}"`;
+  
+  // Build command - on Linux, yt-dlp and ffmpeg should be installed globally
+  let command;
+  if (isWindows) {
+    command = `"${ytDlpPath}" --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --audio-quality 0 --no-playlist -o "${outputPath}" "${youtubeUrl}"`;
+  } else {
+    // Linux/Railway - use globally installed yt-dlp and ffmpeg
+    command = `yt-dlp -x --audio-format mp3 --audio-quality 0 --no-playlist -o "${outputPath}" "${youtubeUrl}"`;
+  }
 
   exec(command, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
     console.log('📋 yt-dlp stdout:', stdout);

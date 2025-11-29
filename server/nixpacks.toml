@@ -1,0 +1,11 @@
+# Nixpacks configuration for Railway deployment
+# Install yt-dlp and ffmpeg for audio extraction
+
+[phases.setup]
+nixPkgs = ["yt-dlp", "ffmpeg"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[start]
+cmd = "node server.js"
