@@ -9,7 +9,7 @@ const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
-const PORT = 3001; // Different port from React app (3000)
+const PORT = process.env.PORT || 3001; // Use Railway's PORT or default to 3001
 
 // Directory to store downloaded MP3 files and analysis data
 const MP3_DIR = path.join(__dirname, 'mp3files');
@@ -23,8 +23,28 @@ if (!fs.existsSync(ANALYSIS_DIR)) {
   fs.mkdirSync(ANALYSIS_DIR, { recursive: true });
 }
 
-// Middleware
-app.use(cors()); // Enable CORS for React frontend
+// CORS configuration - allow GitHub Pages and localhost
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://yerry262.github.io'
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(null, true); // Allow anyway for now, can restrict later
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json({ limit: '50mb' })); // Increase limit for analysis data
 
 // Serve static MP3 files

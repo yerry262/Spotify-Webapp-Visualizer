@@ -1,8 +1,10 @@
 // Spotify API Configuration
 // Using Authorization Code with PKCE Flow (no client secret needed)
+import { SPOTIFY_REDIRECT_URI } from './config';
+
 export const SPOTIFY_CONFIG = {
   clientId: process.env.REACT_APP_SPOTIFY_CLIENT_ID || '6ada4e42731d48f9ad85fab1764aca89',
-  redirectUri: 'http://127.0.0.1:3000/callback',
+  redirectUri: SPOTIFY_REDIRECT_URI,
   scopes: [
     'user-read-playback-state',
     'user-read-currently-playing',

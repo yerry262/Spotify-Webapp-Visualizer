@@ -9,6 +9,8 @@
 // 5. Analyze MP3 with Essentia.js
 // 6. Generate visualization
 
+import { API_BASE_URL } from './config';
+
 // Get YouTube API key from environment variable
 const YOUTUBE_API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY;
 
@@ -197,7 +199,7 @@ export const YouTubeService = {
         song: songName
       });
       
-      const response = await fetch(`http://localhost:3001/check-mp3-cache?${params}`);
+      const response = await fetch(`${API_BASE_URL}/check-mp3-cache?${params}`);
       if (!response.ok) return null;
       
       const data = await response.json();
@@ -320,7 +322,7 @@ export const YouTubeService = {
    */
   async clearOldMP3s() {
     try {
-      const response = await fetch('http://localhost:3001/clear-mp3s', {
+      const response = await fetch(`${API_BASE_URL}/clear-mp3s`, {
         method: 'POST'
       });
       const data = await response.json();
@@ -338,7 +340,7 @@ export const YouTubeService = {
    */
   async getMP3(youtubeUrl, artistName, songName, clearOld = false) {
     try {
-      const response = await fetch('http://localhost:3001/get-mp3', {
+      const response = await fetch(`${API_BASE_URL}/get-mp3`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

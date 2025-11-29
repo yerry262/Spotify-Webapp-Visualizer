@@ -2,6 +2,8 @@
 // Extracts Melspectrogram, HPCP Chroma, and Pitch data from MP3 files
 // For educational research purposes - Spotify & Google Research Project
 
+import { API_BASE_URL } from './config';
+
 // Constants for audio analysis
 const SAMPLE_RATE = 44100;
 const FRAME_SIZE = 2048;
@@ -9,7 +11,7 @@ const HOP_SIZE = 1024;
 const FRAME_INTERVAL = 0.1; // 10fps (0.1s intervals) - sufficient for smooth visualization
 
 // Server URL for analysis cache
-const SERVER_URL = 'http://localhost:3001';
+const SERVER_URL = API_BASE_URL;
 
 // Timestamp helper for console logs
 const timestamp = () => {
