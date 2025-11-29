@@ -20,6 +20,12 @@ const SideMenu = ({
   const profileImage = user?.images?.[0]?.url;
   const displayName = user?.display_name || user?.id || 'User';
 
+    // Determine Home URL based on environment
+    let homeUrl = '/callback';
+    if (typeof window !== 'undefined' && window.location.hostname === 'yerry262.github.io') {
+      homeUrl = '/Spotify-Webapp-Visualizer/callback';
+    }
+
   return (
     <>
       {/* Backdrop overlay */}
@@ -50,7 +56,7 @@ const SideMenu = ({
         </div>
         
         <nav className="side-menu-nav">
-          <a href="/" className="menu-item">
+          <a href={homeUrl} className="menu-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
