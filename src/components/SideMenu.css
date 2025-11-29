@@ -48,6 +48,44 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.side-menu-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.side-menu-pfp {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(29, 185, 84, 0.5);
+}
+
+.side-menu-pfp-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1DB954, #1ed760);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: #fff;
+}
+
+.side-menu-username {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .side-menu-header h2 {
   font-size: 1.2rem;
   font-weight: 600;
@@ -110,6 +148,19 @@
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+}
+
+.menu-item.logout-item {
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-item.logout-item:hover {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
 }
 
 .menu-divider {

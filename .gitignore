@@ -9,10 +9,6 @@ server/.env
 # Build output
 build/
 
-# Downloaded MP3 files (can be large)
-server/mp3files/*.mp3
-server/mp3files/*.webm
-
 # Binary executables (user must download/install these)
 server/yt-dlp.exe
 server/ffmpeg.exe

@@ -13,10 +13,10 @@ export const API_BASE_URL = isDevelopment
   : (process.env.REACT_APP_API_URL || 'https://spotify-webapp-visualizer-production.up.railway.app');
 
 // Spotify redirect URI
-// In development: localhost:3000/callback
+// In development: localhost:3000/Spotify-Webapp-Visualizer/callback
 // In production: GitHub Pages URL
 export const SPOTIFY_REDIRECT_URI = isDevelopment
-  ? 'http://127.0.0.1:3000/callback'
+  ? 'http://127.0.0.1:3000/Spotify-Webapp-Visualizer/callback'
   : 'https://yerry262.github.io/Spotify-Webapp-Visualizer/callback';
 
 export default {

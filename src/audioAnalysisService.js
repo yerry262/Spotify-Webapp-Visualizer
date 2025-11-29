@@ -105,7 +105,8 @@ let isEssentiaLoaded = false;
 let loadingPromise = null;
 
 /**
- * Load Essentia.js WASM module
+ * Load Essentia.js WASM module (non-blocking)
+ * Loads scripts in parallel and uses chunked WASM initialization to prevent UI freezing
  */
 export async function loadEssentia() {
   if (isEssentiaLoaded && essentia) {
@@ -118,37 +119,60 @@ export async function loadEssentia() {
 
   loadingPromise = new Promise(async (resolve, reject) => {
     try {
-      console.log(`${timestamp()} 🎵 Loading Essentia.js WASM module...`);
+      console.log(`${timestamp()} 🎵 Loading Essentia.js WASM module (non-blocking)...`);
       
-      // Load essentia-wasm (local file in public folder)
-      const wasmScript = document.createElement('script');
-      wasmScript.src = '/essentia-wasm.web.js';
-      document.head.appendChild(wasmScript);
-      
-      await new Promise((res) => {
+      // Load BOTH scripts in parallel for faster loading
+      const wasmScriptPromise = new Promise((res, rej) => {
+        const wasmScript = document.createElement('script');
+        wasmScript.src = `${process.env.PUBLIC_URL}/essentia-wasm.web.js`;
+        wasmScript.async = true;
         wasmScript.onload = res;
-        wasmScript.onerror = () => reject(new Error('Failed to load essentia-wasm'));
+        wasmScript.onerror = () => rej(new Error('Failed to load essentia-wasm'));
+        document.head.appendChild(wasmScript);
       });
       
-      // Load essentia.js core (local file in public folder)
-      const coreScript = document.createElement('script');
-      coreScript.src = '/essentia.js-core.js';
-      document.head.appendChild(coreScript);
-      
-      await new Promise((res) => {
+      const coreScriptPromise = new Promise((res, rej) => {
+        const coreScript = document.createElement('script');
+        coreScript.src = `${process.env.PUBLIC_URL}/essentia.js-core.js`;
+        coreScript.async = true;
         coreScript.onload = res;
-        coreScript.onerror = () => reject(new Error('Failed to load essentia.js-core'));
+        coreScript.onerror = () => rej(new Error('Failed to load essentia.js-core'));
+        document.head.appendChild(coreScript);
       });
       
-      // Initialize Essentia WASM module
-      essentiaWASM = await window.EssentiaWASM();
-      essentia = new window.Essentia(essentiaWASM);
+      // Wait for both scripts to load in parallel
+      await Promise.all([wasmScriptPromise, coreScriptPromise]);
+      console.log(`${timestamp()} 📜 Scripts loaded, initializing WASM...`);
       
-      isEssentiaLoaded = true;
-      console.log(`${timestamp()} ✅ Essentia.js loaded successfully!`);
-      resolve(essentia);
+      // Use requestIdleCallback for WASM initialization to avoid blocking UI
+      const initWasm = () => new Promise((res, rej) => {
+        const doInit = async () => {
+          try {
+            console.log(`${timestamp()} 🔧 Initializing WASM module...`);
+            essentiaWASM = await window.EssentiaWASM();
+            essentia = new window.Essentia(essentiaWASM);
+            isEssentiaLoaded = true;
+            console.log(`${timestamp()} ✅ Essentia.js loaded successfully!`);
+            res(essentia);
+          } catch (err) {
+            rej(err);
+          }
+        };
+        
+        // Schedule WASM init during idle time if available
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(() => doInit(), { timeout: 5000 });
+        } else {
+          // Fallback: use setTimeout to at least yield one frame
+          setTimeout(() => doInit(), 0);
+        }
+      });
+      
+      const result = await initWasm();
+      resolve(result);
     } catch (error) {
       console.error('❌ Failed to load Essentia.js:', error);
+      loadingPromise = null; // Reset so it can be retried
       reject(error);
     }
   });
@@ -391,7 +415,7 @@ export async function extractPitch(audioSignal, sampleRate = SAMPLE_RATE) {
   
   return new Promise((resolve, reject) => {
     // Create worker from dedicated file in public folder
-    const worker = new Worker('/pitch-worker.js');
+    const worker = new Worker(`${process.env.PUBLIC_URL}/pitch-worker.js`);
     
     worker.onmessage = (e) => {
       const { type, frames, totalFrames, message } = e.data;
@@ -589,38 +613,63 @@ export async function analyzeAudio(audioUrl, artistName = null, songName = null)
 }
 
 /**
- * Get analysis data at a specific time position
+ * Get analysis data at a specific time position with interpolation
  * Used to sync visualization with Spotify playback
+ * Now interpolates between frames for smoother, more precise visualization
  */
 export function getAnalysisAtTime(analysisData, timeInSeconds) {
   if (!analysisData || !analysisData.features) return null;
   
   const { melSpectrogram, hpcpChroma, pitch, rhythm } = analysisData.features;
   
-  // Find the frame closest to the given time
-  const findClosestFrame = (frames, time) => {
-    if (!frames || frames.length === 0) return null;
+  // Find surrounding frames and interpolation factor for smooth transitions
+  const findFramesWithInterpolation = (frames, time) => {
+    if (!frames || frames.length === 0) return { frame: null, nextFrame: null, t: 0 };
     
+    // Binary search for the frame just before or at the target time
     let left = 0;
     let right = frames.length - 1;
     
     while (left < right) {
-      const mid = Math.floor((left + right) / 2);
-      if (frames[mid].time < time) {
-        left = mid + 1;
+      const mid = Math.floor((left + right + 1) / 2);
+      if (frames[mid].time <= time) {
+        left = mid;
       } else {
-        right = mid;
+        right = mid - 1;
       }
     }
     
-    // Return closest frame
-    if (left > 0 && Math.abs(frames[left - 1].time - time) < Math.abs(frames[left].time - time)) {
-      return frames[left - 1];
+    const frame = frames[left];
+    const nextFrame = left + 1 < frames.length ? frames[left + 1] : null;
+    
+    // Calculate interpolation factor (0-1 between frames)
+    let t = 0;
+    if (nextFrame && frame) {
+      const frameDuration = nextFrame.time - frame.time;
+      if (frameDuration > 0) {
+        t = (time - frame.time) / frameDuration;
+        t = Math.max(0, Math.min(1, t)); // Clamp to 0-1
+      }
     }
-    return frames[left];
+    
+    return { frame, nextFrame, t };
   };
   
-  // Check if we're on a beat
+  // Interpolate array values (for mel bands or chroma)
+  const interpolateArray = (arr1, arr2, t) => {
+    if (!arr1) return arr2 || null;
+    if (!arr2) return arr1;
+    return arr1.map((v, i) => v + (arr2[i] - v) * t);
+  };
+  
+  // Interpolate single values
+  const interpolateValue = (v1, v2, t) => {
+    if (v1 === undefined || v1 === null) return v2 || 0;
+    if (v2 === undefined || v2 === null) return v1;
+    return v1 + (v2 - v1) * t;
+  };
+  
+  // Check if we're on a beat - with more precision
   const isOnBeat = (time, beats, tolerance = 0.05) => {
     if (!beats) return { onBeat: false, beatStrength: 0 };
     
@@ -628,7 +677,7 @@ export function getAnalysisAtTime(analysisData, timeInSeconds) {
       const beatTime = beats[i];
       const diff = Math.abs(time - beatTime);
       if (diff < tolerance) {
-        // Calculate beat strength based on proximity
+        // Calculate beat strength based on proximity - smoother falloff
         const strength = 1 - (diff / tolerance);
         const isDownbeat = i % 4 === 0; // Every 4th beat is stronger
         return {
@@ -641,17 +690,37 @@ export function getAnalysisAtTime(analysisData, timeInSeconds) {
     return { onBeat: false, beatStrength: 0 };
   };
   
-  const melFrame = findClosestFrame(melSpectrogram, timeInSeconds);
-  const chromaFrame = findClosestFrame(hpcpChroma, timeInSeconds);
-  const pitchFrame = findClosestFrame(pitch, timeInSeconds);
+  // Get interpolated mel spectrogram
+  const melResult = findFramesWithInterpolation(melSpectrogram, timeInSeconds);
+  const interpolatedMel = melResult.frame ? 
+    interpolateArray(melResult.frame.bands, melResult.nextFrame?.bands, melResult.t) : null;
+  
+  // Get interpolated chroma (higher resolution, but still interpolate)
+  const chromaResult = findFramesWithInterpolation(hpcpChroma, timeInSeconds);
+  const interpolatedChroma = chromaResult.frame ?
+    interpolateArray(chromaResult.frame.chroma, chromaResult.nextFrame?.chroma, chromaResult.t) : null;
+  
+  // Get interpolated pitch
+  const pitchResult = findFramesWithInterpolation(pitch, timeInSeconds);
+  const interpolatedPitch = interpolateValue(
+    pitchResult.frame?.pitch, 
+    pitchResult.nextFrame?.pitch, 
+    pitchResult.t
+  );
+  const interpolatedConfidence = interpolateValue(
+    pitchResult.frame?.confidence,
+    pitchResult.nextFrame?.confidence,
+    pitchResult.t
+  );
+  
   const beatInfo = isOnBeat(timeInSeconds, rhythm?.beats);
   
   return {
     time: timeInSeconds,
-    mel: melFrame?.bands || null,
-    chroma: chromaFrame?.chroma || null,
-    pitch: pitchFrame?.pitch || 0,
-    pitchConfidence: pitchFrame?.confidence || 0,
+    mel: interpolatedMel,
+    chroma: interpolatedChroma,
+    pitch: interpolatedPitch,
+    pitchConfidence: interpolatedConfidence,
     bpm: rhythm?.bpm || 120,
     ...beatInfo
   };

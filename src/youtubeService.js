@@ -215,8 +215,68 @@ export const YouTubeService = {
   },
 
   /**
+   * Helper function to make YouTube API search request
+   * @returns {Promise<{videoId: string, url: string} | null>}
+   */
+  async _searchYouTubeAPI(query) {
+    const url = `https://www.googleapis.com/youtube/v3/search?` + 
+      `part=id&` +
+      `q=${encodeURIComponent(query)}&` +
+      `type=video&` +
+      `videoCategoryId=10&` +
+      `maxResults=1&` +
+      `fields=items/id/videoId&` +
+      `key=${YOUTUBE_API_KEY}`;
+
+    console.warn('💰 TRIGGERING YOUTUBE API - COST: 100 QUOTA UNITS');
+    console.log('🔍 Making YouTube API call (rate-limited)...');
+    console.log('   Query:', query);
+    const response = await rateLimitedFetch(url);
+    
+    // Handle 403 Forbidden
+    if (response.status === 403) {
+      const errorData = await response.json().catch(() => ({}));
+      apiBlocked = true;
+      apiBlockReason = errorData.error?.message || 'Quota exceeded or access forbidden';
+      console.error('🚫 YouTube API returned 403 Forbidden');
+      console.error('   Reason:', apiBlockReason);
+      return { error: 'blocked' };
+    }
+    
+    if (!response.ok) {
+      console.error(`YouTube API Error: HTTP ${response.status}`);
+      return { error: 'http_error' };
+    }
+    
+    const data = await response.json();
+
+    if (data.error) {
+      if (data.error.code === 403) {
+        apiBlocked = true;
+        apiBlockReason = data.error.message || 'Quota exceeded or access forbidden';
+        console.error('🚫 YouTube API blocked:', apiBlockReason);
+        return { error: 'blocked' };
+      }
+      console.error('YouTube API Error:', data.error.message);
+      return { error: 'api_error' };
+    }
+
+    if (!data.items || data.items.length === 0) {
+      console.warn('No YouTube results found for:', query);
+      return { error: 'no_results' };
+    }
+
+    const video = data.items[0];
+    return {
+      videoId: video.id.videoId,
+      url: `https://www.youtube.com/watch?v=${video.id.videoId}`
+    };
+  },
+
+  /**
    * Search for a song on YouTube and get the top result
    * Uses localStorage cache to avoid duplicate API calls
+   * Retries with simplified query (song name only) if no results found
    */
   async searchVideo(artistName, songName) {
     // Check if API is blocked (403 error occurred)
@@ -241,63 +301,32 @@ export const YouTubeService = {
       return memoryCached.data;
     }
 
-    // Optimized query
-    const query = `${artistName} ${songName} official audio`;
-    
-    // OPTIMIZED API REQUEST
-    const url = `https://www.googleapis.com/youtube/v3/search?` + 
-      `part=id&` +
-      `q=${encodeURIComponent(query)}&` +
-      `type=video&` +
-      `videoCategoryId=10&` +
-      `maxResults=1&` +
-      `fields=items/id/videoId&` +
-      `key=${YOUTUBE_API_KEY}`;
-
     try {
-      console.warn('💰 TRIGGERING YOUTUBE API - COST: 100 QUOTA UNITS');
-      console.log('🔍 Making YouTube API call (rate-limited)...');
-      const response = await rateLimitedFetch(url);
+      // First attempt: full query with artist + song + "official audio"
+      const fullQuery = `${artistName} ${songName} official audio`;
+      let result = await this._searchYouTubeAPI(fullQuery);
       
-      // Handle 403 Forbidden
-      if (response.status === 403) {
-        const errorData = await response.json().catch(() => ({}));
-        apiBlocked = true;
-        apiBlockReason = errorData.error?.message || 'Quota exceeded or access forbidden';
-        console.error('🚫 YouTube API returned 403 Forbidden');
-        console.error('   Reason:', apiBlockReason);
-        return null;
-      }
-      
-      if (!response.ok) {
-        console.error(`YouTube API Error: HTTP ${response.status}`);
-        return null;
-      }
-      
-      const data = await response.json();
-
-      if (data.error) {
-        if (data.error.code === 403) {
-          apiBlocked = true;
-          apiBlockReason = data.error.message || 'Quota exceeded or access forbidden';
-          console.error('🚫 YouTube API blocked:', apiBlockReason);
-          return null;
+      // If no results found (but not blocked/error), retry with artist + song (no "official audio")
+      if (result.error === 'no_results') {
+        console.log('🔄 No results with full query, retrying with artist + song name in 5s...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Second attempt: artist + song name (no "official audio")
+        const simpleQuery = `${artistName} ${songName}`;
+        result = await this._searchYouTubeAPI(simpleQuery);
+        
+        // If still no results, try one more time with just the song name
+        if (result.error === 'no_results') {
+          console.log('🔄 Still no results, trying with just song name in 5s...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          result = await this._searchYouTubeAPI(songName);
         }
-        console.error('YouTube API Error:', data.error.message);
+      }
+      
+      // If we got an error response, return null
+      if (result.error) {
         return null;
       }
-
-      if (!data.items || data.items.length === 0) {
-        console.warn('No YouTube results found for:', query);
-        return null;
-      }
-
-      const video = data.items[0];
-      const videoId = video.id.videoId;
-      const result = {
-        videoId: videoId,
-        url: `https://www.youtube.com/watch?v=${videoId}`
-      };
 
       // Save to localStorage (persistent)
       saveToLocalStorage(cacheKey, result);
@@ -375,8 +404,10 @@ export const YouTubeService = {
         if (data.cached) {
           console.log('📦 Using cached MP3 from server');
         }
+        // Construct full URL from relative path
+        const fullMp3Url = `${API_BASE_URL}${data.mp3Url}`;
         return {
-          mp3Url: data.mp3Url,
+          mp3Url: fullMp3Url,
           filename: data.filename,
           title: data.title,
           cached: data.cached || false
@@ -413,7 +444,7 @@ export const YouTubeService = {
           song: songName,
           youtube: null,
           mp3: {
-            mp3Url: serverCache.mp3Url,
+            mp3Url: `${API_BASE_URL}${serverCache.mp3Url}`,
             filename: serverCache.filename,
             title: `${artistName} - ${songName}`,
             cached: true
@@ -462,7 +493,7 @@ export const YouTubeService = {
           song: songName,
           youtube: null, // Didn't need to call YouTube API!
           mp3: {
-            mp3Url: serverCache.mp3Url,
+            mp3Url: `${API_BASE_URL}${serverCache.mp3Url}`,
             filename: serverCache.filename,
             title: `${artistName} - ${songName}`,
             cached: true

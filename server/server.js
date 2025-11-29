@@ -112,7 +112,7 @@ app.get('/check-mp3-cache', (req, res) => {
   
   if (fs.existsSync(cachePath)) {
     const stats = fs.statSync(cachePath);
-    const mp3Url = `http://localhost:${PORT}/mp3files/${encodeURIComponent(cacheFilename)}`;
+    const mp3Url = `/mp3files/${encodeURIComponent(cacheFilename)}`;
     console.log(`📦 Cache HIT: ${cacheFilename}`);
     return res.json({
       cached: true,
@@ -154,7 +154,7 @@ app.post('/get-mp3', async (req, res) => {
     const cachePath = path.join(MP3_DIR, cacheFilename);
     if (fs.existsSync(cachePath)) {
       const stats = fs.statSync(cachePath);
-      const mp3Url = `http://localhost:${PORT}/mp3files/${encodeURIComponent(cacheFilename)}`;
+      const mp3Url = `/mp3files/${encodeURIComponent(cacheFilename)}`;
       console.log(`📦 Using cached MP3 (artist-song): ${cacheFilename}`);
       return res.json({
         mp3Url: mp3Url,
@@ -196,7 +196,7 @@ app.post('/get-mp3', async (req, res) => {
       const ageMs = Date.now() - stats.mtimeMs;
       // If file is less than 1 hour old, return it as cached
       if (ageMs < 3600000) {
-        const mp3Url = `http://localhost:${PORT}/mp3files/${encodeURIComponent(file)}`;
+        const mp3Url = `/mp3files/${encodeURIComponent(file)}`;
         console.log(`✅ Using cached MP3 (legacy): ${file}`);
         return res.json({
           mp3Url: mp3Url,
@@ -287,7 +287,7 @@ app.post('/get-mp3', async (req, res) => {
     }
 
     const fileStats = fs.statSync(mp3Path);
-    const mp3Url = `http://localhost:${PORT}/mp3files/${encodeURIComponent(mp3Filename)}`;
+    const mp3Url = `/mp3files/${encodeURIComponent(mp3Filename)}`;
 
     console.log(`✅ MP3 ready: ${mp3Filename}`);
     console.log(`📁 Size: ${(fileStats.size / 1024 / 1024).toFixed(2)} MB`);
@@ -315,7 +315,7 @@ app.get('/mp3files/list', (req, res) => {
         const stats = fs.statSync(filepath);
         return {
           filename,
-          url: `http://localhost:${PORT}/mp3files/${encodeURIComponent(filename)}`,
+          url: `/mp3files/${encodeURIComponent(filename)}`,
           size: stats.size,
           created: stats.birthtime
         };
@@ -384,7 +384,7 @@ app.get('/check-analysis-cache', (req, res) => {
     return res.json({
       cached: true,
       filename: analysisFilename,
-      url: `http://localhost:${PORT}/analysis/${encodeURIComponent(analysisFilename)}`,
+      url: `/analysis/${encodeURIComponent(analysisFilename)}`,
       artist: artist,
       song: song,
       size: stats.size,
@@ -441,7 +441,7 @@ app.post('/save-analysis', (req, res) => {
       success: true,
       filename: analysisFilename,
       size: stats.size,
-      url: `http://localhost:${PORT}/analysis/${encodeURIComponent(analysisFilename)}`
+      url: `/analysis/${encodeURIComponent(analysisFilename)}`
     });
   } catch (error) {
     console.error('❌ Failed to save analysis:', error);
@@ -459,7 +459,7 @@ app.get('/analysis/list', (req, res) => {
         const stats = fs.statSync(filepath);
         return {
           filename,
-          url: `http://localhost:${PORT}/analysis/${encodeURIComponent(filename)}`,
+          url: `/analysis/${encodeURIComponent(filename)}`,
           size: stats.size,
           created: stats.birthtime
         };

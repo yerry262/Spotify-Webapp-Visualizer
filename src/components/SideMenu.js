@@ -1,7 +1,10 @@
 import React from 'react';
 import './SideMenu.css';
 
-const SideMenu = ({ isOpen, onClose }) => {
+const SideMenu = ({ isOpen, onClose, onLogout, user }) => {
+  const profileImage = user?.images?.[0]?.url;
+  const displayName = user?.display_name || user?.id || 'User';
+
   return (
     <>
       {/* Backdrop overlay */}
@@ -13,7 +16,16 @@ const SideMenu = ({ isOpen, onClose }) => {
       {/* Side Menu Panel */}
       <div className={`side-menu ${isOpen ? 'open' : ''}`}>
         <div className="side-menu-header">
-          <h2>Menu</h2>
+          <div className="side-menu-user">
+            {profileImage ? (
+              <img src={profileImage} alt={displayName} className="side-menu-pfp" />
+            ) : (
+              <div className="side-menu-pfp-placeholder">
+                <span>{displayName.charAt(0).toUpperCase()}</span>
+              </div>
+            )}
+            <span className="side-menu-username">{displayName}</span>
+          </div>
           <button className="close-btn" onClick={onClose} title="Close Menu">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -31,13 +43,12 @@ const SideMenu = ({ isOpen, onClose }) => {
             <span>Home</span>
           </a>
           
-          <a href="/test-runner.html" className="menu-item">
+          <a href={`${process.env.PUBLIC_URL}/test-runner.html`} className="menu-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-              <polyline points="2 17 12 22 22 17"></polyline>
-              <polyline points="2 12 12 17 22 12"></polyline>
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
             </svg>
-            <span>Test Runner</span>
+            <span>Settings / Test Runner</span>
           </a>
           
           <div className="menu-divider"></div>
@@ -48,6 +59,15 @@ const SideMenu = ({ isOpen, onClose }) => {
             </svg>
             <span>GitHub</span>
           </a>
+          
+          <div className="menu-divider"></div>
+          
+          <button className="menu-item logout-item" onClick={onLogout}>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+            </svg>
+            <span>Sign Out</span>
+          </button>
         </nav>
         
         <div className="side-menu-footer">

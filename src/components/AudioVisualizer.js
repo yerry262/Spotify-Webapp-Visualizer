@@ -157,18 +157,19 @@ const AudioVisualizer = ({
     }
   }, [trackId]);
 
-  // Sync with Spotify progress periodically (every 2 seconds or on significant drift)
+  // Sync with Spotify progress more frequently for better precision
   useEffect(() => {
     if (typeof progress === 'number' && analysisData && isPlaying) {
+      // Keep full precision - Spotify provides ms, convert to seconds with decimals
       const spotifyTime = progress / 1000;
       const timeSinceSync = performance.now() - lastSyncTimeRef.current;
       const drift = Math.abs(currentTimeRef.current - spotifyTime);
       
-      // Sync if:
-      // 1. More than 2 seconds since last sync
-      // 2. Drift is more than 0.5 seconds
-      // 3. We're at the very start (first sync)
-      if (timeSinceSync > 2000 || drift > 0.5 || lastSyncTimeRef.current === 0) {
+      // Sync more aggressively for better accuracy:
+      // 1. Every 1 second (was 2)
+      // 2. Drift > 0.15 seconds (was 0.5) - catches smaller drifts
+      // 3. First sync
+      if (timeSinceSync > 1000 || drift > 0.15 || lastSyncTimeRef.current === 0) {
         syncWithSpotify(progress);
       }
     }

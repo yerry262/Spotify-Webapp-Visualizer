@@ -10,7 +10,6 @@ const UserProfile = ({ user, onMenuClick }) => {
   return (
     <div className="user-profile">
       <div className="user-info">
-        <span className="signed-in-label">SIGNED IN AS</span>
         <div className="user-details">
           {profileImage ? (
             <img src={profileImage} alt={displayName} className="profile-image" />

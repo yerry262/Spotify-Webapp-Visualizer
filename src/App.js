@@ -5,7 +5,7 @@ import TrackInfo from './components/TrackInfo';
 import PlaybackControls from './components/PlaybackControls';
 import UserProfile from './components/UserProfile';
 import SideMenu from './components/SideMenu';
-import { analyzeAudio, getCachedAnalysis } from './audioAnalysisService';
+import { analyzeAudio, getCachedAnalysis, loadEssentia } from './audioAnalysisService';
 import { YouTubeService } from './youtubeService';
 import './App.css';
 
@@ -30,10 +30,27 @@ function App() {
 
   // Load version info
   useEffect(() => {
-    fetch('/version.json')
+    fetch(`${process.env.PUBLIC_URL}/version.json`)
       .then(res => res.json())
       .then(data => setVersionInfo(data))
       .catch(err => console.error('Failed to load version info:', err));
+  }, []);
+
+  // Preload Essentia.js WASM module when browser is idle (non-blocking)
+  useEffect(() => {
+    const startPreload = () => {
+      loadEssentia().catch(err => 
+        console.warn('Essentia.js preload failed (will retry when needed):', err)
+      );
+    };
+    
+    // Use requestIdleCallback if available, otherwise use setTimeout
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(startPreload, { timeout: 2000 });
+    } else {
+      // Fallback: start after a short delay to let initial render complete
+      setTimeout(startPreload, 100);
+    }
   }, []);
 
   // Handle OAuth callback
@@ -299,7 +316,7 @@ function App() {
       <UserProfile user={user} onMenuClick={() => setIsMenuOpen(true)} />
       
       {/* Side Menu */}
-      <SideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      <SideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onLogout={handleLogout} user={user} />
       
       {/* Main Content */}
       <div className="main-content">
@@ -343,20 +360,7 @@ function App() {
       
       {/* Version Footer */}
       <footer className="version-footer">
-        {user && (
-          <button className="signout-btn" onClick={handleLogout} title="Sign Out">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-            </svg>
-          </button>
-        )}
         <span>Made by {versionInfo.AUTHOR} - v{versionInfo.VERSION}</span>
-        <a href="/test-runner.html" className="settings-btn" title="Test Runner">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-        </a>
       </footer>
     </div>
   );

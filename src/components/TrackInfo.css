@@ -41,16 +41,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 25px;
-  padding: 30px;
+  gap: 15px;
+  padding: 20px;
+  padding-top: 10px;
   width: 100%;
   max-width: 500px;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .album-art-container {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: min(180px, 35vw);
+  height: min(180px, 35vw);
+  flex-shrink: 0;
 }
 
 .album-art {
@@ -82,8 +86,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 220px;
-  height: 220px;
+  width: 110%;
+  height: 110%;
   pointer-events: none;
   z-index: 3;
 }
@@ -99,20 +103,20 @@
 }
 
 .vinyl-ring:nth-child(1) {
-  width: 230px;
-  height: 230px;
+  width: 100%;
+  height: 100%;
   animation-delay: 0s;
 }
 
 .vinyl-ring:nth-child(2) {
-  width: 260px;
-  height: 260px;
+  width: 115%;
+  height: 115%;
   animation-delay: 1s;
 }
 
 .vinyl-ring:nth-child(3) {
-  width: 290px;
-  height: 290px;
+  width: 130%;
+  height: 130%;
   animation-delay: 2s;
 }
 
@@ -306,18 +310,19 @@
 
 @media (max-width: 600px) {
   .track-content {
-    padding: 20px;
-    gap: 20px;
+    padding: 15px;
+    padding-top: 5px;
+    gap: 12px;
   }
   
   .album-art-container {
-    width: 160px;
-    height: 160px;
+    width: min(140px, 32vw);
+    height: min(140px, 32vw);
   }
   
-  .vinyl-ring:nth-child(1) { width: 180px; height: 180px; }
-  .vinyl-ring:nth-child(2) { width: 200px; height: 200px; }
-  .vinyl-ring:nth-child(3) { width: 220px; height: 220px; }
+  .vinyl-ring:nth-child(1) { width: 100%; height: 100%; }
+  .vinyl-ring:nth-child(2) { width: 115%; height: 115%; }
+  .vinyl-ring:nth-child(3) { width: 130%; height: 130%; }
   
   .track-name {
     font-size: 22px;
