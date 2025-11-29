@@ -10,7 +10,7 @@ const isDevelopment = process.env.NODE_ENV === 'development' ||
 // In production: Your Railway backend URL (set via environment variable or update here)
 export const API_BASE_URL = isDevelopment 
   ? 'http://localhost:3001'
-  : (process.env.REACT_APP_API_URL || 'https://your-railway-app.up.railway.app');
+  : (process.env.REACT_APP_API_URL || 'https://spotify-webapp-visualizer-production.up.railway.app');
 
 // Spotify redirect URI
 // In development: localhost:3000/callback
