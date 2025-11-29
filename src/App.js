@@ -1,21 +1,39 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SpotifyAuth, SpotifyAPI } from './spotifyService';
 import AudioVisualizer from './components/AudioVisualizer';
 import TrackInfo from './components/TrackInfo';
 import IdleAnimation from './components/IdleAnimation';
 import PlaybackControls from './components/PlaybackControls';
 import UserProfile from './components/UserProfile';
+import { analyzeAudio } from './audioAnalysisService';
+import { YouTubeService } from './youtubeService';
 import './App.css';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [playbackState, setPlaybackState] = useState(null);
-  const [audioFeatures, setAudioFeatures] = useState(null);
-  const [audioAnalysis, setAudioAnalysis] = useState(null);
-  const [currentTrackId, setCurrentTrackId] = useState(null);
-  const [trackData, setTrackData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [versionInfo, setVersionInfo] = useState({ VERSION: '', AUTHOR: '' });
+  const [analysisData, setAnalysisData] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // Use ref to track current track ID without causing re-renders
+  const currentTrackIdRef = useRef(null);
+  // Track if we're currently processing to prevent duplicate calls
+  const isProcessingRef = useRef(false);
+  // Debounce timer for track changes
+  const trackChangeTimerRef = useRef(null);
+  // Track change debounce delay (ms) - wait for track to "settle"
+  const TRACK_CHANGE_DEBOUNCE = 800;
+
+  // Load version info
+  useEffect(() => {
+    fetch('/version.json')
+      .then(res => res.json())
+      .then(data => setVersionInfo(data))
+      .catch(err => console.error('Failed to load version info:', err));
+  }, []);
 
   // Handle OAuth callback
   useEffect(() => {
@@ -49,55 +67,154 @@ function App() {
       setPlaybackState(state);
       
       if (state?.item) {
-        // Store all track data (simulating pandas dataframe concept)
-        const trackInfo = {
-          id: state.item.id,
-          name: state.item.name,
-          artists: state.item.artists.map(a => a.name),
-          album: state.item.album.name,
-          albumArt: state.item.album.images[0]?.url,
-          duration_ms: state.item.duration_ms,
-          progress_ms: state.progress_ms,
-          is_playing: state.is_playing,
-          popularity: state.item.popularity,
-          explicit: state.item.explicit,
-          preview_url: state.item.preview_url,
-          external_url: state.item.external_urls?.spotify,
-          uri: state.item.uri,
-          timestamp: new Date().toISOString()
-        };
-        setTrackData(trackInfo);
-        
-        // Only update when track changes
-        if (state.item.id !== currentTrackId) {
-          setCurrentTrackId(state.item.id);
+        // Only update when track changes - use ref to avoid dependency issues
+        if (state.item.id !== currentTrackIdRef.current) {
+          // Prevent duplicate processing - strict lock check
+          if (isProcessingRef.current) {
+            console.log('⏳ Already processing a track, skipping...', state.item.name);
+            return;
+          }
           
-          // Note: Audio Features and Audio Analysis APIs are now restricted (403)
-          console.log('Track changed:', state.item.name);
-          console.log('Preview URL:', state.item.preview_url || 'Not available');
+          // Cancel any pending debounced track change
+          if (trackChangeTimerRef.current) {
+            clearTimeout(trackChangeTimerRef.current);
+            trackChangeTimerRef.current = null;
+          }
           
-          // Clear old audio data
-          setAudioFeatures(null);
-          setAudioAnalysis(null);
+          // Immediately update ref to prevent duplicate triggers
+          const previousTrackId = currentTrackIdRef.current;
+          currentTrackIdRef.current = state.item.id;
           
+          const trackName = state.item.name;
+          const artistName = state.item.artists[0]?.name;
           
+          console.log('🎵 Track changed:', trackName, '-', artistName);
+          console.log('   Previous ID:', previousTrackId, '→ New ID:', state.item.id);
+          
+          // Clear old audio data immediately
+          setAnalysisData(null);
+          
+          // Check if YouTube API is blocked (403 error) - don't even try
+          if (YouTubeService.isApiBlocked()) {
+            console.warn('🚫 YouTube API blocked, cannot analyze audio');
+            console.warn('   Reason:', YouTubeService.getApiBlockReason());
+            console.warn('   Reload the page to try again.');
+            return;
+          }
+          
+          // Cancel any previous processing
+          YouTubeService.cancelCurrentProcessing();
+          
+          // DEBOUNCED PROCESSING: Wait for track to "settle" before starting
+          // This prevents rapid API calls when user is skipping through tracks
+          console.log(`⏳ Waiting ${TRACK_CHANGE_DEBOUNCE}ms for track to settle...`);
+          
+          trackChangeTimerRef.current = setTimeout(async () => {
+            trackChangeTimerRef.current = null;
+            
+            // Verify this is still the current track after debounce
+            if (state.item.id !== currentTrackIdRef.current) {
+              console.log('🛑 Track changed during debounce, aborting');
+              return;
+            }
+            
+            // Double-check we're not already processing
+            if (isProcessingRef.current) {
+              console.log('⏳ Already processing, skipping debounced request');
+              return;
+            }
+            
+            // Mark as processing BEFORE any async work
+            isProcessingRef.current = true;
+            
+            // Start the YouTube → MP3 → Analysis pipeline
+            setIsAnalyzing(true);
+            
+            try {
+              // Double-check API isn't blocked
+              if (YouTubeService.isApiBlocked()) {
+                console.warn('🚫 YouTube API is blocked, aborting');
+                setIsAnalyzing(false);
+                isProcessingRef.current = false;
+                return;
+              }
+              
+              // Get MP3 from YouTube via server
+              // SEQUENCE: Check server cache → YouTube API (if needed) → Download MP3
+              console.log('🔍 Starting MP3 pipeline...');
+              const mp3Result = await YouTubeService.getMP3ForTrack(artistName, trackName);
+              
+              if (!mp3Result) {
+                if (YouTubeService.isApiBlocked()) {
+                  console.warn('🚫 YouTube API blocked during request');
+                }
+                console.warn('⚠️ Could not get MP3 from YouTube');
+                setIsAnalyzing(false);
+                isProcessingRef.current = false;
+                return;
+              }
+              
+              // Verify track hasn't changed
+              if (!YouTubeService.shouldContinue(artistName, trackName)) {
+                console.log('🛑 Track changed, aborting analysis');
+                setIsAnalyzing(false);
+                isProcessingRef.current = false;
+                return;
+              }
+              
+              // Analyze the MP3 with Essentia.js
+              console.log('🎼 Analyzing audio with Essentia.js...');
+              const analysis = await analyzeAudio(mp3Result.mp3.mp3Url);
+              
+              // Final verify track hasn't changed
+              if (!YouTubeService.shouldContinue(artistName, trackName)) {
+                console.log('🛑 Track changed during analysis, aborting');
+                setIsAnalyzing(false);
+                isProcessingRef.current = false;
+                return;
+              }
+              
+              setAnalysisData(analysis);
+              setIsAnalyzing(false);
+              isProcessingRef.current = false;
+              console.log('✅ Audio analysis complete!');
+              
+            } catch (err) {
+              console.error('❌ Audio pipeline failed:', err);
+              setIsAnalyzing(false);
+              isProcessingRef.current = false;
+            }
+          }, TRACK_CHANGE_DEBOUNCE);
         }
       } else {
-        setTrackData(null);
-        setAudioFeatures(null);
-        setAudioAnalysis(null);
-        setYoutubeMP3Data(null);
-        setCurrentTrackId(null);
+        // No track playing - clean up state
+        setAnalysisData(null);
+        currentTrackIdRef.current = null;
+        
+        // Cancel any pending processing
+        if (trackChangeTimerRef.current) {
+          clearTimeout(trackChangeTimerRef.current);
+          trackChangeTimerRef.current = null;
+        }
+        YouTubeService.cancelCurrentProcessing();
+        isProcessingRef.current = false;
       }
     } catch (error) {
       console.error('Error fetching playback state:', error);
     }
-  }, [isLoggedIn, currentTrackId]);
+  }, [isLoggedIn]); // Only depend on isLoggedIn, not currentTrackId
 
   useEffect(() => {
     fetchPlaybackState();
     const interval = setInterval(fetchPlaybackState, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // Clean up debounce timer on unmount
+      if (trackChangeTimerRef.current) {
+        clearTimeout(trackChangeTimerRef.current);
+      }
+      YouTubeService.cancelCurrentProcessing();
+    };
   }, [fetchPlaybackState]);
 
   const handleLogin = () => {
@@ -164,12 +281,11 @@ function App() {
             {/* Top Half - Audio Visualizer */}
             <div className="visualizer-section">
               <AudioVisualizer 
+                analysisData={analysisData}
                 isPlaying={playbackState?.is_playing}
                 progress={playbackState?.progress_ms}
-                duration={playbackState?.item?.duration_ms}
+                isAnalyzing={isAnalyzing}
                 trackId={playbackState?.item?.id}
-                trackName={playbackState?.item?.name}
-                artistName={playbackState?.item?.artists?.[0]?.name}
               />
             </div>
             
@@ -191,12 +307,10 @@ function App() {
         )}
       </div>
       
-      {/* Data Panel - Hidden but stores data */}
-      {trackData && (
-        <div className="data-panel hidden">
-          <pre>{JSON.stringify(trackData, null, 2)}</pre>
-        </div>
-      )}
+      {/* Version Footer */}
+      <footer className="version-footer">
+        Made by {versionInfo.AUTHOR} - v{versionInfo.VERSION}
+      </footer>
     </div>
   );
 }

@@ -4,6 +4,7 @@
   justify-content: center;
   gap: 20px;
   padding: 20px;
+  padding-bottom: 40px;
   position: relative;
   z-index: 10;
 }

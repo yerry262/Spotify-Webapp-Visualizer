@@ -1,6 +1,6 @@
 # YouTube to MP3 Backend Server
 
-Express.js backend server that extracts MP3 audio from YouTube videos using yt-dlp.
+Express.js backend server that extracts MP3 audio from YouTube videos using yt-dlp. Includes a smart caching system that stores MP3 files with artist-song naming for quick lookup.
 
 > 📚 **Educational Research Only** - This server is for educational and research purposes.
 
@@ -19,8 +19,14 @@ Server runs on `http://localhost:3001`
 ## 📋 Prerequisites
 
 - **Node.js** v16+
-- **yt-dlp** - `pip install yt-dlp`
-- **FFmpeg** - Required for audio conversion
+- **yt-dlp** - Download executable and place in this folder, or `pip install yt-dlp`
+- **FFmpeg** - Download executable and place in this folder, or install system-wide
+
+### Windows Setup
+Place these files in the `server/` folder:
+- `yt-dlp.exe` - [Download from GitHub releases](https://github.com/yt-dlp/yt-dlp/releases)
+- `ffmpeg.exe` - [Download from FFmpeg](https://ffmpeg.org/download.html)
+- `ffprobe.exe` - Comes with FFmpeg
 
 ## 🔌 API Endpoints
 
@@ -30,24 +36,53 @@ GET /health
 ```
 Returns server status.
 
+### Check MP3 Cache
+```
+POST /check-mp3-cache
+Content-Type: application/json
+
+{
+  "artist": "Artist Name",
+  "song": "Song Title"
+}
+```
+Returns if cached:
+```json
+{
+  "cached": true,
+  "mp3Url": "http://localhost:3001/mp3files/artist_name-song_title.mp3",
+  "filename": "artist_name-song_title.mp3"
+}
+```
+Returns if not cached:
+```json
+{
+  "cached": false
+}
+```
+
 ### Extract MP3
 ```
 POST /get-mp3
 Content-Type: application/json
 
 {
-  "url": "https://www.youtube.com/watch?v=VIDEO_ID"
+  "url": "https://www.youtube.com/watch?v=VIDEO_ID",
+  "artist": "Artist Name",
+  "song": "Song Title"
 }
 ```
 Returns:
 ```json
 {
-  "mp3Url": "http://localhost:3001/mp3files/filename.mp3",
-  "filename": "Song Title_timestamp.mp3",
+  "mp3Url": "http://localhost:3001/mp3files/artist_name-song_title.mp3",
+  "filename": "artist_name-song_title.mp3",
   "title": "Song Title",
   "size": 12345678
 }
 ```
+
+> **Note**: If `artist` and `song` are provided, the file is saved as `artist-song.mp3` (sanitized). Otherwise, falls back to `video_title_timestamp.mp3`.
 
 ### List MP3 Files
 ```
@@ -74,8 +109,15 @@ MP3 files are stored in the `mp3files/` directory. Files are served statically a
 GET /mp3files/:filename
 ```
 
+### Naming Convention
+Files are saved as `artist_name-song_title.mp3`:
+- Lowercase
+- Spaces replaced with underscores
+- Special characters removed
+- Example: `Taylor Swift - Blank Space` → `taylor_swift-blank_space.mp3`
+
 ## ⚠️ Notes
 
-- Downloaded MP3 files can be large - clear periodically
+- Downloaded MP3 files can be large - clear periodically with `DELETE /mp3files/clear`
 - The server uses CORS to allow requests from the React frontend (localhost:3000)
-- yt-dlp must be installed and accessible in system PATH
+- yt-dlp and ffmpeg executables should be in this folder (Windows) or system PATH

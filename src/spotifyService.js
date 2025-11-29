@@ -198,16 +198,6 @@ export const SpotifyAPI = {
     return this.request('/me/player/currently-playing');
   },
   
-  // Get audio features for a track
-  async getAudioFeatures(trackId) {
-    return this.request(`/audio-features/${trackId}`);
-  },
-  
-  // Get audio analysis for a track
-  async getAudioAnalysis(trackId) {
-    return this.request(`/audio-analysis/${trackId}`);
-  },
-  
   // Playback controls
   async play() {
     return this.request('/me/player/play', { method: 'PUT' });
@@ -231,10 +221,5 @@ export const SpotifyAPI = {
   
   async setVolume(volumePercent) {
     return this.request(`/me/player/volume?volume_percent=${volumePercent}`, { method: 'PUT' });
-  },
-
-  // Get full track details (includes ISRC)
-  async getTrack(trackId) {
-    return this.request(`/tracks/${trackId}`);
   }
 };

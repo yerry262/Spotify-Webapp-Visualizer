@@ -6,6 +6,13 @@
 const SAMPLE_RATE = 44100;
 const FRAME_SIZE = 2048;
 const HOP_SIZE = 1024;
+const FRAME_INTERVAL = 0.1; // 10fps (0.1s intervals) - sufficient for smooth visualization
+
+// Timestamp helper for console logs
+const timestamp = () => {
+  const now = new Date();
+  return `[${now.toLocaleTimeString('en-US', { hour12: false })}.${now.getMilliseconds().toString().padStart(3, '0')}]`;
+};
 
 // Essentia.js WASM modules will be loaded dynamically
 let essentia = null;
@@ -27,11 +34,11 @@ export async function loadEssentia() {
 
   loadingPromise = new Promise(async (resolve, reject) => {
     try {
-      console.log('🎵 Loading Essentia.js WASM module...');
+      console.log(`${timestamp()} 🎵 Loading Essentia.js WASM module...`);
       
-      // Load essentia-wasm from CDN
+      // Load essentia-wasm (local file in public folder)
       const wasmScript = document.createElement('script');
-      wasmScript.src = 'https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.web.js';
+      wasmScript.src = '/essentia-wasm.web.js';
       document.head.appendChild(wasmScript);
       
       await new Promise((res) => {
@@ -39,9 +46,9 @@ export async function loadEssentia() {
         wasmScript.onerror = () => reject(new Error('Failed to load essentia-wasm'));
       });
       
-      // Load essentia.js core
+      // Load essentia.js core (local file in public folder)
       const coreScript = document.createElement('script');
-      coreScript.src = 'https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-core.js';
+      coreScript.src = '/essentia.js-core.js';
       document.head.appendChild(coreScript);
       
       await new Promise((res) => {
@@ -54,7 +61,7 @@ export async function loadEssentia() {
       essentia = new window.Essentia(essentiaWASM);
       
       isEssentiaLoaded = true;
-      console.log('✅ Essentia.js loaded successfully!');
+      console.log(`${timestamp()} ✅ Essentia.js loaded successfully!`);
       resolve(essentia);
     } catch (error) {
       console.error('❌ Failed to load Essentia.js:', error);
@@ -69,7 +76,7 @@ export async function loadEssentia() {
  * Fetch and decode audio from URL to AudioBuffer
  */
 export async function fetchAudioBuffer(audioUrl) {
-  console.log('📥 Fetching audio from:', audioUrl);
+  console.log(`${timestamp()} 📥 Fetching audio from:`, audioUrl);
   
   const audioContext = new (window.AudioContext || window.webkitAudioContext)({
     sampleRate: SAMPLE_RATE
@@ -80,7 +87,7 @@ export async function fetchAudioBuffer(audioUrl) {
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
     
-    console.log('✅ Audio decoded:', {
+    console.log(`${timestamp()} ✅ Audio decoded:`, {
       duration: audioBuffer.duration,
       sampleRate: audioBuffer.sampleRate,
       numberOfChannels: audioBuffer.numberOfChannels
@@ -116,116 +123,158 @@ export function audioBufferToMono(audioBuffer) {
 }
 
 /**
- * Extract Mel Spectrogram from audio signal
- * Uses simple FFT-based approach to avoid Essentia.js WASM crashes
+ * Pure JavaScript FFT implementation (DFT for small sizes)
+ * Avoids Essentia.js WASM crashes with Windowing/Spectrum
+ */
+function computeSpectrum(frameData) {
+  const n = frameData.length;
+  const spectrum = new Float32Array(n / 2);
+  
+  // Apply Hann window
+  const windowed = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const hannValue = 0.5 * (1 - Math.cos(2 * Math.PI * i / (n - 1)));
+    windowed[i] = frameData[i] * hannValue;
+  }
+  
+  // Compute DFT magnitude spectrum (first half)
+  for (let k = 0; k < n / 2; k++) {
+    let real = 0, imag = 0;
+    for (let t = 0; t < n; t++) {
+      const angle = -2 * Math.PI * k * t / n;
+      real += windowed[t] * Math.cos(angle);
+      imag += windowed[t] * Math.sin(angle);
+    }
+    spectrum[k] = Math.sqrt(real * real + imag * imag) / n;
+  }
+  
+  return spectrum;
+}
+
+/**
+ * Fast spectrum computation with configurable output bins
+ * More efficient for real-time visualization
+ */
+function computeSpectrumFast(frameData, outputBins = 128) {
+  const N = frameData.length;
+  const spectrum = new Float32Array(outputBins);
+  
+  // Apply Hann window
+  const windowed = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const windowValue = 0.5 * (1 - Math.cos(2 * Math.PI * i / (N - 1)));
+    windowed[i] = frameData[i] * windowValue;
+  }
+  
+  // Compute only the bins we need with downsampled computation
+  for (let k = 0; k < outputBins; k++) {
+    let real = 0, imag = 0;
+    const freq = k * (N / 2) / outputBins;
+    
+    // Downsample the computation for speed
+    const step = Math.max(1, Math.floor(N / 256));
+    for (let n = 0; n < N; n += step) {
+      const angle = -2 * Math.PI * freq * n / N;
+      real += windowed[n] * Math.cos(angle);
+      imag += windowed[n] * Math.sin(angle);
+    }
+    spectrum[k] = Math.sqrt(real * real + imag * imag) / (N / step);
+  }
+  
+  return spectrum;
+}
+
+/**
+ * Extract Mel Spectrogram from audio signal using pure JavaScript
+ * Uses 0.1s intervals for consistent frame timing
  * Returns: Array of frames, each containing mel band energies
  */
 export async function extractMelSpectrogram(audioSignal, sampleRate = SAMPLE_RATE) {
-  if (!essentia) await loadEssentia();
-  
-  console.log('🎼 Extracting Mel Spectrogram (simplified)...');
+  console.log(`${timestamp()} 🎼 Extracting Mel Spectrogram (10fps)...`);
   
   const frames = [];
-  const numFrames = Math.floor((audioSignal.length - FRAME_SIZE) / HOP_SIZE) + 1;
-  const numBands = 40; // Reduced number of bands for stability
+  const numBands = 40;
+  const totalDuration = audioSignal.length / sampleRate;
+  const numFrames = Math.floor(totalDuration / FRAME_INTERVAL);
   
-  // Process every 4th frame to reduce memory pressure and speed up
-  const frameStep = 4;
+  console.log(`${timestamp()}    Processing ${numFrames} frames at 10fps from ${totalDuration.toFixed(1)}s audio...`);
   
   try {
-    for (let i = 0; i < numFrames; i += frameStep) {
-      const startSample = i * HOP_SIZE;
+    for (let i = 0; i < numFrames; i++) {
+      const frameTime = i * FRAME_INTERVAL;
+      const startSample = Math.round(frameTime * sampleRate);
       const frameData = audioSignal.slice(startSample, startSample + FRAME_SIZE);
       
       if (frameData.length < FRAME_SIZE) break;
       
-      const frameVector = essentia.arrayToVector(frameData);
+      // Use fast spectrum computation
+      const spectrum = computeSpectrumFast(frameData, numBands * 2);
       
-      // Apply windowing
-      const windowed = essentia.Windowing(frameVector, true, FRAME_SIZE, 'hann', true, true);
-      
-      // Compute spectrum
-      const spectrum = essentia.Spectrum(windowed.frame, FRAME_SIZE);
-      const spectrumArray = essentia.vectorToArray(spectrum.spectrum);
-      
-      // Simple mel-like bands by averaging spectrum bins
+      // Group into mel-like bands
       const bands = [];
-      const binsPerBand = Math.floor(spectrumArray.length / numBands);
+      const binsPerBand = 2;
       for (let b = 0; b < numBands; b++) {
         let sum = 0;
-        const startBin = b * binsPerBand;
         for (let j = 0; j < binsPerBand; j++) {
-          sum += spectrumArray[startBin + j] || 0;
+          sum += spectrum[b * binsPerBand + j] || 0;
         }
         // Log scale for better visualization
-        bands.push(Math.log10(1 + sum / binsPerBand) * 20);
+        bands.push(Math.log10(1 + sum * 100) * 10);
       }
       
       frames.push({
-        time: startSample / sampleRate,
+        time: frameTime,
         bands: bands
       });
-      
-      // Clean up vectors
-      frameVector.delete();
-      windowed.frame.delete();
-      spectrum.spectrum.delete();
     }
   } catch (error) {
-    console.warn('⚠️ Mel extraction error, using fallback:', error.message);
-    // Return empty frames, will use fallback visualization
+    console.warn('⚠️ Mel extraction error:', error.message);
     return [];
   }
   
-  console.log(`✅ Extracted ${frames.length} mel spectrogram frames`);
+  console.log(`${timestamp()} ✅ Extracted ${frames.length} mel spectrogram frames (10fps)`);
   return frames;
 }
 
 /**
  * Extract HPCP (Harmonic Pitch Class Profile) Chroma from audio signal
- * Simplified version to avoid WASM crashes
+ * Uses pure JavaScript and 0.1s intervals
  * Returns: Array of frames, each containing 12 chroma values (C, C#, D, ... B)
  */
 export async function extractHPCPChroma(audioSignal, sampleRate = SAMPLE_RATE) {
-  if (!essentia) await loadEssentia();
+  console.log(`${timestamp()} 🎼 Extracting HPCP Chroma (30fps)...`);
   
-  console.log('🎼 Extracting HPCP Chroma (simplified)...');
-  
+  const CHROMA_INTERVAL = 0.0333; // 30fps for chroma (lighter computation)
   const frames = [];
-  const numFrames = Math.floor((audioSignal.length - FRAME_SIZE) / HOP_SIZE) + 1;
+  const totalDuration = audioSignal.length / sampleRate;
+  const numFrames = Math.floor(totalDuration / CHROMA_INTERVAL);
   
-  // Process every 4th frame to reduce memory pressure
-  const frameStep = 4;
+  console.log(`${timestamp()}    Processing ${numFrames} chroma frames at 30fps...`);
   
   try {
-    for (let i = 0; i < numFrames; i += frameStep) {
-      const startSample = i * HOP_SIZE;
+    for (let i = 0; i < numFrames; i++) {
+      const frameTime = i * CHROMA_INTERVAL;
+      const startSample = Math.round(frameTime * sampleRate);
       const frameData = audioSignal.slice(startSample, startSample + FRAME_SIZE);
       
       if (frameData.length < FRAME_SIZE) break;
       
-      const frameVector = essentia.arrayToVector(frameData);
+      // Compute spectrum with enough resolution for chroma
+      const spectrum = computeSpectrumFast(frameData, 256);
       
-      // Apply windowing
-      const windowed = essentia.Windowing(frameVector, true, FRAME_SIZE, 'hann', true, true);
-      
-      // Compute spectrum
-      const spectrum = essentia.Spectrum(windowed.frame, FRAME_SIZE);
-      const spectrumArray = essentia.vectorToArray(spectrum.spectrum);
-      
-      // Simple chroma approximation from spectrum
-      // Map spectrum bins to 12 pitch classes
+      // Map to 12 pitch classes
       const chroma = new Array(12).fill(0);
       const nyquist = sampleRate / 2;
+      const numBins = spectrum.length;
       
-      for (let bin = 1; bin < spectrumArray.length; bin++) {
-        const freq = (bin / spectrumArray.length) * nyquist;
-        if (freq > 20 && freq < 5000) {
+      for (let bin = 1; bin < numBins; bin++) {
+        const freq = (bin / numBins) * nyquist;
+        if (freq > 60 && freq < 4000) {
           // Convert frequency to pitch class (0-11)
           const midiNote = 12 * Math.log2(freq / 440) + 69;
           const pitchClass = Math.round(midiNote) % 12;
           if (pitchClass >= 0 && pitchClass < 12) {
-            chroma[pitchClass] += spectrumArray[bin];
+            chroma[pitchClass] += spectrum[bin];
           }
         }
       }
@@ -235,84 +284,70 @@ export async function extractHPCPChroma(audioSignal, sampleRate = SAMPLE_RATE) {
       const normalizedChroma = chroma.map(c => c / maxChroma);
       
       frames.push({
-        time: startSample / sampleRate,
+        time: frameTime,
         chroma: normalizedChroma
       });
-      
-      // Clean up
-      frameVector.delete();
-      windowed.frame.delete();
-      spectrum.spectrum.delete();
     }
   } catch (error) {
-    console.warn('⚠️ Chroma extraction error, using fallback:', error.message);
+    console.warn('⚠️ Chroma extraction error:', error.message);
     return [];
   }
   
-  console.log(`✅ Extracted ${frames.length} HPCP chroma frames`);
+  console.log(`${timestamp()} ✅ Extracted ${frames.length} HPCP chroma frames (10fps)`);
   return frames;
 }
 
 /**
- * Extract Pitch (fundamental frequency) using PitchMelodia algorithm
+ * Extract Pitch (fundamental frequency) using Web Worker for non-blocking processing
+ * Uses PitchMelodia algorithm with optimized hop size for 0.1s intervals
  * Returns: Array of pitch values over time
  */
 export async function extractPitch(audioSignal, sampleRate = SAMPLE_RATE) {
-  if (!essentia) await loadEssentia();
+  console.log(`${timestamp()} 🎼 Extracting Pitch (Web Worker)...`);
   
-  console.log('🎼 Extracting Pitch (Melodia)...');
-  
-  const signalVector = essentia.arrayToVector(audioSignal);
-  
-  // Use PitchMelodia for robust pitch extraction
-  const pitchResult = essentia.PitchMelodia(
-    signalVector,
-    10,      // binResolution (cents)
-    3,       // filterIterations
-    FRAME_SIZE, // frameSize
-    false,   // guessUnvoiced
-    0.8,     // harmonicWeight
-    128,     // hopSize for pitch
-    1,       // magnitudeCompression
-    40,      // magnitudeThreshold
-    20000,   // maxFrequency
-    100,     // minDuration
-    80,      // minFrequency
-    20,      // numberHarmonics
-    0.9,     // peakDistributionThreshold
-    0.9,     // peakFrameThreshold
-    27.5625, // pitchContinuity
-    55,      // referenceFrequency
-    sampleRate, // sampleRate
-    100      // timeContinuity
-  );
-  
-  const pitchArray = essentia.vectorToArray(pitchResult.pitch);
-  const confidenceArray = essentia.vectorToArray(pitchResult.pitchConfidence);
-  
-  // Create timestamped pitch data
-  const pitchHopSize = 128;
-  const frames = pitchArray.map((pitch, i) => ({
-    time: (i * pitchHopSize) / sampleRate,
-    pitch: pitch,
-    confidence: confidenceArray[i]
-  }));
-  
-  signalVector.delete();
-  pitchResult.pitch.delete();
-  pitchResult.pitchConfidence.delete();
-  
-  console.log(`✅ Extracted ${frames.length} pitch frames`);
-  return frames;
+  return new Promise((resolve, reject) => {
+    // Create worker from dedicated file in public folder
+    const worker = new Worker('/pitch-worker.js');
+    
+    worker.onmessage = (e) => {
+      const { type, frames, totalFrames, message } = e.data;
+      
+      if (type === 'progress') {
+        console.log(`${timestamp()}    ${message}`);
+      } else if (type === 'result') {
+        console.log(`${timestamp()} ✅ Extracted ${frames.length} pitch frames`);
+        worker.terminate();
+        resolve(frames);
+      } else if (type === 'error') {
+        console.error(`❌ Pitch worker error: ${message}`);
+        worker.terminate();
+        reject(new Error(message));
+      }
+    };
+    
+    worker.onerror = (error) => {
+      console.error(`❌ Worker error: ${error.message}`);
+      worker.terminate();
+      reject(new Error(error.message || 'Worker failed'));
+    };
+    
+    // Copy audio data and send to worker
+    const audioArray = new Float32Array(audioSignal);
+    worker.postMessage(
+      { audioSignal: audioArray, sampleRate, frameSize: FRAME_SIZE },
+      [audioArray.buffer]  // Transfer ownership for performance
+    );
+  });
 }
 
 /**
  * Extract BPM and beat positions
+ * Returns beat density in 0.1s intervals along with raw beat timestamps
  */
-export async function extractRhythm(audioSignal, sampleRate = SAMPLE_RATE) {
+export async function extractRhythm(audioSignal, sampleRate = SAMPLE_RATE, duration = null) {
   if (!essentia) await loadEssentia();
   
-  console.log('🎼 Extracting Rhythm (BPM & Beats)...');
+  console.log(`${timestamp()} 🎼 Extracting Rhythm (BPM & Beats)...`);
   
   const signalVector = essentia.arrayToVector(audioSignal);
   
@@ -323,17 +358,42 @@ export async function extractRhythm(audioSignal, sampleRate = SAMPLE_RATE) {
     40       // minTempo
   );
   
-  const result = {
-    bpm: rhythmResult.bpm,
-    beats: essentia.vectorToArray(rhythmResult.ticks),
-    confidence: rhythmResult.confidence
-  };
+  const rawBeats = essentia.vectorToArray(rhythmResult.ticks);
+  const bpm = rhythmResult.bpm;
+  const confidence = rhythmResult.confidence;
   
   signalVector.delete();
   rhythmResult.ticks.delete();
   
-  console.log(`✅ Extracted BPM: ${result.bpm.toFixed(1)}, ${result.beats.length} beats`);
-  return result;
+  // Calculate duration from signal if not provided
+  const audioDuration = duration || (audioSignal.length / sampleRate);
+  
+  // Filter out any beats beyond the audio duration
+  const validBeats = rawBeats.filter(t => t <= audioDuration);
+  
+  // Create 0.1s interval beat density data
+  const numFrames = Math.ceil(audioDuration / FRAME_INTERVAL);
+  const beatDensity = [];
+  
+  for (let i = 0; i < numFrames; i++) {
+    const frameStart = i * FRAME_INTERVAL;
+    const frameEnd = frameStart + FRAME_INTERVAL;
+    // Count beats in this frame
+    const beatsInFrame = validBeats.filter(t => t >= frameStart && t < frameEnd).length;
+    beatDensity.push({
+      time: frameStart,
+      beats: beatsInFrame
+    });
+  }
+  
+  console.log(`${timestamp()} ✅ Extracted BPM: ${bpm.toFixed(1)}, ${validBeats.length} beats, ${beatDensity.length} frames`);
+  
+  return {
+    bpm: bpm,
+    beats: validBeats,
+    beatDensity: beatDensity,
+    confidence: confidence
+  };
 }
 
 /**
@@ -341,9 +401,9 @@ export async function extractRhythm(audioSignal, sampleRate = SAMPLE_RATE) {
  * Each extractor is wrapped in try-catch to prevent total failure
  */
 export async function analyzeAudio(audioUrl) {
-  console.log('═══════════════════════════════════════════════');
-  console.log('🎵 Starting Full Audio Analysis');
-  console.log('═══════════════════════════════════════════════');
+  console.log(`${timestamp()} ═══════════════════════════════════════════════`);
+  console.log(`${timestamp()} 🎵 Starting Full Audio Analysis`);
+  console.log(`${timestamp()} ═══════════════════════════════════════════════`);
   
   const startTime = Date.now();
   
@@ -357,17 +417,17 @@ export async function analyzeAudio(audioUrl) {
   const duration = audioBuffer.duration;
   const sampleRate = audioBuffer.sampleRate;
   
-  console.log(`📊 Audio: ${duration.toFixed(2)}s @ ${sampleRate}Hz`);
+  console.log(`${timestamp()} 📊 Audio: ${duration.toFixed(2)}s @ ${sampleRate}Hz`);
   
   // Extract features with error handling for each
   let melSpectrogram = [];
   let hpcpChroma = [];
   let pitch = [];
-  let rhythm = { bpm: 120, beats: [], confidence: 0 };
+  let rhythm = { bpm: 120, beats: [], beatDensity: [], confidence: 0 };
   
-  // Extract rhythm first (most reliable)
+  // Extract rhythm first (most reliable) - pass duration for beat density calculation
   try {
-    rhythm = await extractRhythm(monoSignal, sampleRate);
+    rhythm = await extractRhythm(monoSignal, sampleRate, duration);
   } catch (error) {
     console.warn('⚠️ Rhythm extraction failed:', error.message);
   }
@@ -379,14 +439,14 @@ export async function analyzeAudio(audioUrl) {
     console.warn('⚠️ Pitch extraction failed:', error.message);
   }
   
-  // Extract mel spectrogram (may fail with WASM)
+  // Extract mel spectrogram (now uses pure JS, no WASM crashes)
   try {
     melSpectrogram = await extractMelSpectrogram(monoSignal, sampleRate);
   } catch (error) {
     console.warn('⚠️ Mel spectrogram extraction failed:', error.message);
   }
   
-  // Extract chroma (may fail with WASM)
+  // Extract chroma (now uses pure JS, no WASM crashes)
   try {
     hpcpChroma = await extractHPCPChroma(monoSignal, sampleRate);
   } catch (error) {
@@ -395,13 +455,13 @@ export async function analyzeAudio(audioUrl) {
   
   const analysisTime = ((Date.now() - startTime) / 1000).toFixed(2);
   
-  console.log('═══════════════════════════════════════════════');
-  console.log(`✅ Analysis complete in ${analysisTime}s`);
-  console.log(`   Mel frames: ${melSpectrogram.length}`);
-  console.log(`   Chroma frames: ${hpcpChroma.length}`);
-  console.log(`   Pitch frames: ${pitch.length}`);
-  console.log(`   BPM: ${rhythm.bpm?.toFixed(1) || 'N/A'}`);
-  console.log('═══════════════════════════════════════════════');
+  console.log(`${timestamp()} ═══════════════════════════════════════════════`);
+  console.log(`${timestamp()} ✅ Analysis complete in ${analysisTime}s`);
+  console.log(`${timestamp()}    Mel frames: ${melSpectrogram.length}`);
+  console.log(`${timestamp()}    Chroma frames: ${hpcpChroma.length}`);
+  console.log(`${timestamp()}    Pitch frames: ${pitch.length}`);
+  console.log(`${timestamp()}    BPM: ${rhythm.bpm?.toFixed(1) || 'N/A'}`);
+  console.log(`${timestamp()} ═══════════════════════════════════════════════`);
   
   return {
     duration,

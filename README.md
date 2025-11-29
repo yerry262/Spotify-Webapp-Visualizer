@@ -19,10 +19,11 @@ A React-based music visualizer that displays real-time audio analysis synchroniz
 │                      COMPUTER (This App - React)                        │
 │  ┌─────────────────────────────────────────────────────────────────┐    │
 │  │  1. Get current track info from Spotify API                     │    │
-│  │  2. Search YouTube for the song (YouTube Data API v3)           │    │
-│  │  3. Download MP3 via backend server (yt-dlp)                    │    │
-│  │  4. Analyze audio with Essentia.js (WASM)                       │    │
-│  │  5. Sync visualization with Spotify playback position           │    │
+│  │  2. Check MP3 cache (skip to step 5 if cached!)                 │    │
+│  │  3. Search YouTube for the song (YouTube Data API v3)           │    │
+│  │  4. Download MP3 via backend server (yt-dlp)                    │    │
+│  │  5. Analyze audio with Essentia.js (WASM)                       │    │
+│  │  6. Sync visualization with Spotify playback position           │    │
 │  └─────────────────────────────────────────────────────────────────┘    │
 │                                                                         │
 │  ┌─────────────────────────────────────────────────────────────────┐    │
@@ -40,11 +41,15 @@ A React-based music visualizer that displays real-time audio analysis synchroniz
 - **Real Audio Analysis**: Uses Essentia.js (industry-standard audio analysis library) for accurate music feature extraction
 - **Spotify Integration**: Connects to your Spotify account to track what's currently playing
 - **YouTube MP3 Extraction**: Automatically finds and downloads audio for analysis
+- **Smart Caching System**:
+  - MP3 files cached as `artist-song.mp3` on server (persists until manually cleared)
+  - YouTube URLs cached in localStorage (7-day TTL)
+  - API rate limiting (2s minimum between calls)
+  - Track change debouncing (800ms) to prevent rapid API calls
 - **Multiple Visualization Modes**:
-  - **Combined**: Shows mel spectrogram, chroma ring, and waveform together
-  - **Mel Spectrogram**: Frequency band visualization (bass to treble)
-  - **Chroma**: 12 pitch classes showing harmonic content
-  - **Pitch**: Melody contour tracking
+  - **Idle**: Gentle floating orbs when no music is playing
+  - **Loading**: Spinning rings while analyzing audio
+  - **Active**: Full visualization with mel spectrogram, chroma ring, and waveform
 - **Beat Sync**: Visual pulses synchronized with detected beats
 - **Responsive Design**: Works on desktop and mobile browsers
 
@@ -53,13 +58,13 @@ A React-based music visualizer that displays real-time audio analysis synchroniz
 Before you begin, ensure you have the following installed:
 
 - **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
-- **Python** (v3.8 or higher) - [Download](https://python.org/)
 - **FFmpeg** - Required for audio conversion
   - Windows: `winget install ffmpeg` or [Download](https://ffmpeg.org/download.html)
   - Mac: `brew install ffmpeg`
   - Linux: `sudo apt install ffmpeg`
 - **yt-dlp** - YouTube downloader
   - All platforms: `pip install yt-dlp`
+  - Or download the executable from [yt-dlp releases](https://github.com/yt-dlp/yt-dlp/releases)
 
 ## 🔑 API Keys Required
 
@@ -77,22 +82,22 @@ Before you begin, ensure you have the following installed:
 5. Go to **Credentials** > **Create Credentials** > **API Key**
 6. Copy the API key
 
+> ⚠️ **Important**: YouTube Data API has a daily quota of 10,000 units. Each search costs 100 units, so you get ~100 searches/day. The caching system minimizes API usage.
+
 ## 📦 Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/Spotify-API.git
-   cd Spotify-API
+   git clone https://github.com/yerry262/Spotify-Webapp-Visualizer.git
+   cd Spotify-Webapp-Visualizer
    ```
 
 2. **Set up environment variables**
    ```bash
-   # Copy the example environment file
-   cp .env.example .env
-   
-   # Edit .env and add your API keys
-   # REACT_APP_SPOTIFY_CLIENT_ID=your_spotify_client_id
-   # REACT_APP_YOUTUBE_API_KEY=your_youtube_api_key
+   # Create .env file in root directory
+   # Add your API keys:
+   REACT_APP_SPOTIFY_CLIENT_ID=your_spotify_client_id
+   REACT_APP_YOUTUBE_API_KEY=your_youtube_api_key
    ```
 
 3. **Install frontend dependencies**
@@ -107,11 +112,9 @@ Before you begin, ensure you have the following installed:
    cd ..
    ```
 
-5. **Verify yt-dlp and FFmpeg are installed**
-   ```bash
-   yt-dlp --version
-   ffmpeg -version
-   ```
+5. **Place yt-dlp and FFmpeg in server folder** (Windows)
+   - Download `yt-dlp.exe` and place in `server/` folder
+   - Download `ffmpeg.exe` and `ffprobe.exe` and place in `server/` folder
 
 ## 🏃 Running the App
 
@@ -137,47 +140,49 @@ App will open at `http://127.0.0.1:3000`
 3. **Log in with Spotify** when prompted
 4. **Watch the visualization** - it will:
    - Detect the current track from Spotify
-   - Search YouTube for the song
+   - Check if MP3 is already cached (instant if cached!)
+   - Search YouTube for the song (if not cached)
    - Download and analyze the audio
    - Display real-time visualization synced with playback
-
-### Visualization Controls
-- **Click the mode indicator** (top-left) to cycle through visualization modes:
-  - COMBINED - All features together
-  - MEL - Mel spectrogram frequency bands
-  - CHROMA - 12 pitch class distribution
-  - PITCH - Melody pitch contour
 
 ## 🗂️ Project Structure
 
 ```
-Spotify-API/
-├── .env                    # Environment variables (not committed)
-├── .env.example           # Template for environment variables
-├── .gitignore             # Git ignore rules
-├── package.json           # Frontend dependencies
-├── README.md              # This file
+Spotify-Webapp-Visualizer/
+├── .env                    # Environment variables (create this)
+├── package.json            # Frontend dependencies
+├── README.md               # This file
 ├── public/
-│   └── index.html         # HTML template
+│   ├── index.html          # HTML template
+│   ├── test-runner.html    # Standalone audio analysis test page
+│   ├── pitch-worker.js     # Web Worker for pitch extraction
+│   ├── essentia.js-core.js       # Local Essentia.js core
+│   ├── essentia-wasm.web.js      # Essentia WASM loader
+│   └── essentia-wasm.web.wasm    # Essentia WASM binary
 ├── src/
-│   ├── App.js             # Main React component
-│   ├── App.css            # Main styles
-│   ├── index.js           # React entry point
-│   ├── spotifyService.js  # Spotify API integration
-│   ├── youtubeService.js  # YouTube search & MP3 service
-│   ├── audioAnalysisService.js  # Essentia.js audio analysis
+│   ├── App.js              # Main React component
+│   ├── App.css             # Main styles
+│   ├── index.js            # React entry point
+│   ├── spotifyService.js   # Spotify API integration
+│   ├── youtubeService.js   # YouTube search & MP3 service (with caching)
+│   ├── audioAnalysisService.js   # Essentia.js audio analysis
 │   └── components/
-│       ├── AudioVisualizer.js   # Main visualizer component
-│       ├── AudioVisualizer.css
-│       ├── TrackInfo.js         # Track information display
-│       ├── PlaybackControls.js  # Playback control buttons
-│       ├── UserProfile.js       # User profile display
-│       └── IdleAnimation.js     # Idle state animation
+│       ├── AudioVisualizer.js    # Main visualizer component
+│       ├── TrackInfo.js          # Track information display
+│       ├── PlaybackControls.js   # Playback control buttons
+│       ├── UserProfile.js        # User profile display
+│       ├── IdleAnimation.js      # Idle state animation
+│       └── visualizers/          # Visualization renderers
+│           ├── VisualizerAudio.js
+│           ├── VisualizerIdle.js
+│           └── VisualizerLoading.js
 └── server/
-    ├── server.js          # Express backend for MP3 extraction
-    ├── package.json       # Backend dependencies
-    ├── .env.example       # Backend env template
-    └── mp3files/          # Downloaded MP3 storage
+    ├── server.js           # Express backend for MP3 extraction
+    ├── package.json        # Backend dependencies
+    ├── README.md           # Server documentation
+    ├── yt-dlp.exe          # YouTube downloader (add this)
+    ├── ffmpeg.exe          # Audio converter (add this)
+    └── mp3files/           # Downloaded MP3 storage (cached as artist-song.mp3)
 ```
 
 ## 🔧 Technologies Used
@@ -188,12 +193,31 @@ Spotify-API/
 - **Backend**: Express.js, yt-dlp
 - **Authentication**: Spotify OAuth 2.0 PKCE Flow
 
+## 📝 Caching System
+
+The app implements a multi-layer caching system to minimize API usage:
+
+| Cache Layer | Location | Duration | Purpose |
+|-------------|----------|----------|---------|
+| MP3 Files | Server (`mp3files/`) | Permanent | Skip YouTube API + download if song was played before |
+| YouTube URLs | localStorage | 7 days | Skip YouTube API if URL is known |
+| Memory Cache | In-memory | Session | Backup for localStorage |
+
+### Cache File Naming
+MP3 files are saved as `artist_name-song_name.mp3` (sanitized lowercase with underscores). This allows the app to check if an MP3 exists **before** making any YouTube API calls.
+
+### API Rate Limiting
+- **Track Change Debouncing**: 800ms delay after track changes before processing
+- **YouTube API Rate Limit**: Minimum 2 seconds between API calls
+- **403 Error Blocking**: If YouTube returns 403 (quota exceeded), further API calls are blocked
+
 ## ⚠️ Important Notes
 
 - **This app does NOT play audio** - it only visualizes. Audio plays from your Spotify app.
-- **MP3 files are cached** in `server/mp3files/` - clear periodically to save space
-- **YouTube API has quotas** - 10,000 units/day free tier
+- **MP3 files are cached** in `server/mp3files/` - clear periodically to save disk space
+- **YouTube API has quotas** - 10,000 units/day free tier (~100 searches)
 - **First analysis may take time** - downloading and analyzing a 4-minute song takes ~10-30 seconds
+- **Subsequent plays are instant** - thanks to the caching system
 
 ## 🐛 Troubleshooting
 
@@ -202,15 +226,15 @@ Spotify-API/
 - Make sure the key starts with `REACT_APP_`
 - Restart the React dev server after changing `.env`
 
-### "yt-dlp: command not found"
-- Install with `pip install yt-dlp`
-- Make sure Python Scripts folder is in PATH
-- Windows: Add `%APPDATA%\Python\Python3X\Scripts` to PATH
+### "yt-dlp: command not found" or "Failed to download MP3"
+- Make sure `yt-dlp.exe` is in the `server/` folder
+- Make sure `ffmpeg.exe` is in the `server/` folder
+- Check that the YouTube URL is valid
 
-### "FFmpeg not found"
-- Install FFmpeg and ensure it's in system PATH
-- Windows: `winget install ffmpeg`
-- Mac: `brew install ffmpeg`
+### "YouTube API returned 403"
+- Your daily quota (10,000 units) may be exhausted
+- Wait until midnight Pacific Time for quota reset
+- The app will block further API calls to prevent wasted requests
 
 ### Visualization not syncing correctly
 - The YouTube audio version may differ slightly from Spotify
@@ -227,11 +251,11 @@ This project is for educational and research purposes only.
 - [YouTube Data API](https://developers.google.com/youtube/v3)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube downloader
 
-## Online server
-- <img width="641" height="1038" alt="image" src="https://github.com/user-attachments/assets/7d6169e7-9d8b-48a7-9817-36537c0d762a" />
-- <img width="1168" height="1172" alt="image" src="https://github.com/user-attachments/assets/815966be-48af-4f94-bf45-9ad9ae885af9" />
+## Screenshots
 
-- <img width="633" height="1036" alt="image" src="https://github.com/user-attachments/assets/70fdedcb-5881-4115-b6cf-22588dd708db" />
-- <img width="2491" height="1339" alt="image" src="https://github.com/user-attachments/assets/aa150ec7-2781-4350-94fd-5e7e33426efe" />
+<img width="641" alt="Login Screen" src="https://github.com/user-attachments/assets/7d6169e7-9d8b-48a7-9817-36537c0d762a" />
+<img width="1168" alt="Visualization" src="https://github.com/user-attachments/assets/815966be-48af-4f94-bf45-9ad9ae885af9" />
+<img width="633" alt="Track Info" src="https://github.com/user-attachments/assets/70fdedcb-5881-4115-b6cf-22588dd708db" />
+<img width="2491" alt="Full Screen" src="https://github.com/user-attachments/assets/aa150ec7-2781-4350-94fd-5e7e33426efe" />
 
 
