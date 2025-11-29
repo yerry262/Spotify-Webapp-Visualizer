@@ -4,6 +4,10 @@ A React-based music visualizer that displays real-time audio analysis synchroniz
 
 > 📚 **Educational Research Project** - This project is for educational and research purposes related to audio analysis and music information retrieval.
 
+## 🚀 Live Demo
+
+https://youtu.be/AYoBXHKe2Ow
+
 ## 🎵 How It Works
 
 ```
