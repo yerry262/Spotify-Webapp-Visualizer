@@ -43,14 +43,34 @@ A React-based music visualizer that displays real-time audio analysis synchroniz
 - **YouTube MP3 Extraction**: Automatically finds and downloads audio for analysis
 - **Smart Caching System**:
   - MP3 files cached as `artist-song.mp3` on server (persists until manually cleared)
+  - Analysis JSON files cached alongside MP3s for instant playback
   - YouTube URLs cached in localStorage (7-day TTL)
+  - Fuzzy file matching handles special characters in song names
   - API rate limiting (2s minimum between calls)
   - Track change debouncing (800ms) to prevent rapid API calls
-- **Multiple Visualization Modes**:
-  - **Idle**: Gentle floating orbs when no music is playing
-  - **Loading**: Spinning rings while analyzing audio
-  - **Active**: Full visualization with mel spectrogram, chroma ring, and waveform
+- **12 Waveform Visualization Styles**:
+  - Layered Waves, Oscilloscope, Spectrum Bars, Flowing Ribbons
+  - Mirrored Wave, Particle Dots, Pixelated, 3D Mesh
+  - Gradient Bars, Sine Layers, Circular Dots, Neon Lines
+  - Auto-rotate mode (changes every 30 seconds) or manual selection
+  - Custom settings toggle with adjustable max height and start position
+  - Hardcoded optimal defaults per waveform style
+- **Particle System**:
+  - Configurable particle count (0-200), size (0.5x-10x), and speed (0.5x-3x)
+  - Pitch-reactive effects (spiral toward center on high notes)
+  - Trail effects during high-pitch passages
+- **Circular Mel Ring**:
+  - Traveling wave animation for constant visual movement
+  - Audio-reactive bar heights
+  - Chroma-colored with beat pulse effects
+- **Central Visualization**:
+  - 3D pitch orb with gradient and glow effects
+  - Chroma wheel showing pitch class distribution
+  - Rotating petals for prominent notes
 - **Beat Sync**: Visual pulses synchronized with detected beats
+- **Playback Controls**: Shuffle, previous, play/pause, next, repeat buttons
+- **Side Menu**: Easy access to waveform styles, particle settings, and user profile
+- **Footer Info**: Now Playing badge with device info and connection status
 - **Responsive Design**: Works on desktop and mobile browsers
 
 ## 📋 Prerequisites
@@ -172,17 +192,20 @@ Spotify-Webapp-Visualizer/
 │       ├── PlaybackControls.js   # Playback control buttons
 │       ├── UserProfile.js        # User profile display
 │       ├── IdleAnimation.js      # Idle state animation
+│       ├── SideMenu.js           # Side menu with settings
 │       └── visualizers/          # Visualization renderers
-│           ├── VisualizerAudio.js
-│           ├── VisualizerIdle.js
-│           └── VisualizerLoading.js
+│           ├── index.js          # Visualizer exports
+│           ├── VisualizerAudio.js    # Main audio visualization (12 waveform styles)
+│           ├── VisualizerIdle.js     # Idle state animation
+│           └── VisualizerLoading.js  # Loading state animation
 └── server/
     ├── server.js           # Express backend for MP3 extraction
     ├── package.json        # Backend dependencies
     ├── README.md           # Server documentation
     ├── yt-dlp.exe          # YouTube downloader (add this)
     ├── ffmpeg.exe          # Audio converter (add this)
-    └── mp3files/           # Downloaded MP3 storage (cached as artist-song.mp3)
+    ├── mp3files/           # Downloaded MP3 storage (cached as artist-song.mp3)
+    └── analysis/           # Pre-computed analysis JSON files
 ```
 
 ## 🔧 Technologies Used
@@ -193,6 +216,25 @@ Spotify-Webapp-Visualizer/
 - **Backend**: Express.js, yt-dlp
 - **Authentication**: Spotify OAuth 2.0 PKCE Flow
 
+## 🎨 Waveform Styles & Defaults
+
+Each waveform style has optimized default settings. Enable "Custom Settings" in the side menu to override with sliders.
+
+| Style | Start Position | Max Height | Description |
+|-------|---------------|------------|-------------|
+| Layered Waves | 95% | 50% | Multiple overlapping sine waves |
+| Oscilloscope | 60% | 30% | Classic oscilloscope lines |
+| Spectrum Bars | 95% | 50% | Frequency spectrum analyzer |
+| Flowing Ribbons | 50% | 15% | Smooth ribbon animations |
+| Mirrored Wave | 50% | 50% | Symmetrical waveform |
+| Particle Dots | 50% | 40% | Dotted wave pattern |
+| Pixelated | 95% | 50% | Retro block style |
+| 3D Mesh | 95% | 45% | Wireframe with depth |
+| Gradient Bars | 95% | 50% | Glowing gradient bars |
+| Sine Layers | 50% | 50% | Layered sine waves |
+| Circular Dots | 60% | 40% | Circular dot arrangement |
+| Neon Lines | 50% | 50% | Glowing neon effect |
+
 ## 📝 Caching System
 
 The app implements a multi-layer caching system to minimize API usage:
@@ -200,11 +242,12 @@ The app implements a multi-layer caching system to minimize API usage:
 | Cache Layer | Location | Duration | Purpose |
 |-------------|----------|----------|---------|
 | MP3 Files | Server (`mp3files/`) | Permanent | Skip YouTube API + download if song was played before |
+| Analysis JSON | Server (`analysis/`) | Permanent | Skip audio analysis if already computed |
 | YouTube URLs | localStorage | 7 days | Skip YouTube API if URL is known |
 | Memory Cache | In-memory | Session | Backup for localStorage |
 
 ### Cache File Naming
-MP3 files are saved as `artist_name-song_name.mp3` (sanitized lowercase with underscores). This allows the app to check if an MP3 exists **before** making any YouTube API calls.
+MP3 files are saved as `artist_name-song_name.mp3` (sanitized lowercase with underscores). Analysis files follow the same pattern with `.json` extension. The server uses **fuzzy matching** to handle special characters (smart quotes, accented characters) in song names.
 
 ### API Rate Limiting
 - **Track Change Debouncing**: 800ms delay after track changes before processing
