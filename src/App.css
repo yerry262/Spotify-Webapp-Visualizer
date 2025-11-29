@@ -59,4 +59,58 @@
   font-size: 12px;
   text-align: center;
   z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.settings-btn {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.settings-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.settings-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.signout-btn {
+  position: absolute;
+  left: 16px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.signout-btn:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.signout-btn svg {
+  width: 14px;
+  height: 14px;
 }

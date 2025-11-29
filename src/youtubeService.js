@@ -494,8 +494,9 @@ export const YouTubeService = {
       console.log(`🔗 URL: ${videoInfo.url}`);
 
       // STEP 3: Download MP3 via server (saves as artist-song.mp3)
+      // Note: clearOld=false to keep all cached MP3s
       console.log('📥 Step 3: Downloading MP3...');
-      const mp3Info = await this.getMP3(videoInfo.url, artistName, songName, true);
+      const mp3Info = await this.getMP3(videoInfo.url, artistName, songName, false);
       
       if (!mp3Info) {
         console.error('Could not extract MP3');

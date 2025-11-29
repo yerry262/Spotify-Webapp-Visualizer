@@ -11,20 +11,26 @@ const cors = require('cors');
 const app = express();
 const PORT = 3001; // Different port from React app (3000)
 
-// Directory to store downloaded MP3 files
+// Directory to store downloaded MP3 files and analysis data
 const MP3_DIR = path.join(__dirname, 'mp3files');
+const ANALYSIS_DIR = path.join(__dirname, 'analysis');
 
-// Create MP3 directory if it doesn't exist
+// Create directories if they don't exist
 if (!fs.existsSync(MP3_DIR)) {
   fs.mkdirSync(MP3_DIR, { recursive: true });
+}
+if (!fs.existsSync(ANALYSIS_DIR)) {
+  fs.mkdirSync(ANALYSIS_DIR, { recursive: true });
 }
 
 // Middleware
 app.use(cors()); // Enable CORS for React frontend
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Increase limit for analysis data
 
 // Serve static MP3 files
 app.use('/mp3files', express.static(MP3_DIR));
+// Serve static analysis files
+app.use('/analysis', express.static(ANALYSIS_DIR));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -330,6 +336,139 @@ app.delete('/mp3files/clear/all', (req, res) => {
   }
 });
 
+// ==================== ANALYSIS DATA ENDPOINTS ====================
+
+/**
+ * Generate analysis filename from artist and song
+ */
+function getAnalysisFilename(artist, song) {
+  const sanitizedArtist = sanitizeFilename(artist);
+  const sanitizedSong = sanitizeFilename(song);
+  return `${sanitizedArtist}-${sanitizedSong}.json`;
+}
+
+// Check if analysis data exists
+app.get('/check-analysis-cache', (req, res) => {
+  const { artist, song } = req.query;
+  
+  if (!artist || !song) {
+    return res.status(400).json({ error: 'Artist and song are required' });
+  }
+  
+  const analysisFilename = getAnalysisFilename(artist, song);
+  const analysisPath = path.join(ANALYSIS_DIR, analysisFilename);
+  
+  if (fs.existsSync(analysisPath)) {
+    const stats = fs.statSync(analysisPath);
+    console.log(`📦 Analysis cache HIT: ${analysisFilename}`);
+    return res.json({
+      cached: true,
+      filename: analysisFilename,
+      url: `http://localhost:${PORT}/analysis/${encodeURIComponent(analysisFilename)}`,
+      artist: artist,
+      song: song,
+      size: stats.size,
+      created: stats.birthtime
+    });
+  }
+  
+  console.log(`📭 Analysis cache MISS: ${analysisFilename}`);
+  return res.json({ cached: false, expectedFilename: analysisFilename });
+});
+
+// Get analysis data
+app.get('/get-analysis', (req, res) => {
+  const { artist, song } = req.query;
+  
+  if (!artist || !song) {
+    return res.status(400).json({ error: 'Artist and song are required' });
+  }
+  
+  const analysisFilename = getAnalysisFilename(artist, song);
+  const analysisPath = path.join(ANALYSIS_DIR, analysisFilename);
+  
+  if (!fs.existsSync(analysisPath)) {
+    return res.status(404).json({ error: 'Analysis not found', filename: analysisFilename });
+  }
+  
+  try {
+    const data = fs.readFileSync(analysisPath, 'utf8');
+    const analysis = JSON.parse(data);
+    console.log(`📦 Loaded analysis: ${analysisFilename}`);
+    res.json(analysis);
+  } catch (error) {
+    console.error('❌ Failed to read analysis:', error);
+    res.status(500).json({ error: 'Failed to read analysis data' });
+  }
+});
+
+// Save analysis data
+app.post('/save-analysis', (req, res) => {
+  const { artist, song, data } = req.body;
+  
+  if (!artist || !song || !data) {
+    return res.status(400).json({ error: 'Artist, song, and data are required' });
+  }
+  
+  const analysisFilename = getAnalysisFilename(artist, song);
+  const analysisPath = path.join(ANALYSIS_DIR, analysisFilename);
+  
+  try {
+    fs.writeFileSync(analysisPath, JSON.stringify(data, null, 2));
+    const stats = fs.statSync(analysisPath);
+    console.log(`💾 Saved analysis: ${analysisFilename} (${(stats.size / 1024).toFixed(1)}KB)`);
+    res.json({
+      success: true,
+      filename: analysisFilename,
+      size: stats.size,
+      url: `http://localhost:${PORT}/analysis/${encodeURIComponent(analysisFilename)}`
+    });
+  } catch (error) {
+    console.error('❌ Failed to save analysis:', error);
+    res.status(500).json({ error: 'Failed to save analysis data' });
+  }
+});
+
+// List all analysis files
+app.get('/analysis/list', (req, res) => {
+  try {
+    const files = fs.readdirSync(ANALYSIS_DIR)
+      .filter(f => f.endsWith('.json'))
+      .map(filename => {
+        const filepath = path.join(ANALYSIS_DIR, filename);
+        const stats = fs.statSync(filepath);
+        return {
+          filename,
+          url: `http://localhost:${PORT}/analysis/${encodeURIComponent(filename)}`,
+          size: stats.size,
+          created: stats.birthtime
+        };
+      })
+      .sort((a, b) => new Date(b.created) - new Date(a.created));
+
+    res.json({ files, count: files.length });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not list analysis files' });
+  }
+});
+
+// Delete analysis file
+app.delete('/analysis/:filename', (req, res) => {
+  const filename = decodeURIComponent(req.params.filename);
+  const filepath = path.join(ANALYSIS_DIR, filename);
+
+  if (!fs.existsSync(filepath)) {
+    return res.status(404).json({ error: 'Analysis file not found' });
+  }
+
+  try {
+    fs.unlinkSync(filepath);
+    res.json({ message: 'Analysis deleted', filename });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not delete analysis file' });
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log('═══════════════════════════════════════════════════════════');
@@ -337,13 +476,18 @@ app.listen(PORT, () => {
   console.log('═══════════════════════════════════════════════════════════');
   console.log(`  📡 Server running on: http://localhost:${PORT}`);
   console.log(`  📁 MP3 files stored in: ${MP3_DIR}`);
+  console.log(`  📊 Analysis data stored in: ${ANALYSIS_DIR}`);
   console.log('');
   console.log('  Endpoints:');
-  console.log(`    POST /get-mp3          - Extract MP3 from YouTube URL`);
-  console.log(`    GET  /mp3files/list    - List all MP3 files`);
-  console.log(`    GET  /mp3files/:file   - Download MP3 file`);
-  console.log(`    DELETE /mp3files/:file - Delete MP3 file`);
-  console.log(`    GET  /health           - Server health check`);
+  console.log(`    POST /get-mp3              - Extract MP3 from YouTube URL`);
+  console.log(`    GET  /check-mp3-cache      - Check if MP3 is cached`);
+  console.log(`    GET  /mp3files/list        - List all MP3 files`);
+  console.log(`    GET  /mp3files/:file       - Download MP3 file`);
+  console.log(`    GET  /check-analysis-cache - Check if analysis is cached`);
+  console.log(`    GET  /get-analysis         - Get cached analysis data`);
+  console.log(`    POST /save-analysis        - Save analysis data`);
+  console.log(`    GET  /analysis/list        - List all analysis files`);
+  console.log(`    GET  /health               - Server health check`);
   console.log('═══════════════════════════════════════════════════════════');
 });
 

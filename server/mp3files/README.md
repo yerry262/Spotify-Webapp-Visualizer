@@ -14,6 +14,8 @@ To clear downloaded files:
 
 ## File Naming
 
-Files are named: `{YouTube Video Title}_{timestamp}.mp3`
+Files are named: `{artist}_{song}.mp3`
 
-The timestamp ensures unique filenames even if the same song is downloaded multiple times.
+For example: `illenium_forever.mp3`
+
+This naming convention allows the server to check if an MP3 is already cached before making YouTube API calls.

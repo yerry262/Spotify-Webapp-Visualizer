@@ -61,7 +61,8 @@
   color: #fff;
 }
 
-.logout-btn {
+/* Hamburger Menu Button */
+.menu-btn {
   width: 36px;
   height: 36px;
   border: none;
@@ -76,13 +77,13 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.logout-btn:hover {
-  background: rgba(255, 67, 67, 0.2);
-  color: #ff6b6b;
-  border-color: rgba(255, 67, 67, 0.3);
+.menu-btn:hover {
+  background: rgba(29, 185, 84, 0.2);
+  color: #1DB954;
+  border-color: rgba(29, 185, 84, 0.3);
 }
 
-.logout-btn svg {
+.menu-btn svg {
   width: 18px;
   height: 18px;
 }
@@ -126,12 +127,12 @@
     font-size: 14px;
   }
   
-  .logout-btn {
+  .menu-btn {
     width: 32px;
     height: 32px;
   }
   
-  .logout-btn svg {
+  .menu-btn svg {
     width: 16px;
     height: 16px;
   }

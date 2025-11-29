@@ -1,7 +1,7 @@
 import React from 'react';
 import './UserProfile.css';
 
-const UserProfile = ({ user, onLogout }) => {
+const UserProfile = ({ user, onMenuClick }) => {
   if (!user) return null;
 
   const profileImage = user.images?.[0]?.url;
@@ -23,9 +23,12 @@ const UserProfile = ({ user, onLogout }) => {
         </div>
       </div>
       
-      <button className="logout-btn" onClick={onLogout}>
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+      {/* Hamburger Menu Button */}
+      <button className="menu-btn" onClick={onMenuClick} title="Open Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
       </button>
       

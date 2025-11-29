@@ -1,0 +1,243 @@
+.idle-animation {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0a0a0f 0%, #151520 50%, #0a0a0f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.idle-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.6;
+}
+
+.idle-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  text-align: center;
+  padding: 40px;
+}
+
+.idle-icon {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.idle-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.2), rgba(29, 185, 84, 0.05));
+  border: 2px solid rgba(29, 185, 84, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(29, 185, 84, 0.5);
+    transform: scale(1.05);
+  }
+}
+
+.idle-pause {
+  display: flex;
+  gap: 8px;
+}
+
+.idle-pause span {
+  width: 8px;
+  height: 25px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 2px;
+  animation: pause-pulse 1.5s ease-in-out infinite;
+}
+
+.idle-pause span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+@keyframes pause-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.orbit-ring {
+  position: absolute;
+  border: 1px solid rgba(29, 185, 84, 0.2);
+  border-radius: 50%;
+  animation: orbit-rotate 20s linear infinite;
+}
+
+.orbit-ring::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #1DB954;
+  border-radius: 50%;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 10px #1DB954;
+}
+
+.ring-1 {
+  width: 100px;
+  height: 100px;
+  animation-duration: 8s;
+}
+
+.ring-2 {
+  width: 130px;
+  height: 130px;
+  animation-duration: 12s;
+  animation-direction: reverse;
+}
+
+.ring-3 {
+  width: 160px;
+  height: 160px;
+  animation-duration: 16s;
+}
+
+@keyframes orbit-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.idle-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 4px;
+  margin: 0;
+  text-shadow: 0 0 30px rgba(29, 185, 84, 0.5);
+}
+
+.idle-subtitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+.sound-bars {
+  display: flex;
+  gap: 4px;
+  height: 30px;
+  align-items: flex-end;
+}
+
+.sound-bars span {
+  width: 4px;
+  background: linear-gradient(to top, #1DB954, #1ed760);
+  border-radius: 2px;
+  animation: sound-bar 1.2s ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes sound-bar {
+  0%, 100% { height: 8px; opacity: 0.4; }
+  50% { height: 25px; opacity: 1; }
+}
+
+.floating-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.float-particle {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: var(--size);
+  background: rgba(29, 185, 84, 0.6);
+  border-radius: 50%;
+  animation: float-around var(--duration) ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes float-around {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translate(50px, -30px) scale(1.2);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-30px, -60px) scale(0.8);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translate(-50px, 20px) scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+@media (max-width: 600px) {
+  .idle-content {
+    padding: 20px;
+    gap: 25px;
+  }
+  
+  .idle-icon {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .idle-circle {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .idle-pause span {
+    width: 6px;
+    height: 20px;
+  }
+  
+  .ring-1 { width: 80px; height: 80px; }
+  .ring-2 { width: 105px; height: 105px; }
+  .ring-3 { width: 130px; height: 130px; }
+  
+  .idle-title {
+    font-size: 18px;
+    letter-spacing: 3px;
+  }
+  
+  .idle-subtitle {
+    font-size: 14px;
+  }
+}

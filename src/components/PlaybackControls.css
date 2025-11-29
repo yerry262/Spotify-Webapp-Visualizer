@@ -4,9 +4,10 @@
   justify-content: center;
   gap: 20px;
   padding: 20px;
-  padding-bottom: 40px;
+  padding-bottom: 60px;
   position: relative;
   z-index: 10;
+  width: 100%;
 }
 
 .control-btn {
@@ -90,10 +91,47 @@
   height: 22px;
 }
 
+/* Device Info */
+.device-info {
+  position: absolute;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.device-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1DB954;
+}
+
+.device-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.device-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (max-width: 600px) {
   .playback-controls {
     gap: 15px;
     padding: 15px;
+    padding-bottom: 50px;
+    flex-wrap: wrap;
   }
   
   .control-btn.primary {
@@ -114,5 +152,16 @@
   .control-btn.secondary svg {
     width: 18px;
     height: 18px;
+  }
+  
+  .device-info {
+    position: static;
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .device-name {
+    max-width: none;
   }
 }

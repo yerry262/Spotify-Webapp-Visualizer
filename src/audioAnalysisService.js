@@ -8,11 +8,93 @@ const FRAME_SIZE = 2048;
 const HOP_SIZE = 1024;
 const FRAME_INTERVAL = 0.1; // 10fps (0.1s intervals) - sufficient for smooth visualization
 
+// Server URL for analysis cache
+const SERVER_URL = 'http://localhost:3001';
+
 // Timestamp helper for console logs
 const timestamp = () => {
   const now = new Date();
   return `[${now.toLocaleTimeString('en-US', { hour12: false })}.${now.getMilliseconds().toString().padStart(3, '0')}]`;
 };
+
+// ==================== SERVER-BASED ANALYSIS CACHE ====================
+
+/**
+ * Check if analysis is cached on server
+ */
+async function checkServerAnalysisCache(artistName, songName) {
+  try {
+    const params = new URLSearchParams({ artist: artistName, song: songName });
+    const response = await fetch(`${SERVER_URL}/check-analysis-cache?${params}`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.cached ? data : null;
+  } catch (error) {
+    console.warn('Could not check server analysis cache:', error);
+    return null;
+  }
+}
+
+/**
+ * Load analysis from server cache
+ */
+async function loadServerAnalysis(artistName, songName) {
+  try {
+    const params = new URLSearchParams({ artist: artistName, song: songName });
+    const response = await fetch(`${SERVER_URL}/get-analysis?${params}`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    console.log(`${timestamp()} 📦 Loaded analysis from server for: ${artistName} - ${songName}`);
+    return data;
+  } catch (error) {
+    console.warn('Could not load server analysis:', error);
+    return null;
+  }
+}
+
+/**
+ * Save analysis to server cache
+ */
+async function saveServerAnalysis(artistName, songName, analysisData) {
+  try {
+    const response = await fetch(`${SERVER_URL}/save-analysis`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        artist: artistName,
+        song: songName,
+        data: analysisData
+      })
+    });
+    
+    if (!response.ok) {
+      console.warn('Failed to save analysis to server:', response.status);
+      return false;
+    }
+    
+    const result = await response.json();
+    console.log(`${timestamp()} 💾 Saved analysis to server: ${result.filename} (${(result.size / 1024).toFixed(1)}KB)`);
+    return true;
+  } catch (error) {
+    console.warn('Could not save analysis to server:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if analysis is cached for a track (public)
+ */
+export async function isAnalysisCached(artistName, songName) {
+  const cached = await checkServerAnalysisCache(artistName, songName);
+  return cached !== null;
+}
+
+/**
+ * Get cached analysis if available (public)
+ */
+export async function getCachedAnalysis(artistName, songName) {
+  return await loadServerAnalysis(artistName, songName);
+}
 
 // Essentia.js WASM modules will be loaded dynamically
 let essentia = null;
@@ -399,8 +481,29 @@ export async function extractRhythm(audioSignal, sampleRate = SAMPLE_RATE, durat
 /**
  * Full audio analysis - extracts all features
  * Each extractor is wrapped in try-catch to prevent total failure
+ * 
+ * @param {string} audioUrl - URL to the audio file
+ * @param {string} artistName - Optional artist name for caching
+ * @param {string} songName - Optional song name for caching
  */
-export async function analyzeAudio(audioUrl) {
+export async function analyzeAudio(audioUrl, artistName = null, songName = null) {
+  // Check for cached analysis on server first (if artist/song provided)
+  if (artistName && songName) {
+    const cachedAnalysis = await loadServerAnalysis(artistName, songName);
+    if (cachedAnalysis) {
+      console.log(`${timestamp()} ═══════════════════════════════════════════════`);
+      console.log(`${timestamp()} 📦 Using CACHED Analysis Data (from server)`);
+      console.log(`${timestamp()} ═══════════════════════════════════════════════`);
+      console.log(`${timestamp()}    Duration: ${cachedAnalysis.duration?.toFixed(2)}s`);
+      console.log(`${timestamp()}    Mel frames: ${cachedAnalysis.features?.melSpectrogram?.length || 0}`);
+      console.log(`${timestamp()}    Chroma frames: ${cachedAnalysis.features?.hpcpChroma?.length || 0}`);
+      console.log(`${timestamp()}    Pitch frames: ${cachedAnalysis.features?.pitch?.length || 0}`);
+      console.log(`${timestamp()}    BPM: ${cachedAnalysis.features?.rhythm?.bpm?.toFixed(1) || 'N/A'}`);
+      console.log(`${timestamp()} ═══════════════════════════════════════════════`);
+      return cachedAnalysis;
+    }
+  }
+
   console.log(`${timestamp()} ═══════════════════════════════════════════════`);
   console.log(`${timestamp()} 🎵 Starting Full Audio Analysis`);
   console.log(`${timestamp()} ═══════════════════════════════════════════════`);
@@ -463,7 +566,7 @@ export async function analyzeAudio(audioUrl) {
   console.log(`${timestamp()}    BPM: ${rhythm.bpm?.toFixed(1) || 'N/A'}`);
   console.log(`${timestamp()} ═══════════════════════════════════════════════`);
   
-  return {
+  const analysisResult = {
     duration,
     sampleRate,
     analysisTime: parseFloat(analysisTime),
@@ -474,6 +577,13 @@ export async function analyzeAudio(audioUrl) {
       rhythm
     }
   };
+
+  // Cache the analysis on server (if artist/song provided)
+  if (artistName && songName) {
+    await saveServerAnalysis(artistName, songName, analysisResult);
+  }
+
+  return analysisResult;
 }
 
 /**
@@ -573,5 +683,7 @@ export default {
   extractMelSpectrogram,
   extractHPCPChroma,
   extractPitch,
-  extractRhythm
+  extractRhythm,
+  isAnalysisCached,
+  getCachedAnalysis
 };

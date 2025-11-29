@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SpotifyAuth, SpotifyAPI } from './spotifyService';
 import AudioVisualizer from './components/AudioVisualizer';
 import TrackInfo from './components/TrackInfo';
-import IdleAnimation from './components/IdleAnimation';
 import PlaybackControls from './components/PlaybackControls';
 import UserProfile from './components/UserProfile';
-import { analyzeAudio } from './audioAnalysisService';
+import SideMenu from './components/SideMenu';
+import { analyzeAudio, getCachedAnalysis } from './audioAnalysisService';
 import { YouTubeService } from './youtubeService';
 import './App.css';
 
@@ -17,6 +17,7 @@ function App() {
   const [versionInfo, setVersionInfo] = useState({ VERSION: '', AUTHOR: '' });
   const [analysisData, setAnalysisData] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Use ref to track current track ID without causing re-renders
   const currentTrackIdRef = useRef(null);
@@ -94,14 +95,6 @@ function App() {
           // Clear old audio data immediately
           setAnalysisData(null);
           
-          // Check if YouTube API is blocked (403 error) - don't even try
-          if (YouTubeService.isApiBlocked()) {
-            console.warn('🚫 YouTube API blocked, cannot analyze audio');
-            console.warn('   Reason:', YouTubeService.getApiBlockReason());
-            console.warn('   Reload the page to try again.');
-            return;
-          }
-          
           // Cancel any previous processing
           YouTubeService.cancelCurrentProcessing();
           
@@ -126,22 +119,53 @@ function App() {
             
             // Mark as processing BEFORE any async work
             isProcessingRef.current = true;
-            
-            // Start the YouTube → MP3 → Analysis pipeline
             setIsAnalyzing(true);
             
             try {
-              // Double-check API isn't blocked
+              // STEP 1: Check if analysis data is already cached on server
+              console.log('🔍 Step 1: Checking analysis cache...');
+              const cachedAnalysis = await getCachedAnalysis(artistName, trackName);
+              
+              if (cachedAnalysis) {
+                console.log('📦 Found cached analysis! Skipping MP3 pipeline.');
+                setAnalysisData(cachedAnalysis);
+                setIsAnalyzing(false);
+                isProcessingRef.current = false;
+                console.log('✅ Loaded from cache!');
+                return;
+              }
+              
+              // STEP 2: Check if MP3 is cached on server (even if API is blocked)
+              console.log('🔍 Step 2: Checking MP3 cache...');
+              const mp3Cache = await YouTubeService.checkServerCache(artistName, trackName);
+              
+              if (mp3Cache) {
+                // MP3 is cached! We can analyze it even if YouTube API is blocked
+                console.log('📦 Found cached MP3! Running analysis...');
+                const analysis = await analyzeAudio(mp3Cache.mp3Url, artistName, trackName);
+                
+                if (state.item.id === currentTrackIdRef.current) {
+                  setAnalysisData(analysis);
+                  setIsAnalyzing(false);
+                  isProcessingRef.current = false;
+                  console.log('✅ Audio analysis complete (from cached MP3)!');
+                }
+                return;
+              }
+              
+              // STEP 3: No cache - need YouTube API
+              // Check if API is blocked before trying
               if (YouTubeService.isApiBlocked()) {
-                console.warn('🚫 YouTube API is blocked, aborting');
+                console.warn('🚫 YouTube API blocked and no cache available');
+                console.warn('   Reason:', YouTubeService.getApiBlockReason());
+                console.warn('   Cannot analyze this track until quota resets.');
                 setIsAnalyzing(false);
                 isProcessingRef.current = false;
                 return;
               }
               
               // Get MP3 from YouTube via server
-              // SEQUENCE: Check server cache → YouTube API (if needed) → Download MP3
-              console.log('🔍 Starting MP3 pipeline...');
+              console.log('🔍 Step 3: Fetching from YouTube...');
               const mp3Result = await YouTubeService.getMP3ForTrack(artistName, trackName);
               
               if (!mp3Result) {
@@ -162,9 +186,9 @@ function App() {
                 return;
               }
               
-              // Analyze the MP3 with Essentia.js
-              console.log('🎼 Analyzing audio with Essentia.js...');
-              const analysis = await analyzeAudio(mp3Result.mp3.mp3Url);
+              // Analyze the MP3 with Essentia.js (with caching by artist/song)
+              console.log('🎼 Step 4: Analyzing audio with Essentia.js...');
+              const analysis = await analyzeAudio(mp3Result.mp3.mp3Url, artistName, trackName);
               
               // Final verify track hasn't changed
               if (!YouTubeService.shouldContinue(artistName, trackName)) {
@@ -272,7 +296,10 @@ function App() {
   return (
     <div className="app main-screen">
       {/* User Profile Header */}
-      <UserProfile user={user} onLogout={handleLogout} />
+      <UserProfile user={user} onMenuClick={() => setIsMenuOpen(true)} />
+      
+      {/* Side Menu */}
+      <SideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       
       {/* Main Content */}
       <div className="main-content">
@@ -299,17 +326,37 @@ function App() {
               <PlaybackControls 
                 isPlaying={playbackState?.is_playing}
                 onRefresh={fetchPlaybackState}
+                device={playbackState?.device}
               />
             </div>
           </>
         ) : (
-          <IdleAnimation />
+          <AudioVisualizer 
+            analysisData={null}
+            isPlaying={false}
+            progress={0}
+            isAnalyzing={false}
+            trackId={null}
+          />
         )}
       </div>
       
       {/* Version Footer */}
       <footer className="version-footer">
-        Made by {versionInfo.AUTHOR} - v{versionInfo.VERSION}
+        {user && (
+          <button className="signout-btn" onClick={handleLogout} title="Sign Out">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+            </svg>
+          </button>
+        )}
+        <span>Made by {versionInfo.AUTHOR} - v{versionInfo.VERSION}</span>
+        <a href="/test-runner.html" className="settings-btn" title="Test Runner">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </a>
       </footer>
     </div>
   );
