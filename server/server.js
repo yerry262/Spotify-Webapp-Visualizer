@@ -91,6 +91,70 @@ function sanitizeFilename(str) {
 }
 
 /**
+ * Extract keywords from a string for fuzzy matching
+ * Returns an array of lowercase words (3+ chars) that are meaningful
+ */
+function extractKeywords(str) {
+  if (!str) return [];
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')  // Replace special chars with spaces
+    .split(/\s+/)                   // Split by whitespace
+    .map(word => word.trim())
+    .filter(word => word.length >= 3)  // Only words with 3+ chars
+    .filter(word => !['the', 'and', 'for', 'from', 'with', 'feat', 'featuring'].includes(word)); // Skip common words
+}
+
+/**
+ * Check if a filename contains all the keywords (fuzzy match)
+ * Returns true if all keywords are found in the filename
+ */
+function fuzzyMatchFilename(filename, artistKeywords, songKeywords) {
+  const filenameLower = filename.toLowerCase();
+  
+  // Check if at least some artist keywords match (at least 1 if available)
+  const artistMatches = artistKeywords.filter(kw => filenameLower.includes(kw));
+  const hasArtistMatch = artistKeywords.length === 0 || artistMatches.length >= 1;
+  
+  // Check if most song keywords match (at least half, minimum 1)
+  const songMatches = songKeywords.filter(kw => filenameLower.includes(kw));
+  const minSongMatches = Math.max(1, Math.ceil(songKeywords.length / 2));
+  const hasSongMatch = songKeywords.length === 0 || songMatches.length >= minSongMatches;
+  
+  return hasArtistMatch && hasSongMatch;
+}
+
+/**
+ * Find a file by fuzzy matching artist and song keywords
+ * @param {string} directory - Directory to search in
+ * @param {string} artist - Artist name
+ * @param {string} song - Song name
+ * @param {string} extension - File extension (e.g., '.mp3', '.json')
+ * @returns {string|null} - Matching filename or null
+ */
+function findFileByFuzzyMatch(directory, artist, song, extension) {
+  try {
+    const files = fs.readdirSync(directory).filter(f => f.endsWith(extension));
+    const artistKeywords = extractKeywords(artist);
+    const songKeywords = extractKeywords(song);
+    
+    console.log(`🔍 Fuzzy search: artist=[${artistKeywords.join(', ')}] song=[${songKeywords.join(', ')}]`);
+    
+    for (const file of files) {
+      if (fuzzyMatchFilename(file, artistKeywords, songKeywords)) {
+        console.log(`✅ Fuzzy match found: ${file}`);
+        return file;
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('❌ Fuzzy search error:', error);
+    return null;
+  }
+}
+
+/**
  * Generate cache filename from artist and song name
  */
 function getCacheFilename(artist, song) {
@@ -110,14 +174,33 @@ app.get('/check-mp3-cache', (req, res) => {
   const cacheFilename = getCacheFilename(artist, song);
   const cachePath = path.join(MP3_DIR, cacheFilename);
   
+  // First try exact match
   if (fs.existsSync(cachePath)) {
     const stats = fs.statSync(cachePath);
     const mp3Url = `/mp3files/${encodeURIComponent(cacheFilename)}`;
-    console.log(`📦 Cache HIT: ${cacheFilename}`);
+    console.log(`📦 Cache HIT (exact): ${cacheFilename}`);
     return res.json({
       cached: true,
       mp3Url: mp3Url,
       filename: cacheFilename,
+      artist: artist,
+      song: song,
+      size: stats.size,
+      created: stats.birthtime
+    });
+  }
+  
+  // Try fuzzy match as fallback
+  const fuzzyMatch = findFileByFuzzyMatch(MP3_DIR, artist, song, '.mp3');
+  if (fuzzyMatch) {
+    const fuzzyPath = path.join(MP3_DIR, fuzzyMatch);
+    const stats = fs.statSync(fuzzyPath);
+    const mp3Url = `/mp3files/${encodeURIComponent(fuzzyMatch)}`;
+    console.log(`📦 Cache HIT (fuzzy): ${fuzzyMatch}`);
+    return res.json({
+      cached: true,
+      mp3Url: mp3Url,
+      filename: fuzzyMatch,
       artist: artist,
       song: song,
       size: stats.size,
@@ -152,13 +235,33 @@ app.post('/get-mp3', async (req, res) => {
   // Check cache by artist-song filename FIRST (before clearing old files)
   if (cacheFilename) {
     const cachePath = path.join(MP3_DIR, cacheFilename);
+    
+    // Try exact match first
     if (fs.existsSync(cachePath)) {
       const stats = fs.statSync(cachePath);
       const mp3Url = `/mp3files/${encodeURIComponent(cacheFilename)}`;
-      console.log(`📦 Using cached MP3 (artist-song): ${cacheFilename}`);
+      console.log(`📦 Using cached MP3 (exact): ${cacheFilename}`);
       return res.json({
         mp3Url: mp3Url,
         filename: cacheFilename,
+        title: `${artist} - ${song}`,
+        artist: artist,
+        song: song,
+        size: stats.size,
+        cached: true
+      });
+    }
+    
+    // Try fuzzy match as fallback
+    const fuzzyMatch = findFileByFuzzyMatch(MP3_DIR, artist, song, '.mp3');
+    if (fuzzyMatch) {
+      const fuzzyPath = path.join(MP3_DIR, fuzzyMatch);
+      const stats = fs.statSync(fuzzyPath);
+      const mp3Url = `/mp3files/${encodeURIComponent(fuzzyMatch)}`;
+      console.log(`📦 Using cached MP3 (fuzzy): ${fuzzyMatch}`);
+      return res.json({
+        mp3Url: mp3Url,
+        filename: fuzzyMatch,
         title: `${artist} - ${song}`,
         artist: artist,
         song: song,
@@ -378,13 +481,31 @@ app.get('/check-analysis-cache', (req, res) => {
   const analysisFilename = getAnalysisFilename(artist, song);
   const analysisPath = path.join(ANALYSIS_DIR, analysisFilename);
   
+  // Try exact match first
   if (fs.existsSync(analysisPath)) {
     const stats = fs.statSync(analysisPath);
-    console.log(`📦 Analysis cache HIT: ${analysisFilename}`);
+    console.log(`📦 Analysis cache HIT (exact): ${analysisFilename}`);
     return res.json({
       cached: true,
       filename: analysisFilename,
       url: `/analysis/${encodeURIComponent(analysisFilename)}`,
+      artist: artist,
+      song: song,
+      size: stats.size,
+      created: stats.birthtime
+    });
+  }
+  
+  // Try fuzzy match as fallback
+  const fuzzyMatch = findFileByFuzzyMatch(ANALYSIS_DIR, artist, song, '.json');
+  if (fuzzyMatch) {
+    const fuzzyPath = path.join(ANALYSIS_DIR, fuzzyMatch);
+    const stats = fs.statSync(fuzzyPath);
+    console.log(`📦 Analysis cache HIT (fuzzy): ${fuzzyMatch}`);
+    return res.json({
+      cached: true,
+      filename: fuzzyMatch,
+      url: `/analysis/${encodeURIComponent(fuzzyMatch)}`,
       artist: artist,
       song: song,
       size: stats.size,
@@ -407,19 +528,35 @@ app.get('/get-analysis', (req, res) => {
   const analysisFilename = getAnalysisFilename(artist, song);
   const analysisPath = path.join(ANALYSIS_DIR, analysisFilename);
   
-  if (!fs.existsSync(analysisPath)) {
-    return res.status(404).json({ error: 'Analysis not found', filename: analysisFilename });
+  // Try exact match first
+  if (fs.existsSync(analysisPath)) {
+    try {
+      const data = fs.readFileSync(analysisPath, 'utf8');
+      const analysis = JSON.parse(data);
+      console.log(`📦 Loaded analysis (exact): ${analysisFilename}`);
+      return res.json(analysis);
+    } catch (error) {
+      console.error('❌ Failed to read analysis:', error);
+      return res.status(500).json({ error: 'Failed to read analysis data' });
+    }
   }
   
-  try {
-    const data = fs.readFileSync(analysisPath, 'utf8');
-    const analysis = JSON.parse(data);
-    console.log(`📦 Loaded analysis: ${analysisFilename}`);
-    res.json(analysis);
-  } catch (error) {
-    console.error('❌ Failed to read analysis:', error);
-    res.status(500).json({ error: 'Failed to read analysis data' });
+  // Try fuzzy match as fallback
+  const fuzzyMatch = findFileByFuzzyMatch(ANALYSIS_DIR, artist, song, '.json');
+  if (fuzzyMatch) {
+    const fuzzyPath = path.join(ANALYSIS_DIR, fuzzyMatch);
+    try {
+      const data = fs.readFileSync(fuzzyPath, 'utf8');
+      const analysis = JSON.parse(data);
+      console.log(`📦 Loaded analysis (fuzzy): ${fuzzyMatch}`);
+      return res.json(analysis);
+    } catch (error) {
+      console.error('❌ Failed to read analysis:', error);
+      return res.status(500).json({ error: 'Failed to read analysis data' });
+    }
   }
+  
+  return res.status(404).json({ error: 'Analysis not found', filename: analysisFilename });
 });
 
 // Save analysis data

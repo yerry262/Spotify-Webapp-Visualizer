@@ -1,7 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './SideMenu.css';
 
-const SideMenu = ({ isOpen, onClose, onLogout, user }) => {
+const SideMenu = ({ 
+  isOpen, 
+  onClose, 
+  onLogout, 
+  user, 
+  waveformStyles, 
+  waveformStyle, 
+  isWaveformAuto, 
+  onWaveformChange,
+  waveformSettings,
+  onWaveformSettingsChange,
+  particleSettings,
+  onParticleSettingsChange
+}) => {
+  const [isWaveformOpen, setIsWaveformOpen] = useState(false);
+  const [isParticlesOpen, setIsParticlesOpen] = useState(false);
   const profileImage = user?.images?.[0]?.url;
   const displayName = user?.display_name || user?.id || 'User';
 
@@ -42,6 +57,162 @@ const SideMenu = ({ isOpen, onClose, onLogout, user }) => {
             </svg>
             <span>Home</span>
           </a>
+          
+          {/* Waveform Dropdown */}
+          <div className="menu-dropdown">
+            <button 
+              className={`menu-item dropdown-toggle ${isWaveformOpen ? 'open' : ''}`}
+              onClick={() => setIsWaveformOpen(!isWaveformOpen)}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12h4l3-9 4 18 3-9h4"></path>
+              </svg>
+              <span>Waveform</span>
+              <svg className="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            
+            <div className={`dropdown-content ${isWaveformOpen ? 'open' : ''}`}>
+              <button 
+                className={`dropdown-item ${isWaveformAuto ? 'active' : ''}`}
+                onClick={() => onWaveformChange && onWaveformChange('auto')}
+              >
+                <span className="item-dot"></span>
+                Random (Auto 30s)
+              </button>
+              <div className="dropdown-divider"></div>
+              {waveformStyles && waveformStyles.map(style => (
+                <button 
+                  key={style.id}
+                  className={`dropdown-item ${!isWaveformAuto && waveformStyle === style.id ? 'active' : ''}`}
+                  onClick={() => onWaveformChange && onWaveformChange(style.id)}
+                >
+                  <span className="item-dot"></span>
+                  {style.name}
+                </button>
+              ))}
+              <div className="dropdown-divider"></div>
+              {/* Custom Settings Toggle */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Custom Settings</span>
+                <label className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    checked={waveformSettings?.useCustomSettings ?? false}
+                    onChange={(e) => onWaveformSettingsChange?.({ useCustomSettings: e.target.checked })}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+              {/* Max Amplitude Slider - only enabled when custom settings is on */}
+              <div className={`dropdown-setting ${!waveformSettings?.useCustomSettings ? 'disabled' : ''}`}>
+                <span className="setting-label">Max Height: {waveformSettings?.maxAmplitude ?? 45}%</span>
+                <input 
+                  type="range" 
+                  min="10" 
+                  max="50" 
+                  value={waveformSettings?.maxAmplitude ?? 45}
+                  onChange={(e) => onWaveformSettingsChange?.({ maxAmplitude: parseInt(e.target.value) })}
+                  className="setting-slider"
+                  disabled={!waveformSettings?.useCustomSettings}
+                />
+              </div>
+              {/* Base Position Slider - only enabled when custom settings is on */}
+              <div className={`dropdown-setting ${!waveformSettings?.useCustomSettings ? 'disabled' : ''}`}>
+                <span className="setting-label">Start Position: {waveformSettings?.basePosition ?? 60}%</span>
+                <input 
+                  type="range" 
+                  min="25" 
+                  max="100" 
+                  value={waveformSettings?.basePosition ?? 60}
+                  onChange={(e) => onWaveformSettingsChange?.({ basePosition: parseInt(e.target.value) })}
+                  className="setting-slider"
+                  disabled={!waveformSettings?.useCustomSettings}
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Particles Dropdown */}
+          <div className="menu-dropdown">
+            <button 
+              className={`menu-item dropdown-toggle ${isParticlesOpen ? 'open' : ''}`}
+              onClick={() => setIsParticlesOpen(!isParticlesOpen)}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="6" cy="6" r="1"></circle>
+                <circle cx="18" cy="6" r="1"></circle>
+                <circle cx="6" cy="18" r="1"></circle>
+                <circle cx="18" cy="18" r="1"></circle>
+                <circle cx="3" cy="12" r="1"></circle>
+                <circle cx="21" cy="12" r="1"></circle>
+              </svg>
+              <span>Particles</span>
+              <svg className="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            
+            <div className={`dropdown-content ${isParticlesOpen ? 'open' : ''}`}>
+              {/* Enable/Disable Toggle */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Enabled</span>
+                <label className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    checked={particleSettings?.enabled ?? true}
+                    onChange={(e) => onParticleSettingsChange?.({ enabled: e.target.checked })}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+              
+              <div className="dropdown-divider"></div>
+              
+              {/* Count Slider */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Count: {particleSettings?.count ?? 20}</span>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="200" 
+                  value={particleSettings?.count ?? 20}
+                  onChange={(e) => onParticleSettingsChange?.({ count: parseInt(e.target.value) })}
+                  className="setting-slider"
+                />
+              </div>
+              
+              {/* Size Slider */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Size: {(particleSettings?.size ?? 1).toFixed(1)}x</span>
+                <input 
+                  type="range" 
+                  min="0.5" 
+                  max="10" 
+                  step="0.1"
+                  value={particleSettings?.size ?? 1}
+                  onChange={(e) => onParticleSettingsChange?.({ size: parseFloat(e.target.value) })}
+                  className="setting-slider"
+                />
+              </div>
+              
+              {/* Speed Slider */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Speed: {(particleSettings?.speed ?? 1).toFixed(1)}x</span>
+                <input 
+                  type="range" 
+                  min="0.5" 
+                  max="3" 
+                  step="0.1"
+                  value={particleSettings?.speed ?? 1}
+                  onChange={(e) => onParticleSettingsChange?.({ speed: parseFloat(e.target.value) })}
+                  className="setting-slider"
+                />
+              </div>
+            </div>
+          </div>
           
           <a href={`${process.env.PUBLIC_URL}/test-runner.html`} className="menu-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

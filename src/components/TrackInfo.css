@@ -137,6 +137,9 @@
 }
 
 .now-playing-badge {
+  position: absolute;
+  top: 10px;
+  left: 16px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -144,11 +147,12 @@
   background: rgba(29, 185, 84, 0.15);
   border: 1px solid rgba(29, 185, 84, 0.3);
   border-radius: 20px;
-  margin-bottom: 15px;
+  margin-bottom: 0;
   font-family: 'Orbitron', monospace;
   font-size: 10px;
   letter-spacing: 2px;
   color: #1DB954;
+  z-index: 10;
 }
 
 .pulse-dot {

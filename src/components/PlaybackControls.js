@@ -2,7 +2,7 @@ import React from 'react';
 import { SpotifyAPI } from '../spotifyService';
 import './PlaybackControls.css';
 
-const PlaybackControls = ({ isPlaying, onRefresh, device }) => {
+const PlaybackControls = ({ isPlaying, onRefresh, device, shuffleState, repeatState, smartShuffle }) => {
   const handlePrevious = async () => {
     await SpotifyAPI.previous();
     setTimeout(onRefresh, 300);
@@ -20,6 +20,95 @@ const PlaybackControls = ({ isPlaying, onRefresh, device }) => {
   const handleNext = async () => {
     await SpotifyAPI.next();
     setTimeout(onRefresh, 300);
+  };
+
+  const handleShuffle = async () => {
+    // Toggle shuffle on/off (smart shuffle is controlled by Spotify based on context)
+    await SpotifyAPI.setShuffle(!shuffleState);
+    setTimeout(onRefresh, 300);
+  };
+
+  const handleRepeat = async () => {
+    // Cycle through: off -> context -> track -> off
+    let nextState;
+    if (repeatState === 'off') {
+      nextState = 'context';
+    } else if (repeatState === 'context') {
+      nextState = 'track';
+    } else {
+      nextState = 'off';
+    }
+    await SpotifyAPI.setRepeat(nextState);
+    setTimeout(onRefresh, 300);
+  };
+
+  // Get shuffle icon based on state
+  const getShuffleIcon = () => {
+    if (!shuffleState) {
+      // Shuffle off - gray crossed arrows
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+        </svg>
+      );
+    } else if (smartShuffle) {
+      // Smart shuffle - crossed arrows with sparkle
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+          <circle cx="19" cy="5" r="2.5" fill="#1DB954"/>
+          <path d="M19 3.5l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z" fill="white"/>
+        </svg>
+      );
+    } else {
+      // Regular shuffle - green crossed arrows
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+        </svg>
+      );
+    }
+  };
+
+  // Get shuffle title
+  const getShuffleTitle = () => {
+    if (!shuffleState) return 'Enable Shuffle';
+    if (smartShuffle) return 'Smart Shuffle On (click to disable)';
+    return 'Shuffle On (click to disable)';
+  };
+
+  // Get repeat icon based on state
+  const getRepeatIcon = () => {
+    if (repeatState === 'track') {
+      // Repeat one - arrows with "1"
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+          <text x="12" y="14.5" fontSize="8" fontWeight="bold" textAnchor="middle">1</text>
+        </svg>
+      );
+    } else if (repeatState === 'context') {
+      // Repeat all - just arrows (green)
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+        </svg>
+      );
+    } else {
+      // Repeat off - gray arrows
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+        </svg>
+      );
+    }
+  };
+
+  // Get repeat title
+  const getRepeatTitle = () => {
+    if (repeatState === 'off') return 'Enable Repeat';
+    if (repeatState === 'context') return 'Repeat All (click for Repeat One)';
+    return 'Repeat One (click to disable)';
   };
 
   // Get device icon based on type
@@ -60,31 +149,50 @@ const PlaybackControls = ({ isPlaying, onRefresh, device }) => {
 
   return (
     <div className="playback-controls">
-      <button className="control-btn secondary" onClick={handlePrevious} title="Previous">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-        </svg>
-      </button>
-      
-      <button className="control-btn primary" onClick={handlePlayPause} title={isPlaying ? 'Pause' : 'Play'}>
-        {isPlaying ? (
+      {/* Centered control buttons */}
+      <div className="controls-center">
+        <button 
+          className={`control-btn small ${shuffleState ? 'active' : ''} ${smartShuffle ? 'smart' : ''}`} 
+          onClick={handleShuffle} 
+          title={getShuffleTitle()}
+        >
+          {getShuffleIcon()}
+        </button>
+        
+        <button className="control-btn secondary" onClick={handlePrevious} title="Previous">
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
           </svg>
-        ) : (
+        </button>
+        
+        <button className="control-btn primary" onClick={handlePlayPause} title={isPlaying ? 'Pause' : 'Play'}>
+          {isPlaying ? (
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          )}
+        </button>
+        
+        <button className="control-btn secondary" onClick={handleNext} title="Next">
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8 5v14l11-7z"/>
+            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
           </svg>
-        )}
-      </button>
+        </button>
+        
+        <button 
+          className={`control-btn small ${repeatState !== 'off' ? 'active' : ''}`} 
+          onClick={handleRepeat} 
+          title={getRepeatTitle()}
+        >
+          {getRepeatIcon()}
+        </button>
+      </div>
       
-      <button className="control-btn secondary" onClick={handleNext} title="Next">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-        </svg>
-      </button>
-      
-      {/* Device Info */}
+      {/* Device Info - positioned to the right */}
       {device && (
         <div className="device-info" title={`Playing on: ${device.name}`}>
           <span className="device-icon">

@@ -2,12 +2,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
   padding: 20px;
   padding-bottom: 60px;
   position: relative;
   z-index: 10;
   width: 100%;
+}
+
+/* Centered button group */
+.controls-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
 }
 
 .control-btn {
@@ -91,16 +98,45 @@
   height: 22px;
 }
 
-/* Device Info */
+/* Small buttons (shuffle, repeat) */
+.control-btn.small {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: none;
+}
+
+.control-btn.small:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.control-btn.small svg {
+  width: 18px;
+  height: 18px;
+}
+
+.control-btn.small.active {
+  color: #1DB954;
+}
+
+.control-btn.small.active:hover {
+  color: #1ed760;
+}
+
+.control-btn.small.smart {
+  color: #1DB954;
+}
+
+.control-btn.small.smart svg circle {
+  fill: #1DB954;
+}
+
+/* Device Info - now shown in footer instead */
 .device-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 15px;
-  padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: none;
 }
 
 .device-icon {
@@ -127,10 +163,12 @@
 
 @media (max-width: 600px) {
   .playback-controls {
-    gap: 12px;
     padding: 15px;
     padding-bottom: 50px;
-    flex-wrap: nowrap;
+  }
+  
+  .controls-center {
+    gap: 12px;
   }
   
   .control-btn.primary {
@@ -154,10 +192,57 @@
   }
   
   .device-info {
-    margin-left: 10px;
+    right: 15px;
+    padding: 6px 10px;
   }
   
   .device-name {
-    max-width: 80px;
+    max-width: 60px;
+    font-size: 11px;
+  }
+  
+  .device-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* Very small screens - hide device info here, show in footer */
+@media (max-width: 400px) {
+  .controls-center {
+    gap: 8px;
+  }
+  
+  .control-btn.primary {
+    width: 52px;
+    height: 52px;
+  }
+  
+  .control-btn.secondary {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .control-btn.small {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .control-btn.small svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .device-info {
+    display: none;
+  }
+  
+  .device-info.in-footer {
+    display: flex;
+    position: static;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 }

@@ -223,5 +223,14 @@ export const SpotifyAPI = {
   
   async setVolume(volumePercent) {
     return this.request(`/me/player/volume?volume_percent=${volumePercent}`, { method: 'PUT' });
+  },
+  
+  async setShuffle(state) {
+    return this.request(`/me/player/shuffle?state=${state}`, { method: 'PUT' });
+  },
+  
+  async setRepeat(state) {
+    // state can be: 'track', 'context', or 'off'
+    return this.request(`/me/player/repeat?state=${state}`, { method: 'PUT' });
   }
 };

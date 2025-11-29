@@ -64,6 +64,87 @@
   align-items: center;
 }
 
+/* Now Playing badge in footer */
+.footer-now-playing {
+  position: absolute;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(29, 185, 84, 0.15);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  border-radius: 12px;
+  font-family: 'Orbitron', monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: #1DB954;
+}
+
+.footer-pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: #1DB954;
+  border-radius: 50%;
+  animation: footerPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes footerPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Small screens - shrink Now Playing badge */
+@media (max-width: 400px) {
+  .footer-now-playing {
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+  
+  .footer-pulse-dot {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* Footer device info - always shown on right */
+.footer-device-info {
+  display: flex;
+  position: absolute;
+  right: 8px;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-device-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1DB954;
+}
+
+.footer-device-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.footer-device-name {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .settings-btn {
   position: absolute;
   right: 16px;

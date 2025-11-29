@@ -205,7 +205,11 @@ export const YouTubeService = {
       const data = await response.json();
       if (data.cached) {
         console.log('📦 Server has cached MP3:', data.filename);
-        return data;
+        // Convert relative mp3Url to full URL
+        return {
+          ...data,
+          mp3Url: `${API_BASE_URL}${data.mp3Url}`
+        };
       }
       return null;
     } catch (error) {

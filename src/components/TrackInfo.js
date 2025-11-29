@@ -46,11 +46,6 @@ const TrackInfo = ({ track, progress, duration }) => {
         
         {/* Track Details */}
         <div className="track-details">
-          <div className="now-playing-badge">
-            <span className="pulse-dot"></span>
-            <span>NOW PLAYING</span>
-          </div>
-          
           <h1 className="track-name">{track.name}</h1>
           <h2 className="artist-name">{artistNames}</h2>
           <h3 className="album-name">{track.album.name}</h3>

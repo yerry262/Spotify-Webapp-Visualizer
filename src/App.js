@@ -7,7 +7,24 @@ import UserProfile from './components/UserProfile';
 import SideMenu from './components/SideMenu';
 import { analyzeAudio, getCachedAnalysis, loadEssentia } from './audioAnalysisService';
 import { YouTubeService } from './youtubeService';
+import { 
+  getWaveformStyles, 
+  getWaveformStyle, 
+  setWaveformStyle, 
+  setWaveformAutoMode, 
+  isWaveformAutoMode,
+  getParticleSettings,
+  setParticleSettings,
+  getWaveformSettings,
+  setWaveformSettings
+} from './components/visualizers/VisualizerAudio';
 import './App.css';
+
+// Timestamp helper for console logs
+const ts = () => {
+  const now = new Date();
+  return `[${now.toLocaleTimeString('en-US', { hour12: false })}.${now.getMilliseconds().toString().padStart(3, '0')}]`;
+};
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -18,6 +35,17 @@ function App() {
   const [analysisData, setAnalysisData] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Waveform selection state
+  const [waveformStyle, setWaveformStyleState] = useState(getWaveformStyle());
+  const [isWaveformAuto, setIsWaveformAuto] = useState(isWaveformAutoMode());
+  const waveformStyles = getWaveformStyles();
+  
+  // Waveform settings state
+  const [waveformSettingsState, setWaveformSettingsState] = useState(getWaveformSettings());
+  
+  // Particle settings state
+  const [particleSettingsState, setParticleSettingsState] = useState(getParticleSettings());
   
   // Use ref to track current track ID without causing re-renders
   const currentTrackIdRef = useRef(null);
@@ -89,7 +117,7 @@ function App() {
         if (state.item.id !== currentTrackIdRef.current) {
           // Prevent duplicate processing - strict lock check
           if (isProcessingRef.current) {
-            console.log('⏳ Already processing a track, skipping...', state.item.name);
+            console.log(ts(), '⏳ Already processing a track, skipping...', state.item.name);
             return;
           }
           
@@ -106,8 +134,8 @@ function App() {
           const trackName = state.item.name;
           const artistName = state.item.artists[0]?.name;
           
-          console.log('🎵 Track changed:', trackName, '-', artistName);
-          console.log('   Previous ID:', previousTrackId, '→ New ID:', state.item.id);
+          console.log(ts(), '🎵 Track changed:', trackName, '-', artistName);
+          console.log(ts(), '   Previous ID:', previousTrackId, '→ New ID:', state.item.id);
           
           // Clear old audio data immediately
           setAnalysisData(null);
@@ -117,20 +145,20 @@ function App() {
           
           // DEBOUNCED PROCESSING: Wait for track to "settle" before starting
           // This prevents rapid API calls when user is skipping through tracks
-          console.log(`⏳ Waiting ${TRACK_CHANGE_DEBOUNCE}ms for track to settle...`);
+          console.log(ts(), `⏳ Waiting ${TRACK_CHANGE_DEBOUNCE}ms for track to settle...`);
           
           trackChangeTimerRef.current = setTimeout(async () => {
             trackChangeTimerRef.current = null;
             
             // Verify this is still the current track after debounce
             if (state.item.id !== currentTrackIdRef.current) {
-              console.log('🛑 Track changed during debounce, aborting');
+              console.log(ts(), '🛑 Track changed during debounce, aborting');
               return;
             }
             
             // Double-check we're not already processing
             if (isProcessingRef.current) {
-              console.log('⏳ Already processing, skipping debounced request');
+              console.log(ts(), '⏳ Already processing, skipping debounced request');
               return;
             }
             
@@ -140,32 +168,32 @@ function App() {
             
             try {
               // STEP 1: Check if analysis data is already cached on server
-              console.log('🔍 Step 1: Checking analysis cache...');
+              console.log(ts(), '🔍 Step 1: Checking analysis cache...');
               const cachedAnalysis = await getCachedAnalysis(artistName, trackName);
               
               if (cachedAnalysis) {
-                console.log('📦 Found cached analysis! Skipping MP3 pipeline.');
+                console.log(ts(), '📦 Found cached analysis! Skipping MP3 pipeline.');
                 setAnalysisData(cachedAnalysis);
                 setIsAnalyzing(false);
                 isProcessingRef.current = false;
-                console.log('✅ Loaded from cache!');
+                console.log(ts(), '✅ Loaded from cache!');
                 return;
               }
               
               // STEP 2: Check if MP3 is cached on server (even if API is blocked)
-              console.log('🔍 Step 2: Checking MP3 cache...');
+              console.log(ts(), '🔍 Step 2: Checking MP3 cache...');
               const mp3Cache = await YouTubeService.checkServerCache(artistName, trackName);
               
               if (mp3Cache) {
                 // MP3 is cached! We can analyze it even if YouTube API is blocked
-                console.log('📦 Found cached MP3! Running analysis...');
+                console.log(ts(), '📦 Found cached MP3! Running analysis...');
                 const analysis = await analyzeAudio(mp3Cache.mp3Url, artistName, trackName);
                 
                 if (state.item.id === currentTrackIdRef.current) {
                   setAnalysisData(analysis);
                   setIsAnalyzing(false);
                   isProcessingRef.current = false;
-                  console.log('✅ Audio analysis complete (from cached MP3)!');
+                  console.log(ts(), '✅ Audio analysis complete (from cached MP3)!');
                 }
                 return;
               }
@@ -173,23 +201,23 @@ function App() {
               // STEP 3: No cache - need YouTube API
               // Check if API is blocked before trying
               if (YouTubeService.isApiBlocked()) {
-                console.warn('🚫 YouTube API blocked and no cache available');
-                console.warn('   Reason:', YouTubeService.getApiBlockReason());
-                console.warn('   Cannot analyze this track until quota resets.');
+                console.warn(ts(), '🚫 YouTube API blocked and no cache available');
+                console.warn(ts(), '   Reason:', YouTubeService.getApiBlockReason());
+                console.warn(ts(), '   Cannot analyze this track until quota resets.');
                 setIsAnalyzing(false);
                 isProcessingRef.current = false;
                 return;
               }
               
               // Get MP3 from YouTube via server
-              console.log('🔍 Step 3: Fetching from YouTube...');
+              console.log(ts(), '🔍 Step 3: Fetching from YouTube...');
               const mp3Result = await YouTubeService.getMP3ForTrack(artistName, trackName);
               
               if (!mp3Result) {
                 if (YouTubeService.isApiBlocked()) {
-                  console.warn('🚫 YouTube API blocked during request');
+                  console.warn(ts(), '🚫 YouTube API blocked during request');
                 }
-                console.warn('⚠️ Could not get MP3 from YouTube');
+                console.warn(ts(), '⚠️ Could not get MP3 from YouTube');
                 setIsAnalyzing(false);
                 isProcessingRef.current = false;
                 return;
@@ -197,19 +225,19 @@ function App() {
               
               // Verify track hasn't changed
               if (!YouTubeService.shouldContinue(artistName, trackName)) {
-                console.log('🛑 Track changed, aborting analysis');
+                console.log(ts(), '🛑 Track changed, aborting analysis');
                 setIsAnalyzing(false);
                 isProcessingRef.current = false;
                 return;
               }
               
               // Analyze the MP3 with Essentia.js (with caching by artist/song)
-              console.log('🎼 Step 4: Analyzing audio with Essentia.js...');
+              console.log(ts(), '🎼 Step 4: Analyzing audio with Essentia.js...');
               const analysis = await analyzeAudio(mp3Result.mp3.mp3Url, artistName, trackName);
               
               // Final verify track hasn't changed
               if (!YouTubeService.shouldContinue(artistName, trackName)) {
-                console.log('🛑 Track changed during analysis, aborting');
+                console.log(ts(), '🛑 Track changed during analysis, aborting');
                 setIsAnalyzing(false);
                 isProcessingRef.current = false;
                 return;
@@ -218,10 +246,10 @@ function App() {
               setAnalysisData(analysis);
               setIsAnalyzing(false);
               isProcessingRef.current = false;
-              console.log('✅ Audio analysis complete!');
+              console.log(ts(), '✅ Audio analysis complete!');
               
             } catch (err) {
-              console.error('❌ Audio pipeline failed:', err);
+              console.error(ts(), '❌ Audio pipeline failed:', err);
               setIsAnalyzing(false);
               isProcessingRef.current = false;
             }
@@ -268,6 +296,50 @@ function App() {
     setUser(null);
     setPlaybackState(null);
   };
+
+  // Waveform selection handlers
+  const handleWaveformChange = (styleId) => {
+    if (styleId === 'auto') {
+      // Enable auto mode
+      setWaveformAutoMode(true);
+      setIsWaveformAuto(true);
+    } else {
+      // Disable auto mode and set specific style
+      setWaveformStyle(styleId);
+      setWaveformStyleState(styleId);
+      setWaveformAutoMode(false);
+      setIsWaveformAuto(false);
+    }
+  };
+
+  const handleWaveformAutoToggle = (enabled) => {
+    setWaveformAutoMode(enabled);
+    setIsWaveformAuto(enabled);
+  };
+
+  // Particle settings handler
+  const handleParticleSettingsChange = (newSettings) => {
+    const updated = { ...particleSettingsState, ...newSettings };
+    setParticleSettings(updated);
+    setParticleSettingsState(updated);
+  };
+
+  // Waveform settings handler
+  const handleWaveformSettingsChange = (newSettings) => {
+    const updated = { ...waveformSettingsState, ...newSettings };
+    setWaveformSettings(updated);
+    setWaveformSettingsState(updated);
+  };
+
+  // Sync waveform state when it changes externally (auto mode)
+  useEffect(() => {
+    if (isWaveformAuto) {
+      const interval = setInterval(() => {
+        setWaveformStyleState(getWaveformStyle());
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isWaveformAuto]);
 
   if (isLoading) {
     return (
@@ -316,7 +388,21 @@ function App() {
       <UserProfile user={user} onMenuClick={() => setIsMenuOpen(true)} />
       
       {/* Side Menu */}
-      <SideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onLogout={handleLogout} user={user} />
+      <SideMenu 
+        isOpen={isMenuOpen} 
+        onClose={() => setIsMenuOpen(false)} 
+        onLogout={handleLogout} 
+        user={user}
+        waveformStyle={waveformStyle}
+        waveformStyles={waveformStyles}
+        isWaveformAuto={isWaveformAuto}
+        onWaveformChange={handleWaveformChange}
+        onWaveformAutoToggle={handleWaveformAutoToggle}
+        waveformSettings={waveformSettingsState}
+        onWaveformSettingsChange={handleWaveformSettingsChange}
+        particleSettings={particleSettingsState}
+        onParticleSettingsChange={handleParticleSettingsChange}
+      />
       
       {/* Main Content */}
       <div className="main-content">
@@ -344,6 +430,9 @@ function App() {
                 isPlaying={playbackState?.is_playing}
                 onRefresh={fetchPlaybackState}
                 device={playbackState?.device}
+                shuffleState={playbackState?.shuffle_state}
+                repeatState={playbackState?.repeat_state || 'off'}
+                smartShuffle={playbackState?.smart_shuffle}
               />
             </div>
           </>
@@ -360,7 +449,32 @@ function App() {
       
       {/* Version Footer */}
       <footer className="version-footer">
+        {/* Now Playing badge on left */}
+        {isPlaying && (
+          <div className="footer-now-playing">
+            <span className="footer-pulse-dot"></span>
+            <span>NOW PLAYING</span>
+          </div>
+        )}
+        
         <span>Made by {versionInfo.AUTHOR} - v{versionInfo.VERSION}</span>
+        {/* Device info shown here on small screens */}
+        {playbackState?.device && (
+          <div className="footer-device-info" title={`Playing on: ${playbackState.device.name}`}>
+            <span className="footer-device-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                {playbackState.device.type?.toLowerCase() === 'computer' ? (
+                  <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
+                ) : playbackState.device.type?.toLowerCase() === 'smartphone' ? (
+                  <path d="M15.5 1h-8C6.12 1 5 2.12 5 3.5v17C5 21.88 6.12 23 7.5 23h8c1.38 0 2.5-1.12 2.5-2.5v-17C18 2.12 16.88 1 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/>
+                ) : (
+                  <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>
+                )}
+              </svg>
+            </span>
+            <span className="footer-device-name">{playbackState.device.name}</span>
+          </div>
+        )}
       </footer>
     </div>
   );
