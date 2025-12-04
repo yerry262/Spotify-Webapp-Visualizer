@@ -1,6 +1,6 @@
 {
   "name": "spotify-mini-controller",
-  "version": "1.3.0",
+  "version": "2.3.0",
   "description": "A futuristic Spotify mini controller with audio visualization",
   "homepage": "https://yerry262.github.io/Spotify-Webapp-Visualizer",
   "type": "module",
