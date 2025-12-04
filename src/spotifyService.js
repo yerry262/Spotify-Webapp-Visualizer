@@ -2,8 +2,14 @@
 // Using Authorization Code with PKCE Flow (no client secret needed)
 import { SPOTIFY_REDIRECT_URI } from './config';
 
+// Validate required environment variable
+const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+if (!SPOTIFY_CLIENT_ID) {
+  console.error('❌ VITE_SPOTIFY_CLIENT_ID is not set! Please add it to your .env file.');
+}
+
 export const SPOTIFY_CONFIG = {
-  clientId: process.env.REACT_APP_SPOTIFY_CLIENT_ID || '6ada4e42731d48f9ad85fab1764aca89',
+  clientId: SPOTIFY_CLIENT_ID || '',
   redirectUri: SPOTIFY_REDIRECT_URI,
   scopes: [
     'user-read-playback-state',
@@ -173,8 +179,29 @@ export const SpotifyAPI = {
     });
     
     if (response.status === 401) {
+      console.warn('⚠️ Session expired. Please log in again.');
+      // Dispatch custom event for UI notification
+      window.dispatchEvent(new CustomEvent('spotify-auth-error', { 
+        detail: { message: 'Your session has expired. Please log in again.' }
+      }));
       SpotifyAuth.logout();
       window.location.reload();
+      return null;
+    }
+    
+    if (response.status === 403) {
+      console.error('❌ Forbidden: Check your Spotify app permissions');
+      window.dispatchEvent(new CustomEvent('spotify-api-error', { 
+        detail: { message: 'Permission denied. Check your Spotify app settings.' }
+      }));
+      return null;
+    }
+    
+    if (response.status >= 500) {
+      console.error('❌ Spotify server error');
+      window.dispatchEvent(new CustomEvent('spotify-api-error', { 
+        detail: { message: 'Spotify is experiencing issues. Please try again later.' }
+      }));
       return null;
     }
     

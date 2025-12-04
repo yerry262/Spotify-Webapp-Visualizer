@@ -124,7 +124,7 @@ export async function loadEssentia() {
       // Load BOTH scripts in parallel for faster loading
       const wasmScriptPromise = new Promise((res, rej) => {
         const wasmScript = document.createElement('script');
-        wasmScript.src = `${process.env.PUBLIC_URL}/essentia-wasm.web.js`;
+        wasmScript.src = `${import.meta.env.BASE_URL}essentia-wasm.web.js`;
         wasmScript.async = true;
         wasmScript.onload = res;
         wasmScript.onerror = () => rej(new Error('Failed to load essentia-wasm'));
@@ -133,7 +133,7 @@ export async function loadEssentia() {
       
       const coreScriptPromise = new Promise((res, rej) => {
         const coreScript = document.createElement('script');
-        coreScript.src = `${process.env.PUBLIC_URL}/essentia.js-core.js`;
+        coreScript.src = `${import.meta.env.BASE_URL}essentia.js-core.js`;
         coreScript.async = true;
         coreScript.onload = res;
         coreScript.onerror = () => rej(new Error('Failed to load essentia.js-core'));
@@ -182,6 +182,7 @@ export async function loadEssentia() {
 
 /**
  * Fetch and decode audio from URL to AudioBuffer
+ * Properly closes AudioContext after decoding to prevent memory leaks
  */
 export async function fetchAudioBuffer(audioUrl) {
   console.log(`${timestamp()} 📥 Fetching audio from:`, audioUrl);
@@ -205,6 +206,17 @@ export async function fetchAudioBuffer(audioUrl) {
   } catch (error) {
     console.error('❌ Failed to fetch/decode audio:', error);
     throw error;
+  } finally {
+    // Close AudioContext to prevent memory leaks
+    // The decoded AudioBuffer remains valid after closing
+    if (audioContext.state !== 'closed') {
+      try {
+        await audioContext.close();
+        console.log(`${timestamp()} 🧹 AudioContext closed`);
+      } catch (closeError) {
+        console.warn('Could not close AudioContext:', closeError);
+      }
+    }
   }
 }
 
@@ -350,14 +362,14 @@ export async function extractMelSpectrogram(audioSignal, sampleRate = SAMPLE_RAT
  * Returns: Array of frames, each containing 12 chroma values (C, C#, D, ... B)
  */
 export async function extractHPCPChroma(audioSignal, sampleRate = SAMPLE_RATE) {
-  console.log(`${timestamp()} 🎼 Extracting HPCP Chroma (30fps)...`);
+  console.log(`${timestamp()} 🎼 Extracting HPCP Chroma (10fps)...`);
   
-  const CHROMA_INTERVAL = 0.0333; // 30fps for chroma (lighter computation)
+  const CHROMA_INTERVAL = 0.1; // 10fps for chroma (reduced from 30fps for performance)
   const frames = [];
   const totalDuration = audioSignal.length / sampleRate;
   const numFrames = Math.floor(totalDuration / CHROMA_INTERVAL);
   
-  console.log(`${timestamp()}    Processing ${numFrames} chroma frames at 30fps...`);
+  console.log(`${timestamp()}    Processing ${numFrames} chroma frames at 10fps...`);
   
   try {
     for (let i = 0; i < numFrames; i++) {
@@ -415,7 +427,7 @@ export async function extractPitch(audioSignal, sampleRate = SAMPLE_RATE) {
   
   return new Promise((resolve, reject) => {
     // Create worker from dedicated file in public folder
-    const worker = new Worker(`${process.env.PUBLIC_URL}/pitch-worker.js`);
+    const worker = new Worker(`${import.meta.env.BASE_URL}pitch-worker.js`);
     
     worker.onmessage = (e) => {
       const { type, frames, totalFrames, message } = e.data;

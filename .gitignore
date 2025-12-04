@@ -14,6 +14,14 @@ server/yt-dlp.exe
 server/ffmpeg.exe
 server/ffprobe.exe
 
+# Downloaded MP3 files (generated at runtime, too large for git)
+server/mp3files/*.mp3
+server/mp3files/*.webm
+server/mp3files/*.webm.part
+
+# Note: server/analysis/*.json files ARE committed to the repo
+# They provide pre-computed analysis data for faster loading
+
 # Misc
 .DS_Store
 *.log

@@ -32,14 +32,24 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (like mobile apps or curl) in development only
+    if (!origin) {
+      const isDev = process.env.NODE_ENV !== 'production';
+      return callback(isDev ? null : new Error('Origin required'), isDev);
+    }
     
     if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
-      callback(null, true); // Allow anyway for now, can restrict later
+      // In production, reject unknown origins
+      const isDev = process.env.NODE_ENV !== 'production';
+      if (isDev) {
+        console.warn('⚠️ Allowing unknown origin in development mode');
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'), false);
+      }
     }
   },
   credentials: true
@@ -55,6 +65,51 @@ app.use('/analysis', express.static(ANALYSIS_DIR));
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'YouTube to MP3 server is running' });
+});
+
+// ==================== BROWSER-USE API PROXY ====================
+// Proxy YouTube search requests to avoid CORS issues
+const BROWSER_USE_API_URL = 'https://api.skills.browser-use.com/skill/f7092eae-84d5-49dd-ab94-bb247f781ab5/execute';
+
+app.post('/search-youtube', async (req, res) => {
+  const { query } = req.body;
+  
+  if (!query) {
+    return res.status(400).json({ error: 'Query is required' });
+  }
+  
+  console.log('🔍 Proxying YouTube search:', query);
+  
+  try {
+    const response = await fetch(BROWSER_USE_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        parameters: {
+          query: query
+        }
+      })
+    });
+    
+    if (!response.ok) {
+      console.error('Browser-Use API error:', response.status);
+      return res.status(response.status).json({ error: 'Browser-Use API error' });
+    }
+    
+    const data = await response.json();
+    console.log('✅ Browser-Use API response:', data.success ? 'success' : 'failed');
+    
+    if (data.success && data.data) {
+      console.log('   Video:', data.data.title, 'by', data.data.channel);
+    }
+    
+    res.json(data);
+  } catch (error) {
+    console.error('❌ Browser-Use API proxy error:', error.message);
+    res.status(500).json({ error: 'Failed to search YouTube', details: error.message });
+  }
 });
 
 // Clear all MP3 files endpoint
@@ -212,20 +267,47 @@ app.get('/check-mp3-cache', (req, res) => {
   return res.json({ cached: false, expectedFilename: cacheFilename });
 });
 
+/**
+ * Validate and sanitize YouTube URL to prevent command injection
+ * Returns sanitized URL or null if invalid
+ */
+function sanitizeYouTubeUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  
+  // Remove any shell metacharacters that could be used for injection
+  const dangerousChars = /[;&|`$(){}\[\]<>\\\n\r]/g;
+  if (dangerousChars.test(url)) {
+    console.warn('⚠️ Potentially malicious URL detected:', url);
+    return null;
+  }
+  
+  // Validate URL format strictly
+  const youtubePatterns = [
+    /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[a-zA-Z0-9_-]{11}/,
+    /^https?:\/\/youtu\.be\/[a-zA-Z0-9_-]{11}/,
+    /^https?:\/\/(www\.)?youtube\.com\/embed\/[a-zA-Z0-9_-]{11}/
+  ];
+  
+  const isValidYouTubeUrl = youtubePatterns.some(pattern => pattern.test(url));
+  if (!isValidYouTubeUrl) {
+    return null;
+  }
+  
+  return url;
+}
+
 // Main endpoint to extract MP3 from YouTube URL
 app.post('/get-mp3', async (req, res) => {
-  const { url: youtubeUrl, artist, song, clearOld } = req.body;
+  const { url: rawYoutubeUrl, artist, song, clearOld } = req.body;
 
-  // Validate YouTube URL
+  // Validate and sanitize YouTube URL
+  const youtubeUrl = sanitizeYouTubeUrl(rawYoutubeUrl);
+  
   if (!youtubeUrl) {
-    return res.status(400).json({ error: 'YouTube URL is required' });
+    return res.status(400).json({ error: 'Invalid or missing YouTube URL. Must be a valid youtube.com or youtu.be link.' });
   }
 
-  if (!youtubeUrl.includes('youtube.com') && !youtubeUrl.includes('youtu.be')) {
-    return res.status(400).json({ error: 'Invalid YouTube URL' });
-  }
-
-  // Extract video ID from URL
+  // Extract video ID from URL (already validated)
   const videoIdMatch = youtubeUrl.match(/[?&]v=([^&]+)/) || youtubeUrl.match(/youtu\.be\/([^?]+)/);
   const videoId = videoIdMatch ? videoIdMatch[1] : null;
 
@@ -323,6 +405,24 @@ app.post('/get-mp3', async (req, res) => {
     // Use artist-song naming for proper caching
     outputPath = path.join(MP3_DIR, cacheFilename.replace('.mp3', '.%(ext)s'));
     finalFilename = cacheFilename;
+    
+    // 🧹 CLEANUP: Remove any incomplete/corrupted intermediate files
+    // This fixes the "unable to obtain file audio codec with ffprobe" error
+    // caused by leftover .webm/.opus/.m4a files from failed downloads
+    const baseName = cacheFilename.replace('.mp3', '');
+    const intermediateExtensions = ['.webm', '.opus', '.m4a', '.ogg', '.part', '.ytdl'];
+    
+    intermediateExtensions.forEach(ext => {
+      const intermediatePath = path.join(MP3_DIR, baseName + ext);
+      if (fs.existsSync(intermediatePath)) {
+        console.log(`🧹 Cleaning up incomplete file: ${baseName + ext}`);
+        try {
+          fs.unlinkSync(intermediatePath);
+        } catch (cleanupErr) {
+          console.error(`⚠️ Could not delete ${baseName + ext}:`, cleanupErr.message);
+        }
+      }
+    });
   } else {
     // Fallback to timestamp naming
     const timestamp = Date.now();
@@ -336,21 +436,11 @@ app.post('/get-mp3', async (req, res) => {
   //   --audio-format mp3: Convert to MP3
   //   --audio-quality 0: Best quality
   //   --no-playlist: Don't download playlists
-  //   --ffmpeg-location: Specify ffmpeg path (Windows only)
+  //   --force-overwrites: Overwrite any existing partial/corrupt files
   
-  // Detect platform and use appropriate binary
-  const isWindows = process.platform === 'win32';
-  const ytDlpPath = isWindows ? path.join(__dirname, 'yt-dlp.exe') : 'yt-dlp';
-  const ffmpegPath = __dirname;
-  
-  // Build command - on Linux, yt-dlp and ffmpeg should be installed globally
-  let command;
-  if (isWindows) {
-    command = `"${ytDlpPath}" --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --audio-quality 0 --no-playlist -o "${outputPath}" "${youtubeUrl}"`;
-  } else {
-    // Linux/Railway - use globally installed yt-dlp and ffmpeg
-    command = `yt-dlp -x --audio-format mp3 --audio-quality 0 --no-playlist -o "${outputPath}" "${youtubeUrl}"`;
-  }
+  // Use globally installed yt-dlp and ffmpeg (installed via winget/pip)
+  // Both Windows and Linux should have these in PATH
+  const command = `yt-dlp -x --audio-format mp3 --audio-quality 0 --no-playlist --force-overwrites -o "${outputPath}" "${youtubeUrl}"`;
 
   exec(command, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
     console.log('📋 yt-dlp stdout:', stdout);

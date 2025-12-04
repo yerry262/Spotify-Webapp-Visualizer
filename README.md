@@ -20,11 +20,11 @@ https://youtu.be/AYoBXHKe2Ow
                                      │ (track info, playback position)
                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                      COMPUTER (This App - React)                        │
+│                      COMPUTER (This App - React + Vite)                 │
 │  ┌─────────────────────────────────────────────────────────────────┐    │
 │  │  1. Get current track info from Spotify API                     │    │
 │  │  2. Check MP3 cache (skip to step 5 if cached!)                 │    │
-│  │  3. Search YouTube for the song (YouTube Data API v3)           │    │
+│  │  3. Search YouTube for the song (Browser-Use API - FREE!)       │    │
 │  │  4. Download MP3 via backend server (yt-dlp)                    │    │
 │  │  5. Analyze audio with Essentia.js (WASM)                       │    │
 │  │  6. Sync visualization with Spotify playback position           │    │
@@ -50,7 +50,6 @@ https://youtu.be/AYoBXHKe2Ow
   - Analysis JSON files cached alongside MP3s for instant playback
   - YouTube URLs cached in localStorage (7-day TTL)
   - Fuzzy file matching handles special characters in song names
-  - API rate limiting (2s minimum between calls)
   - Track change debouncing (800ms) to prevent rapid API calls
 - **12 Waveform Visualization Styles**:
   - Layered Waves, Oscilloscope, Spectrum Bars, Flowing Ribbons
@@ -92,21 +91,13 @@ Before you begin, ensure you have the following installed:
 
 ## 🔑 API Keys Required
 
-### 1. Spotify Developer Account
+### Spotify Developer Account
 1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
 2. Create a new app
 3. Copy the **Client ID**
-4. In settings, add `http://127.0.0.1:3000/callback` to **Redirect URIs**
+4. In settings, add `http://127.0.0.1:3000/Spotify-Webapp-Visualizer/callback` to **Redirect URIs**
 
-### 2. Google Cloud / YouTube Data API
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project (or select existing)
-3. Navigate to **APIs & Services** > **Library**
-4. Search for and enable **YouTube Data API v3**
-5. Go to **Credentials** > **Create Credentials** > **API Key**
-6. Copy the API key
-
-> ⚠️ **Important**: YouTube Data API has a daily quota of 10,000 units. Each search costs 100 units, so you get ~100 searches/day. The caching system minimizes API usage.
+> ✅ **No YouTube API Key Required!** This app uses the Browser-Use API for YouTube search, which is completely FREE with no quota limits.
 
 ## 📦 Installation
 
@@ -119,9 +110,8 @@ Before you begin, ensure you have the following installed:
 2. **Set up environment variables**
    ```bash
    # Create .env file in root directory
-   # Add your API keys:
-   REACT_APP_SPOTIFY_CLIENT_ID=your_spotify_client_id
-   REACT_APP_YOUTUBE_API_KEY=your_youtube_api_key
+   # Add your Spotify Client ID:
+   VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
    ```
 
 3. **Install frontend dependencies**
@@ -151,11 +141,11 @@ node server.js
 ```
 Server will start on `http://localhost:3001`
 
-### Terminal 2: React Frontend
+### Terminal 2: React Frontend (Vite)
 ```bash
-npm start
+npm run dev
 ```
-App will open at `http://127.0.0.1:3000`
+App will open at `http://127.0.0.1:3000/Spotify-Webapp-Visualizer/`
 
 ## 📱 Usage
 
@@ -175,49 +165,48 @@ App will open at `http://127.0.0.1:3000`
 Spotify-Webapp-Visualizer/
 ├── .env                    # Environment variables (create this)
 ├── package.json            # Frontend dependencies
+├── vite.config.js          # Vite configuration
+├── index.html              # HTML template (Vite root)
 ├── README.md               # This file
 ├── public/
-│   ├── index.html          # HTML template
 │   ├── test-runner.html    # Standalone audio analysis test page
 │   ├── pitch-worker.js     # Web Worker for pitch extraction
 │   ├── essentia.js-core.js       # Local Essentia.js core
 │   ├── essentia-wasm.web.js      # Essentia WASM loader
 │   └── essentia-wasm.web.wasm    # Essentia WASM binary
 ├── src/
-│   ├── App.js              # Main React component
+│   ├── main.jsx            # React entry point (Vite)
+│   ├── App.jsx             # Main React component
 │   ├── App.css             # Main styles
-│   ├── index.js            # React entry point
+│   ├── config.js           # API URL configuration
 │   ├── spotifyService.js   # Spotify API integration
-│   ├── youtubeService.js   # YouTube search & MP3 service (with caching)
+│   ├── youtubeService.js   # YouTube search via Browser-Use API (FREE!)
 │   ├── audioAnalysisService.js   # Essentia.js audio analysis
 │   └── components/
-│       ├── AudioVisualizer.js    # Main visualizer component
-│       ├── TrackInfo.js          # Track information display
-│       ├── PlaybackControls.js   # Playback control buttons
-│       ├── UserProfile.js        # User profile display
-│       ├── IdleAnimation.js      # Idle state animation
-│       ├── SideMenu.js           # Side menu with settings
+│       ├── AudioVisualizer.jsx   # Main visualizer component
+│       ├── TrackInfo.jsx         # Track information display
+│       ├── PlaybackControls.jsx  # Playback control buttons
+│       ├── UserProfile.jsx       # User profile display
+│       ├── SideMenu.jsx          # Side menu with settings
 │       └── visualizers/          # Visualization renderers
 │           ├── index.js          # Visualizer exports
 │           ├── VisualizerAudio.js    # Main audio visualization (12 waveform styles)
 │           ├── VisualizerIdle.js     # Idle state animation
 │           └── VisualizerLoading.js  # Loading state animation
 └── server/
-    ├── server.js           # Express backend for MP3 extraction
+    ├── server.js           # Express backend for MP3 extraction + YouTube search proxy
     ├── package.json        # Backend dependencies
     ├── README.md           # Server documentation
-    ├── yt-dlp.exe          # YouTube downloader (add this)
-    ├── ffmpeg.exe          # Audio converter (add this)
     ├── mp3files/           # Downloaded MP3 storage (cached as artist-song.mp3)
-    └── analysis/           # Pre-computed analysis JSON files
+    └── analysis/           # Pre-computed analysis JSON files (committed to repo)
 ```
 
 ## 🔧 Technologies Used
 
-- **Frontend**: React 18, Canvas API
-- **Audio Analysis**: [Essentia.js](https://essentia.upf.edu/essentiajs/) (WASM)
-- **APIs**: Spotify Web API, YouTube Data API v3
-- **Backend**: Express.js, yt-dlp
+- **Frontend**: React 18, Vite, Canvas API
+- **Audio Analysis**: [Essentia.js](https://essentia.upf.edu/essentiajs/) (WASM) @ 10fps
+- **APIs**: Spotify Web API, Browser-Use API (FREE YouTube search)
+- **Backend**: Express.js, yt-dlp, ffmpeg
 - **Authentication**: Spotify OAuth 2.0 PKCE Flow
 
 ## 🎨 Waveform Styles & Defaults

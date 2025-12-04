@@ -1,28 +1,20 @@
 // YouTube to MP3 Service for Educational Research
-// Uses YouTube Data API v3 to find videos and backend server for MP3 extraction
+// Uses Browser-Use API to find videos and backend server for MP3 extraction
 // 
 // PROPER SEQUENCE:
 // 1. Spotify signals new song (or initial page load)
-// 2. Check local MP3 cache by artist-song filename (SKIP YouTube API if cached!)
-// 3. If no cache: Use YouTube API to find video URL
+// 2. Check local MP3 cache by artist-song filename (SKIP YouTube search if cached!)
+// 3. If no cache: Use Browser-Use API to find video URL (FREE - no quota limits!)
 // 4. Pass URL to yt-dlp server to download MP3 (saved as artist-song.mp3)
 // 5. Analyze MP3 with Essentia.js
 // 6. Generate visualization
 
 import { API_BASE_URL } from './config';
 
-// Get YouTube API key from environment variable
-const YOUTUBE_API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY;
-
-if (!YOUTUBE_API_KEY) {
-  console.warn('⚠️ REACT_APP_YOUTUBE_API_KEY not set in .env file');
-}
-
 // ==================== CONSTANTS ====================
 
 const CACHE_KEY_PREFIX = 'yt_cache_';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days for YouTube URL cache
-const RATE_LIMIT_MIN_INTERVAL = 2000; // Minimum 2 seconds between YouTube API calls
 
 // ==================== STATE ====================
 
@@ -33,12 +25,6 @@ const memoryCache = new Map();
 let currentProcessingTrack = null;
 // Last successfully completed track (for verification during analysis)
 let lastCompletedTrack = null;
-// Flag to block API calls after 403 error (persists until page reload)
-let apiBlocked = false;
-let apiBlockReason = '';
-
-// Rate limiting state
-let lastApiCallTime = 0;
 
 // Processing lock to prevent concurrent requests
 let processingLock = false;
@@ -112,41 +98,9 @@ function isValidCache(cacheEntry) {
   return cacheEntry && (Date.now() - cacheEntry.timestamp) < CACHE_DURATION;
 }
 
-/**
- * Rate-limited fetch for YouTube API
- * Ensures minimum interval between API calls
- */
-async function rateLimitedFetch(url) {
-  const now = Date.now();
-  const timeSinceLastCall = now - lastApiCallTime;
-  
-  if (timeSinceLastCall < RATE_LIMIT_MIN_INTERVAL) {
-    const waitTime = RATE_LIMIT_MIN_INTERVAL - timeSinceLastCall;
-    console.log(`⏳ Rate limiting: waiting ${waitTime}ms before API call`);
-    await new Promise(resolve => setTimeout(resolve, waitTime));
-  }
-  
-  lastApiCallTime = Date.now();
-  return fetch(url);
-}
-
 // ==================== YOUTUBE SERVICE ====================
 
 export const YouTubeService = {
-  /**
-   * Check if YouTube API is blocked (403 error occurred)
-   */
-  isApiBlocked() {
-    return apiBlocked;
-  },
-
-  /**
-   * Get the reason API is blocked
-   */
-  getApiBlockReason() {
-    return apiBlockReason;
-  },
-
   /**
    * Get current processing track (for external cancellation checks)
    */
@@ -219,62 +173,53 @@ export const YouTubeService = {
   },
 
   /**
-   * Helper function to make YouTube API search request
-   * @returns {Promise<{videoId: string, url: string} | null>}
+   * Helper function to search YouTube using Browser-Use API via backend proxy (FREE!)
+   * Uses backend proxy to avoid CORS issues
+   * @returns {Promise<{videoId: string, url: string} | {error: string}>}
    */
-  async _searchYouTubeAPI(query) {
-    const url = `https://www.googleapis.com/youtube/v3/search?` + 
-      `part=id&` +
-      `q=${encodeURIComponent(query)}&` +
-      `type=video&` +
-      `videoCategoryId=10&` +
-      `maxResults=1&` +
-      `fields=items/id/videoId&` +
-      `key=${YOUTUBE_API_KEY}`;
-
-    console.warn('💰 TRIGGERING YOUTUBE API - COST: 100 QUOTA UNITS');
-    console.log('🔍 Making YouTube API call (rate-limited)...');
+  async _searchBrowserUseAPI(query) {
+    console.log('🔍 Making Browser-Use API call (FREE - no quota!)...');
     console.log('   Query:', query);
-    const response = await rateLimitedFetch(url);
     
-    // Handle 403 Forbidden
-    if (response.status === 403) {
-      const errorData = await response.json().catch(() => ({}));
-      apiBlocked = true;
-      apiBlockReason = errorData.error?.message || 'Quota exceeded or access forbidden';
-      console.error('🚫 YouTube API returned 403 Forbidden');
-      console.error('   Reason:', apiBlockReason);
-      return { error: 'blocked' };
-    }
-    
-    if (!response.ok) {
-      console.error(`YouTube API Error: HTTP ${response.status}`);
-      return { error: 'http_error' };
-    }
-    
-    const data = await response.json();
+    try {
+      // Use backend proxy to avoid CORS issues
+      const response = await fetch(`${API_BASE_URL}/search-youtube`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query })
+      });
 
-    if (data.error) {
-      if (data.error.code === 403) {
-        apiBlocked = true;
-        apiBlockReason = data.error.message || 'Quota exceeded or access forbidden';
-        console.error('🚫 YouTube API blocked:', apiBlockReason);
-        return { error: 'blocked' };
+      if (!response.ok) {
+        console.error(`Browser-Use API Error: HTTP ${response.status}`);
+        return { error: 'http_error' };
       }
-      console.error('YouTube API Error:', data.error.message);
-      return { error: 'api_error' };
-    }
 
-    if (!data.items || data.items.length === 0) {
-      console.warn('No YouTube results found for:', query);
-      return { error: 'no_results' };
-    }
+      const data = await response.json();
 
-    const video = data.items[0];
-    return {
-      videoId: video.id.videoId,
-      url: `https://www.youtube.com/watch?v=${video.id.videoId}`
-    };
+      if (!data.success || data.error) {
+        console.error('Browser-Use API Error:', data.error || 'Unknown error');
+        return { error: 'api_error' };
+      }
+
+      if (!data.data || !data.data.video_id) {
+        console.warn('No YouTube results found for:', query);
+        return { error: 'no_results' };
+      }
+
+      console.log('✅ Found video:', data.data.title, 'by', data.data.channel);
+      
+      return {
+        videoId: data.data.video_id,
+        url: data.data.video_url,
+        title: data.data.title,
+        channel: data.data.channel
+      };
+    } catch (error) {
+      console.error('Browser-Use API fetch error:', error.message);
+      return { error: 'fetch_error' };
+    }
   },
 
   /**
@@ -283,12 +228,6 @@ export const YouTubeService = {
    * Retries with simplified query (song name only) if no results found
    */
   async searchVideo(artistName, songName) {
-    // Check if API is blocked (403 error occurred)
-    if (apiBlocked) {
-      console.warn('🚫 YouTube API is blocked:', apiBlockReason);
-      return null;
-    }
-
     const cacheKey = getCacheKey(artistName, songName);
     
     // Check localStorage first
@@ -306,25 +245,14 @@ export const YouTubeService = {
     }
 
     try {
-      // First attempt: full query with artist + song + "official audio"
-      const fullQuery = `${artistName} ${songName} official audio`;
-      let result = await this._searchYouTubeAPI(fullQuery);
+      // First attempt: artist + song name
+      const query = `${artistName} ${songName}`;
+      let result = await this._searchBrowserUseAPI(query);
       
-      // If no results found (but not blocked/error), retry with artist + song (no "official audio")
+      // If no results found, retry with just the song name
       if (result.error === 'no_results') {
-        console.log('🔄 No results with full query, retrying with artist + song name in 5s...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        
-        // Second attempt: artist + song name (no "official audio")
-        const simpleQuery = `${artistName} ${songName}`;
-        result = await this._searchYouTubeAPI(simpleQuery);
-        
-        // If still no results, try one more time with just the song name
-        if (result.error === 'no_results') {
-          console.log('🔄 Still no results, trying with just song name in 5s...');
-          await new Promise(resolve => setTimeout(resolve, 5000));
-          result = await this._searchYouTubeAPI(songName);
-        }
+        console.log('🔄 No results with full query, retrying with just song name...');
+        result = await this._searchBrowserUseAPI(songName);
       }
       
       // If we got an error response, return null
@@ -437,28 +365,6 @@ export const YouTubeService = {
    * 6. Return MP3 info for analysis
    */
   async getMP3ForTrack(artistName, songName) {
-    // Check if API is blocked first
-    if (apiBlocked) {
-      console.warn('🚫 YouTube API is blocked, checking server cache only...');
-      // Still try server cache even if API is blocked
-      const serverCache = await this.checkServerCache(artistName, songName);
-      if (serverCache) {
-        return {
-          artist: artistName,
-          song: songName,
-          youtube: null,
-          mp3: {
-            mp3Url: `${API_BASE_URL}${serverCache.mp3Url}`,
-            filename: serverCache.filename,
-            title: `${artistName} - ${songName}`,
-            cached: true
-          }
-        };
-      }
-      console.warn('🚫 No server cache available and API is blocked');
-      return null;
-    }
-
     // Acquire processing lock
     if (processingLock) {
       console.warn('⏳ Already processing a track, skipping...');
@@ -510,11 +416,7 @@ export const YouTubeService = {
       const videoInfo = await this.searchVideo(artistName, songName);
       
       if (!videoInfo) {
-        if (apiBlocked) {
-          console.warn('🚫 YouTube API blocked, cannot proceed');
-        } else {
-          console.error('Could not find video on YouTube');
-        }
+        console.error('Could not find video on YouTube');
         currentProcessingTrack = null;
         processingLock = false;
         return null;
@@ -585,9 +487,7 @@ export const YouTubeService = {
     
     return {
       memoryCache: memoryCache.size,
-      localStorageCache: localStorageCount,
-      apiBlocked: apiBlocked,
-      apiBlockReason: apiBlockReason
+      localStorageCache: localStorageCount
     };
   },
 
