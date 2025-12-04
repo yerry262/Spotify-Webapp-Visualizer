@@ -245,8 +245,8 @@ export const YouTubeService = {
     }
 
     try {
-      // First attempt: artist + song name
-      const query = `${artistName} ${songName}`;
+      // First attempt: artist + song name + "official audio lyrics" for better results
+      const query = `${artistName} ${songName} official audio lyrics`;
       let result = await this._searchBrowserUseAPI(query);
       
       // If no results found, retry with just the song name
