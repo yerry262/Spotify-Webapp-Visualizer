@@ -28,15 +28,19 @@ if (typeof location === 'undefined') {
 
 self.postMessage({ type: 'progress', message: 'Loading Essentia scripts (local files)...' });
 
+// Determine base path from worker location
+const workerUrl = self.location.href;
+const basePath = workerUrl.substring(0, workerUrl.lastIndexOf('/') + 1);
+
 try {
-  importScripts('/essentia-wasm.web.js');
+  importScripts(basePath + 'essentia-wasm.web.js');
   self.postMessage({ type: 'progress', message: 'essentia-wasm.web.js loaded!' });
 } catch (e) {
   self.postMessage({ type: 'error', message: 'Failed to load essentia-wasm.web.js: ' + e.message });
 }
 
 try {
-  importScripts('/essentia.js-core.js');
+  importScripts(basePath + 'essentia.js-core.js');
   self.postMessage({ type: 'progress', message: 'essentia.js-core.js loaded!' });
 } catch (e) {
   self.postMessage({ type: 'error', message: 'Failed to load essentia.js-core.js: ' + e.message });
@@ -82,14 +86,14 @@ self.onmessage = async function(e) {
   try {
     await initEssentia();
     
-    // Calculate optimal hop size to get ~30 frames per second (0.0333s intervals)
-    // Target: 1 frame per 0.0333 seconds = sampleRate * 0.0333 samples between frames
-    const targetHopSize = Math.round(sampleRate * 0.0333);  // ~1470 for 44100Hz
+    // Calculate optimal hop size to get ~10 frames per second (0.1s intervals)
+    // Target: 1 frame per 0.1 seconds = sampleRate * 0.1 samples between frames
+    const targetHopSize = Math.round(sampleRate * 0.1);  // ~4410 for 44100Hz
     
     const duration = audioSignal.length / sampleRate;
-    const expectedFrames = Math.ceil(duration / 0.0333);
+    const expectedFrames = Math.ceil(duration / 0.1);
     
-    self.postMessage({ type: 'progress', message: `Running PitchMelodia (${duration.toFixed(1)}s audio, ~${expectedFrames} frames at 30fps)...` });
+    self.postMessage({ type: 'progress', message: `Running PitchMelodia (${duration.toFixed(1)}s audio, ~${expectedFrames} frames at 10fps)...` });
     
     const signalVector = essentia.arrayToVector(audioSignal);
     
