@@ -523,8 +523,9 @@ export async function extractRhythm(audioSignal, sampleRate = SAMPLE_RATE, durat
  * @param {string} audioUrl - URL to the audio file
  * @param {string} artistName - Optional artist name for caching
  * @param {string} songName - Optional song name for caching
+ * @param {number} spotifyDurationMs - Optional Spotify track duration in milliseconds for comparison logging
  */
-export async function analyzeAudio(audioUrl, artistName = null, songName = null) {
+export async function analyzeAudio(audioUrl, artistName = null, songName = null, spotifyDurationMs = null) {
   // Check for cached analysis on server first (if artist/song provided)
   if (artistName && songName) {
     const cachedAnalysis = await loadServerAnalysis(artistName, songName);
@@ -602,6 +603,14 @@ export async function analyzeAudio(audioUrl, artistName = null, songName = null)
   console.log(`${timestamp()}    Chroma frames: ${hpcpChroma.length}`);
   console.log(`${timestamp()}    Pitch frames: ${pitch.length}`);
   console.log(`${timestamp()}    BPM: ${rhythm.bpm?.toFixed(1) || 'N/A'}`);
+  
+  // Log duration comparison between Spotify and MP3
+  if (spotifyDurationMs) {
+    const spotifyDurationSec = Math.round(spotifyDurationMs / 1000);
+    const mp3DurationSec = Math.round(duration);
+    console.log(`${timestamp()}    Spotify song length: ${spotifyDurationSec}s`);
+    console.log(`${timestamp()}    MP3 song length: ${mp3DurationSec}s`);
+  }
   console.log(`${timestamp()} ═══════════════════════════════════════════════`);
   
   const analysisResult = {

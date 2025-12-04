@@ -269,6 +269,22 @@ body {
   min-height: 50%;
 }
 
+/* Idle state styling */
+.idle-visualizer {
+  flex: 1;
+  min-height: 60%;
+  max-height: 70%;
+}
+
+.idle-controls {
+  flex: 0 0 auto;
+  min-height: auto;
+  padding: 20px 0 40px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Hidden data panel */
 .data-panel.hidden {
   display: none;

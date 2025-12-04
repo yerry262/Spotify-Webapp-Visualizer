@@ -81,20 +81,39 @@ function App() {
     }
   }, []);
 
-  // Handle OAuth callback
+  // Handle OAuth callback and restore session
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    
-    if (code) {
-      SpotifyAuth.getToken(code).then(() => {
+    const initAuth = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      
+      if (code) {
+        // New login - exchange code for token
+        await SpotifyAuth.getToken(code);
         window.history.replaceState({}, document.title, window.location.pathname);
         setIsLoggedIn(true);
-      });
-    } else {
-      setIsLoggedIn(SpotifyAuth.isLoggedIn());
-    }
-    setIsLoading(false);
+      } else if (SpotifyAuth.isLoggedIn()) {
+        // Existing session - validate/refresh token
+        try {
+          const validToken = await SpotifyAuth.getValidToken();
+          if (validToken) {
+            setIsLoggedIn(true);
+          } else {
+            // Token refresh failed, need to re-login
+            console.log('Token refresh failed, clearing session');
+            SpotifyAuth.logout();
+            setIsLoggedIn(false);
+          }
+        } catch (err) {
+          console.error('Auth validation error:', err);
+          SpotifyAuth.logout();
+          setIsLoggedIn(false);
+        }
+      }
+      setIsLoading(false);
+    };
+    
+    initAuth();
   }, []);
 
   // Fetch user profile
@@ -187,7 +206,7 @@ function App() {
               if (mp3Cache) {
                 // MP3 is cached! We can analyze it even if YouTube API is blocked
                 console.log(ts(), '📦 Found cached MP3! Running analysis...');
-                const analysis = await analyzeAudio(mp3Cache.mp3Url, artistName, trackName);
+                const analysis = await analyzeAudio(mp3Cache.mp3Url, artistName, trackName, state.item.duration_ms);
                 
                 if (state.item.id === currentTrackIdRef.current) {
                   setAnalysisData(analysis);
@@ -220,7 +239,7 @@ function App() {
               
               // Analyze the MP3 with Essentia.js (with caching by artist/song)
               console.log(ts(), '🎼 Step 4: Analyzing audio with Essentia.js...');
-              const analysis = await analyzeAudio(mp3Result.mp3.mp3Url, artistName, trackName);
+              const analysis = await analyzeAudio(mp3Result.mp3.mp3Url, artistName, trackName, state.item.duration_ms);
               
               // Final verify track hasn't changed
               if (!YouTubeService.shouldContinue(artistName, trackName)) {
@@ -372,7 +391,7 @@ function App() {
   return (
     <div className="app main-screen">
       {/* User Profile Header */}
-      <UserProfile user={user} onMenuClick={() => setIsMenuOpen(true)} />
+      <UserProfile user={user} onMenuClick={() => setIsMenuOpen(true)} onLogout={handleLogout} />
       
       {/* Side Menu */}
       <SideMenu 
@@ -424,13 +443,30 @@ function App() {
             </div>
           </>
         ) : (
-          <AudioVisualizer 
-            analysisData={null}
-            isPlaying={false}
-            progress={0}
-            isAnalyzing={false}
-            trackId={null}
-          />
+          <>
+            {/* Idle State - Show Visualizer and Controls */}
+            <div className="visualizer-section idle-visualizer">
+              <AudioVisualizer 
+                analysisData={null}
+                isPlaying={false}
+                progress={0}
+                isAnalyzing={false}
+                trackId={null}
+              />
+            </div>
+            
+            {/* Idle Controls */}
+            <div className="track-section idle-controls">
+              <PlaybackControls 
+                isPlaying={false}
+                onRefresh={fetchPlaybackState}
+                device={playbackState?.device}
+                shuffleState={playbackState?.shuffle_state}
+                repeatState={playbackState?.repeat_state || 'off'}
+                smartShuffle={playbackState?.smart_shuffle}
+              />
+            </div>
+          </>
         )}
       </div>
       

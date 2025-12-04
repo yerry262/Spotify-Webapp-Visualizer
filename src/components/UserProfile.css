@@ -54,6 +54,34 @@
   color: #fff;
 }
 
+/* Logout Button */
+.logout-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-left: 4px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 82, 82, 0.2);
+  color: #ff5252;
+  border-color: rgba(255, 82, 82, 0.3);
+}
+
+.logout-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* Hamburger Menu Button */
 .menu-btn {
   width: 36px;
@@ -114,6 +142,16 @@
   
   .username {
     font-size: 14px;
+  }
+  
+  .logout-btn {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .logout-btn svg {
+    width: 12px;
+    height: 12px;
   }
   
   .menu-btn {
