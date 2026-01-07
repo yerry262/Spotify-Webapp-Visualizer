@@ -39,10 +39,6 @@ const UserProfile = ({ user, onMenuClick, onLogout }) => {
           <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
       </button>
-      
-      <div className="header-decoration">
-        <div className="decoration-line"></div>
-      </div>
     </div>
   );
 };

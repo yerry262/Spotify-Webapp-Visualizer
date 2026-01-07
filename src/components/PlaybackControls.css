@@ -4,7 +4,10 @@
   justify-content: center;
   padding: 20px;
   padding-bottom: 60px;
-  position: relative;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 10;
   width: 100%;
 }

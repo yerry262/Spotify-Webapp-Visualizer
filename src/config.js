@@ -20,8 +20,14 @@ export const SPOTIFY_REDIRECT_URI = isDevelopment
   ? 'http://127.0.0.1:3000/Spotify-Webapp-Visualizer/callback'
   : 'https://yerry262.github.io/Spotify-Webapp-Visualizer/callback';
 
+// Spotify Client ID
+// This is a PUBLIC identifier (not a secret) - safe to include in client-side code
+// Using PKCE flow means no client secret is needed
+export const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '6ada4e42731d48f9ad85fab1764aca89';
+
 export default {
   API_BASE_URL,
   SPOTIFY_REDIRECT_URI,
+  SPOTIFY_CLIENT_ID,
   isDevelopment
 };

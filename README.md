@@ -51,10 +51,13 @@ https://youtu.be/AYoBXHKe2Ow
   - YouTube URLs cached in localStorage (7-day TTL)
   - Fuzzy file matching handles special characters in song names
   - Track change debouncing (800ms) to prevent rapid API calls
-- **12 Waveform Visualization Styles**:
-  - Layered Waves, Oscilloscope, Spectrum Bars, Flowing Ribbons
-  - Mirrored Wave, Particle Dots, Pixelated, 3D Mesh
-  - Gradient Bars, Sine Layers, Circular Dots, Neon Lines
+- **32 Waveform Visualization Styles**:
+  - **Classic**: Layered Waves, Oscilloscope, Spectrum Bars, Flowing Ribbons, Mirrored Wave, Particle Dots
+  - **Retro/Tech**: Pixelated, 3D Mesh, Gradient Bars, Sine Layers, Circular Dots, Neon Lines
+  - **Organic**: DNA Helix, Plasma Fire, Aurora Borealis, Fractal Tree, Liquid Mercury
+  - **Digital**: Matrix Rain, Glitch Art, Heartbeat ECG, Lightning Storm
+  - **Cosmic**: Shockwave Rings, Kaleidoscope, Cosmic Nebula, Galaxy Spiral, Particle Explosion
+  - **Scenic**: Sound Tornado, Geometric Mandala, Soundwave Terrain, Neon City, Ocean Waves, Fireworks Show
   - Auto-rotate mode (changes every 30 seconds) or manual selection
   - Custom settings toggle with adjustable max height and start position
   - Hardcoded optimal defaults per waveform style
@@ -70,9 +73,16 @@ https://youtu.be/AYoBXHKe2Ow
   - 3D pitch orb with gradient and glow effects
   - Chroma wheel showing pitch class distribution
   - Rotating petals for prominent notes
-- **Beat Sync**: Visual pulses synchronized with detected beats
+  - Toggleable elements (Chroma Wheel, Circular Mel, Pitch Orb, Beat Flash)
+- **Track Info Section**:
+  - Transparent overlay with album art background blur
+  - Floating particles with colors extracted from album artwork
+  - Animated scan line with dominant color
+  - Extends behind playback controls for immersive effect
+- **Beat Sync**: Visual pulses synchronized with detected beats (toggleable)
 - **Playback Controls**: Shuffle, previous, play/pause, next, repeat buttons
-- **Side Menu**: Easy access to waveform styles, particle settings, and user profile
+- **Side Menu**: Easy access to waveform styles, particle settings, center element toggles, and user profile
+- **Collapsible Visualizer**: Expand visualizer to full screen with animated hide/show
 - **Footer Info**: Now Playing badge with device info and connection status
 - **Responsive Design**: Works on desktop and mobile browsers
 
@@ -95,7 +105,11 @@ Before you begin, ensure you have the following installed:
 1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
 2. Create a new app
 3. Copy the **Client ID**
-4. In settings, add `http://127.0.0.1:3000/Spotify-Webapp-Visualizer/callback` to **Redirect URIs**
+4. In settings, add **both** redirect URIs:
+   - **Local development:** `http://127.0.0.1:3000/Spotify-Webapp-Visualizer/callback`
+   - **Production (GitHub Pages):** `https://yerry262.github.io/Spotify-Webapp-Visualizer/callback`
+
+> ⚠️ **Important:** Both redirect URIs must be registered in your Spotify app settings for the app to work in both development and production environments. Without the production URI, other users won't be able to log in.
 
 > ✅ **No YouTube API Key Required!** This app uses the Browser-Use API for YouTube search, which is completely FREE with no quota limits.
 

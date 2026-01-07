@@ -4,7 +4,8 @@ import './SideMenu.css';
 const SideMenu = ({ 
   isOpen, 
   onClose, 
-  onLogout, 
+  onLogout,
+  onSwitchAccount,
   user, 
   waveformStyles, 
   waveformStyle, 
@@ -13,10 +14,13 @@ const SideMenu = ({
   waveformSettings,
   onWaveformSettingsChange,
   particleSettings,
-  onParticleSettingsChange
+  onParticleSettingsChange,
+  centerElementSettings,
+  onCenterElementSettingsChange
 }) => {
   const [isWaveformOpen, setIsWaveformOpen] = useState(false);
   const [isParticlesOpen, setIsParticlesOpen] = useState(false);
+  const [isCenterElementsOpen, setIsCenterElementsOpen] = useState(false);
   const profileImage = user?.images?.[0]?.url;
   const displayName = user?.display_name || user?.id || 'User';
 
@@ -220,6 +224,78 @@ const SideMenu = ({
             </div>
           </div>
           
+          {/* Center Elements Dropdown */}
+          <div className="menu-dropdown">
+            <button 
+              className={`menu-item dropdown-toggle ${isCenterElementsOpen ? 'open' : ''}`}
+              onClick={() => setIsCenterElementsOpen(!isCenterElementsOpen)}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="6"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg>
+              <span>Center Elements</span>
+              <svg className="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            
+            <div className={`dropdown-content ${isCenterElementsOpen ? 'open' : ''}`}>
+              {/* Chroma Wheel Toggle */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Chroma Wheel</span>
+                <label className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    checked={centerElementSettings?.chromaWheel ?? true}
+                    onChange={(e) => onCenterElementSettingsChange?.({ chromaWheel: e.target.checked })}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+              
+              {/* Circular Mel Toggle */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Circular Mel</span>
+                <label className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    checked={centerElementSettings?.circularMel ?? true}
+                    onChange={(e) => onCenterElementSettingsChange?.({ circularMel: e.target.checked })}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+              
+              {/* Pitch Orb Toggle */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Pitch Orb</span>
+                <label className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    checked={centerElementSettings?.pitchOrb ?? true}
+                    onChange={(e) => onCenterElementSettingsChange?.({ pitchOrb: e.target.checked })}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+              
+              {/* Beat Flash Toggle */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Beat Flash</span>
+                <label className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    checked={centerElementSettings?.beatFlash ?? true}
+                    onChange={(e) => onCenterElementSettingsChange?.({ beatFlash: e.target.checked })}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
           <a href={`${import.meta.env.BASE_URL}test-runner.html`} className="menu-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3"></circle>
@@ -238,6 +314,15 @@ const SideMenu = ({
           </a>
           
           <div className="menu-divider"></div>
+          
+          <button className="menu-item switch-account-item" onClick={onSwitchAccount} title="Sign in with a different Spotify account">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <polyline points="17 11 19 13 23 9"></polyline>
+            </svg>
+            <span>Switch Account</span>
+          </button>
           
           <button className="menu-item logout-item" onClick={onLogout}>
             <svg viewBox="0 0 24 24" fill="currentColor">

@@ -16,7 +16,9 @@ import {
   getParticleSettings,
   setParticleSettings,
   getWaveformSettings,
-  setWaveformSettings
+  setWaveformSettings,
+  getCenterElementSettings,
+  setCenterElementSettings
 } from './components/visualizers/VisualizerAudio';
 import './App.css';
 
@@ -46,6 +48,12 @@ function App() {
   
   // Particle settings state
   const [particleSettingsState, setParticleSettingsState] = useState(getParticleSettings());
+  
+  // Center element visibility settings state
+  const [centerElementSettingsState, setCenterElementSettingsState] = useState(getCenterElementSettings());
+  
+  // Visualizer expanded/collapsed state
+  const [isVisualizerExpanded, setIsVisualizerExpanded] = useState(false);
   
   // Use ref to track current track ID without causing re-renders
   const currentTrackIdRef = useRef(null);
@@ -303,6 +311,14 @@ function App() {
     setPlaybackState(null);
   };
 
+  // Switch account - fully logs out of Spotify and allows a different user to login
+  const handleSwitchAccount = () => {
+    SpotifyAuth.logout(true); // true = full logout, redirects to Spotify logout
+    setIsLoggedIn(false);
+    setUser(null);
+    setPlaybackState(null);
+  };
+
   // Waveform selection handlers
   const handleWaveformChange = (styleId) => {
     if (styleId === 'auto') {
@@ -335,6 +351,13 @@ function App() {
     const updated = { ...waveformSettingsState, ...newSettings };
     setWaveformSettings(updated);
     setWaveformSettingsState(updated);
+  };
+
+  // Center element visibility settings handler
+  const handleCenterElementSettingsChange = (newSettings) => {
+    const updated = { ...centerElementSettingsState, ...newSettings };
+    setCenterElementSettings(updated);
+    setCenterElementSettingsState(updated);
   };
 
   // Sync waveform state when it changes externally (auto mode)
@@ -397,7 +420,8 @@ function App() {
       <SideMenu 
         isOpen={isMenuOpen} 
         onClose={() => setIsMenuOpen(false)} 
-        onLogout={handleLogout} 
+        onLogout={handleLogout}
+        onSwitchAccount={handleSwitchAccount}
         user={user}
         waveformStyle={waveformStyle}
         waveformStyles={waveformStyles}
@@ -408,6 +432,8 @@ function App() {
         onWaveformSettingsChange={handleWaveformSettingsChange}
         particleSettings={particleSettingsState}
         onParticleSettingsChange={handleParticleSettingsChange}
+        centerElementSettings={centerElementSettingsState}
+        onCenterElementSettingsChange={handleCenterElementSettingsChange}
       />
       
       {/* Main Content */}
@@ -415,7 +441,7 @@ function App() {
         {isPlaying ? (
           <>
             {/* Top Half - Audio Visualizer */}
-            <div className="visualizer-section">
+            <div className={`visualizer-section ${isVisualizerExpanded ? 'expanded' : ''}`}>
               <AudioVisualizer 
                 analysisData={analysisData}
                 isPlaying={playbackState?.is_playing}
@@ -425,8 +451,22 @@ function App() {
               />
             </div>
             
+            {/* Collapsible Divider */}
+            <div 
+              className={`section-divider ${isVisualizerExpanded ? 'expanded' : ''}`}
+              onClick={() => setIsVisualizerExpanded(!isVisualizerExpanded)}
+            >
+              <div className="divider-line"></div>
+              <div className="divider-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <div className="divider-line"></div>
+            </div>
+            
             {/* Bottom Half - Track Info */}
-            <div className="track-section">
+            <div className={`track-section ${isVisualizerExpanded ? 'collapsed' : ''}`}>
               <TrackInfo 
                 track={playbackState?.item}
                 progress={playbackState?.progress_ms}
@@ -471,7 +511,7 @@ function App() {
       </div>
       
       {/* Version Footer */}
-      <footer className="version-footer">
+      <footer className={`version-footer ${isVisualizerExpanded ? 'hidden' : ''}`}>
         {/* Now Playing badge on left */}
         {isPlaying && (
           <div className="footer-now-playing">

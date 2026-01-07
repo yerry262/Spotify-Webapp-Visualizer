@@ -1,15 +1,15 @@
 // Spotify API Configuration
 // Using Authorization Code with PKCE Flow (no client secret needed)
-import { SPOTIFY_REDIRECT_URI } from './config';
+import { SPOTIFY_REDIRECT_URI, SPOTIFY_CLIENT_ID } from './config';
 
-// Validate required environment variable
-const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-if (!SPOTIFY_CLIENT_ID) {
-  console.error('❌ VITE_SPOTIFY_CLIENT_ID is not set! Please add it to your .env file.');
+// Use Client ID from config (handles both dev and production)
+const CLIENT_ID = SPOTIFY_CLIENT_ID;
+if (!CLIENT_ID) {
+  console.error('❌ Spotify Client ID is not configured! Check src/config.js');
 }
 
 export const SPOTIFY_CONFIG = {
-  clientId: SPOTIFY_CLIENT_ID || '',
+  clientId: CLIENT_ID || '',
   redirectUri: SPOTIFY_REDIRECT_URI,
   scopes: [
     'user-read-playback-state',
@@ -52,7 +52,8 @@ const generateCodeChallenge = async (codeVerifier) => {
 // Spotify Auth Service
 export const SpotifyAuth = {
   // Initiate login with PKCE
-  async login() {
+  // forceLogin: if true, forces Spotify to show login dialog (allows switching accounts)
+  async login(forceLogin = false) {
     const codeVerifier = generateRandomString(64);
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     
@@ -64,7 +65,8 @@ export const SpotifyAuth = {
       redirect_uri: SPOTIFY_CONFIG.redirectUri,
       code_challenge_method: 'S256',
       code_challenge: codeChallenge,
-      scope: SPOTIFY_CONFIG.scopes
+      scope: SPOTIFY_CONFIG.scopes,
+      show_dialog: 'true' // Always show dialog to allow account switching
     });
     
     window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
@@ -146,11 +148,19 @@ export const SpotifyAuth = {
   },
   
   // Logout
-  logout() {
+  // fullLogout: if true, also redirects to Spotify logout page to clear their session
+  logout(fullLogout = false) {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('token_expiry');
     localStorage.removeItem('code_verifier');
+    
+    if (fullLogout) {
+      // Redirect to Spotify logout, then back to our app
+      // This clears Spotify's session cookies so a different user can log in
+      const returnUrl = encodeURIComponent(window.location.origin + window.location.pathname);
+      window.location.href = `https://accounts.spotify.com/logout`;
+    }
   },
   
   // Check if logged in

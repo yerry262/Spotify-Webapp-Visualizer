@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import './AudioVisualizer.css';
 import { drawIdleAnimation } from './visualizers/VisualizerIdle';
 import { drawLoadingAnimation } from './visualizers/VisualizerLoading';
-import { drawAudioVisualization, initParticles } from './visualizers/VisualizerAudio';
+import { drawAudioVisualization, initParticles, resetWaveformTiming } from './visualizers/VisualizerAudio';
 import { getAnalysisAtTime } from '../audioAnalysisService';
 
 /**
@@ -144,6 +144,9 @@ const AudioVisualizer = ({
       prevTrackIdRef.current = trackId;
       currentTimeRef.current = 0;
       lastTimestampRef.current = null;
+      
+      // Reset waveform auto-cycling timing for new track
+      resetWaveformTiming();
       
       // Reset visualization state
       vizStateRef.current = {

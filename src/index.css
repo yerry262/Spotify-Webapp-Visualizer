@@ -251,7 +251,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding-top: 70px; /* Space for fixed header */
+  padding-top: 0;
   height: 100%;
   overflow: hidden;
 }
@@ -263,22 +263,123 @@ body {
 }
 
 .track-section {
-  flex: 1;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50%;
+  z-index: 1;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.track-section.collapsed {
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Visualizer expanded state */
+.visualizer-section {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.visualizer-section.expanded {
+  /* Already full screen, no change needed */
+}
+
+/* Collapsible Divider */
+.section-divider {
+  position: absolute;
+  bottom: 50%;
+  left: 0;
+  right: 0;
+  z-index: 2;
   display: flex;
-  flex-direction: column;
-  min-height: 50%;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section-divider.expanded {
+  bottom: 0;
+}
+  z-index: 10;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.section-divider:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.section-divider:hover .divider-line {
+  background: rgba(29, 185, 84, 0.6);
+}
+
+.section-divider:hover .divider-arrow {
+  color: #1DB954;
+  transform: scale(1.1);
+}
+
+.section-divider.expanded {
+  position: fixed;
+  bottom: 80px;
+  left: 0;
+  right: 0;
+  padding: 12px 0;
+}
+
+.section-divider.expanded .divider-arrow {
+  transform: rotate(180deg);
+}
+
+.section-divider.expanded:hover .divider-arrow {
+  transform: rotate(180deg) scale(1.1);
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: background 0.3s ease;
+}
+
+.divider-arrow {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 16px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.divider-arrow svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* Idle state styling */
 .idle-visualizer {
-  flex: 1;
-  min-height: 60%;
-  max-height: 70%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
 }
 
 .idle-controls {
-  flex: 0 0 auto;
-  min-height: auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
   padding: 20px 0 40px 0;
   display: flex;
   justify-content: center;

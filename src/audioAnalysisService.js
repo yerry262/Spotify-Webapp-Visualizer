@@ -38,6 +38,121 @@ async function checkServerAnalysisCache(artistName, songName) {
 }
 
 /**
+ * Normalize analysis data to ensure consistent structure
+ * Converts object-style arrays back to proper arrays and fills missing data with defaults
+ */
+function normalizeAnalysisData(data) {
+  if (!data || !data.features) return data;
+  
+  const duration = data.duration || 0;
+  const numFrames = Math.ceil(duration / FRAME_INTERVAL);
+  
+  // Helper: Convert object with numeric keys to array (fixes JSON serialization issue)
+  const objectToArray = (obj) => {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    // Convert {0: val, 1: val, ...} to [val, val, ...]
+    const keys = Object.keys(obj).filter(k => !isNaN(k)).sort((a, b) => Number(a) - Number(b));
+    return keys.map(k => obj[k]);
+  };
+  
+  // Helper: Create default chroma frame (12 zeros)
+  const defaultChromaFrame = (time) => ({ time, chroma: new Array(12).fill(0) });
+  
+  // Helper: Create default mel frame (40 zeros)
+  const defaultMelFrame = (time) => ({ time, bands: new Array(40).fill(0) });
+  
+  // Helper: Create default pitch frame
+  const defaultPitchFrame = (time) => ({ time, pitch: 0, confidence: 0 });
+  
+  // Helper: Create default beat density frame
+  const defaultBeatDensityFrame = (time) => ({ time, beats: 0 });
+  
+  // Normalize rhythm.beats - convert object to array if needed
+  if (data.features.rhythm) {
+    data.features.rhythm.beats = objectToArray(data.features.rhythm.beats);
+    data.features.rhythm.beatDensity = objectToArray(data.features.rhythm.beatDensity);
+    
+    // Ensure defaults
+    if (!data.features.rhythm.bpm) data.features.rhythm.bpm = 120;
+    if (!data.features.rhythm.confidence) data.features.rhythm.confidence = 0;
+    
+    // Fill beat density if empty
+    if (!data.features.rhythm.beatDensity || data.features.rhythm.beatDensity.length === 0) {
+      data.features.rhythm.beatDensity = [];
+      for (let i = 0; i < numFrames; i++) {
+        data.features.rhythm.beatDensity.push(defaultBeatDensityFrame(i * FRAME_INTERVAL));
+      }
+    }
+  } else {
+    // Create default rhythm object
+    data.features.rhythm = {
+      bpm: 120,
+      beats: [],
+      beatDensity: [],
+      confidence: 0
+    };
+    for (let i = 0; i < numFrames; i++) {
+      data.features.rhythm.beatDensity.push(defaultBeatDensityFrame(i * FRAME_INTERVAL));
+    }
+  }
+  
+  // Normalize hpcpChroma - ensure 12 values per frame
+  if (data.features.hpcpChroma && data.features.hpcpChroma.length > 0) {
+    data.features.hpcpChroma = data.features.hpcpChroma.map((frame, idx) => {
+      if (!frame.chroma || frame.chroma.length !== 12) {
+        return defaultChromaFrame(frame.time ?? idx * FRAME_INTERVAL);
+      }
+      return frame;
+    });
+  } else {
+    // Create default chroma frames
+    data.features.hpcpChroma = [];
+    for (let i = 0; i < numFrames; i++) {
+      data.features.hpcpChroma.push(defaultChromaFrame(i * FRAME_INTERVAL));
+    }
+  }
+  
+  // Normalize melSpectrogram - ensure 40 bands per frame
+  if (data.features.melSpectrogram && data.features.melSpectrogram.length > 0) {
+    data.features.melSpectrogram = data.features.melSpectrogram.map((frame, idx) => {
+      if (!frame.bands || frame.bands.length !== 40) {
+        return defaultMelFrame(frame.time ?? idx * FRAME_INTERVAL);
+      }
+      return frame;
+    });
+  } else {
+    // Create default mel frames
+    data.features.melSpectrogram = [];
+    for (let i = 0; i < numFrames; i++) {
+      data.features.melSpectrogram.push(defaultMelFrame(i * FRAME_INTERVAL));
+    }
+  }
+  
+  // Normalize pitch - ensure proper structure
+  if (data.features.pitch && data.features.pitch.length > 0) {
+    data.features.pitch = data.features.pitch.map((frame, idx) => {
+      if (frame.pitch === undefined) {
+        return defaultPitchFrame(frame.time ?? idx * FRAME_INTERVAL);
+      }
+      return {
+        time: frame.time ?? idx * FRAME_INTERVAL,
+        pitch: frame.pitch ?? 0,
+        confidence: frame.confidence ?? 0
+      };
+    });
+  } else {
+    // Create default pitch frames
+    data.features.pitch = [];
+    for (let i = 0; i < numFrames; i++) {
+      data.features.pitch.push(defaultPitchFrame(i * FRAME_INTERVAL));
+    }
+  }
+  
+  return data;
+}
+
+/**
  * Load analysis from server cache
  */
 async function loadServerAnalysis(artistName, songName) {
@@ -46,8 +161,13 @@ async function loadServerAnalysis(artistName, songName) {
     const response = await fetch(`${SERVER_URL}/get-analysis?${params}`);
     if (!response.ok) return null;
     const data = await response.json();
+    
+    // Normalize the data structure to ensure consistency
+    const normalizedData = normalizeAnalysisData(data);
+    
     console.log(`${timestamp()} 📦 Loaded analysis from server for: ${artistName} - ${songName}`);
-    return data;
+    console.log(`${timestamp()}    Beats array: ${normalizedData.features?.rhythm?.beats?.length || 0} items`);
+    return normalizedData;
   } catch (error) {
     console.warn('Could not load server analysis:', error);
     return null;
@@ -55,17 +175,40 @@ async function loadServerAnalysis(artistName, songName) {
 }
 
 /**
+ * Prepare analysis data for saving - ensures arrays are properly serializable
+ */
+function prepareAnalysisForSave(data) {
+  if (!data || !data.features) return data;
+  
+  // Ensure beats is a proper array (not a typed array or object)
+  if (data.features.rhythm && data.features.rhythm.beats) {
+    // Convert to plain array to ensure JSON serialization works correctly
+    data.features.rhythm.beats = Array.from(data.features.rhythm.beats);
+  }
+  
+  // Also ensure beatDensity is properly serializable
+  if (data.features.rhythm && data.features.rhythm.beatDensity) {
+    data.features.rhythm.beatDensity = Array.from(data.features.rhythm.beatDensity);
+  }
+  
+  return data;
+}
+
+/**
  * Save analysis to server cache
  */
 async function saveServerAnalysis(artistName, songName, analysisData) {
   try {
+    // Prepare data for serialization (ensure arrays are proper arrays)
+    const preparedData = prepareAnalysisForSave(analysisData);
+    
     const response = await fetch(`${SERVER_URL}/save-analysis`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         artist: artistName,
         song: songName,
-        data: analysisData
+        data: preparedData
       })
     });
     
@@ -76,6 +219,7 @@ async function saveServerAnalysis(artistName, songName, analysisData) {
     
     const result = await response.json();
     console.log(`${timestamp()} 💾 Saved analysis to server: ${result.filename} (${(result.size / 1024).toFixed(1)}KB)`);
+    console.log(`${timestamp()}    Beats saved: ${preparedData.features?.rhythm?.beats?.length || 0} items`);
     return true;
   } catch (error) {
     console.warn('Could not save analysis to server:', error);
@@ -597,11 +741,51 @@ export async function analyzeAudio(audioUrl, artistName = null, songName = null,
   
   const analysisTime = ((Date.now() - startTime) / 1000).toFixed(2);
   
+  // Calculate expected number of frames
+  const numFrames = Math.ceil(duration / FRAME_INTERVAL);
+  
+  // Fill in default frames for any failed extractions to ensure visualization works
+  if (!melSpectrogram || melSpectrogram.length === 0) {
+    console.log(`${timestamp()}    ⚠️ Generating default mel frames (extraction failed)`);
+    melSpectrogram = [];
+    for (let i = 0; i < numFrames; i++) {
+      melSpectrogram.push({ time: i * FRAME_INTERVAL, bands: new Array(40).fill(0) });
+    }
+  }
+  
+  if (!hpcpChroma || hpcpChroma.length === 0) {
+    console.log(`${timestamp()}    ⚠️ Generating default chroma frames (extraction failed)`);
+    hpcpChroma = [];
+    for (let i = 0; i < numFrames; i++) {
+      hpcpChroma.push({ time: i * FRAME_INTERVAL, chroma: new Array(12).fill(0) });
+    }
+  }
+  
+  if (!pitch || pitch.length === 0) {
+    console.log(`${timestamp()}    ⚠️ Generating default pitch frames (extraction failed)`);
+    pitch = [];
+    for (let i = 0; i < numFrames; i++) {
+      pitch.push({ time: i * FRAME_INTERVAL, pitch: 0, confidence: 0 });
+    }
+  }
+  
+  // Ensure rhythm has all required fields
+  if (!rhythm.beats) rhythm.beats = [];
+  if (!rhythm.beatDensity || rhythm.beatDensity.length === 0) {
+    rhythm.beatDensity = [];
+    for (let i = 0; i < numFrames; i++) {
+      rhythm.beatDensity.push({ time: i * FRAME_INTERVAL, beats: 0 });
+    }
+  }
+  if (!rhythm.bpm) rhythm.bpm = 120;
+  if (!rhythm.confidence) rhythm.confidence = 0;
+  
   console.log(`${timestamp()} ═══════════════════════════════════════════════`);
   console.log(`${timestamp()} ✅ Analysis complete in ${analysisTime}s`);
   console.log(`${timestamp()}    Mel frames: ${melSpectrogram.length}`);
   console.log(`${timestamp()}    Chroma frames: ${hpcpChroma.length}`);
   console.log(`${timestamp()}    Pitch frames: ${pitch.length}`);
+  console.log(`${timestamp()}    Beats: ${rhythm.beats?.length || 0}`);
   console.log(`${timestamp()}    BPM: ${rhythm.bpm?.toFixed(1) || 'N/A'}`);
   
   // Log duration comparison between Spotify and MP3
@@ -694,8 +878,18 @@ export function getAnalysisAtTime(analysisData, timeInSeconds) {
   const isOnBeat = (time, beats, tolerance = 0.05) => {
     if (!beats) return { onBeat: false, beatStrength: 0 };
     
-    for (let i = 0; i < beats.length; i++) {
-      const beatTime = beats[i];
+    // Handle both array and object formats (for backwards compatibility with cached data)
+    let beatsArray = beats;
+    if (!Array.isArray(beats)) {
+      // Convert object {0: val, 1: val, ...} to array
+      const keys = Object.keys(beats).filter(k => !isNaN(k)).sort((a, b) => Number(a) - Number(b));
+      beatsArray = keys.map(k => beats[k]);
+    }
+    
+    if (beatsArray.length === 0) return { onBeat: false, beatStrength: 0 };
+    
+    for (let i = 0; i < beatsArray.length; i++) {
+      const beatTime = beatsArray[i];
       const diff = Math.abs(time - beatTime);
       if (diff < tolerance) {
         // Calculate beat strength based on proximity - smoother falloff
@@ -711,15 +905,17 @@ export function getAnalysisAtTime(analysisData, timeInSeconds) {
     return { onBeat: false, beatStrength: 0 };
   };
   
-  // Get interpolated mel spectrogram
+  // Get interpolated mel spectrogram (with fallback to default zeros)
   const melResult = findFramesWithInterpolation(melSpectrogram, timeInSeconds);
   const interpolatedMel = melResult.frame ? 
-    interpolateArray(melResult.frame.bands, melResult.nextFrame?.bands, melResult.t) : null;
+    interpolateArray(melResult.frame.bands, melResult.nextFrame?.bands, melResult.t) : 
+    new Array(40).fill(0); // Default 40 zero bands if no data
   
-  // Get interpolated chroma (higher resolution, but still interpolate)
+  // Get interpolated chroma (higher resolution, but still interpolate, with fallback)
   const chromaResult = findFramesWithInterpolation(hpcpChroma, timeInSeconds);
   const interpolatedChroma = chromaResult.frame ?
-    interpolateArray(chromaResult.frame.chroma, chromaResult.nextFrame?.chroma, chromaResult.t) : null;
+    interpolateArray(chromaResult.frame.chroma, chromaResult.nextFrame?.chroma, chromaResult.t) :
+    new Array(12).fill(0); // Default 12 zero chroma values if no data
   
   // Get interpolated pitch
   const pitchResult = findFramesWithInterpolation(pitch, timeInSeconds);

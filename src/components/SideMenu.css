@@ -26,7 +26,7 @@
   width: 300px;
   max-width: 85vw;
   height: 100vh;
-  background: linear-gradient(180deg, #1a1a2e 0%, #0a0a0f 100%);
+  background: linear-gradient(180deg, rgba(26, 26, 46, 0.75) 0%, rgba(10, 10, 15, 0.75) 100%);
   border-left: 1px solid rgba(29, 185, 84, 0.3);
   box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
   transition: right 0.3s ease;
@@ -124,6 +124,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .menu-item {
@@ -161,6 +163,19 @@
 .menu-item.logout-item:hover {
   background: rgba(255, 107, 107, 0.15);
   color: #ff6b6b;
+}
+
+.menu-item.switch-account-item {
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-item.switch-account-item:hover {
+  background: rgba(29, 185, 84, 0.15);
+  color: #1db954;
 }
 
 .menu-divider {
@@ -224,16 +239,14 @@
 }
 
 .dropdown-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
+  display: none;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   margin: 4px 8px;
 }
 
 .dropdown-content.open {
-  max-height: 600px;
+  display: block;
 }
 
 .dropdown-item {
