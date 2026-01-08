@@ -113,34 +113,34 @@ Before you begin, ensure you have the following installed:
 
 > ✅ **No YouTube API Key Required!** This app uses the Browser-Use API for YouTube search, which is completely FREE with no quota limits.
 
-## 📦 Installation
+## 📦 Installing Dependencies
 
-1. **Clone the repository**
+You must install dependencies for both the frontend and backend before running or building the app:
+
+1. **Frontend dependencies** (from the project root):
    ```bash
-   git clone https://github.com/yerry262/Spotify-Webapp-Visualizer.git
-   cd Spotify-Webapp-Visualizer
+   cd "c:\Users\jerry\OneDrive\Desktop\REPOs\Spotify-Webapp-Visualizer"
+   npm install
    ```
+   This installs all packages for the React/Vite frontend.
 
-2. **Set up environment variables**
+2. **Backend dependencies** (from the server folder):
+   ```bash
+   cd server
+   npm install
+   ```
+   This installs all packages for the backend Express server.
+
+## 🔧 Configuration
+
+1. **Set up environment variables**
    ```bash
    # Create .env file in root directory
    # Add your Spotify Client ID:
    VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
    ```
 
-3. **Install frontend dependencies**
-   ```bash
-   npm install
-   ```
-
-4. **Install backend dependencies**
-   ```bash
-   cd server
-   npm install
-   cd ..
-   ```
-
-5. **Place yt-dlp and FFmpeg in server folder** (Windows)
+2. **Place yt-dlp and FFmpeg in server folder** (Windows)
    - Download `yt-dlp.exe` and place in `server/` folder
    - Download `ffmpeg.exe` and `ffprobe.exe` and place in `server/` folder
 
@@ -161,151 +161,41 @@ npm run dev
 ```
 App will open at `http://127.0.0.1:3000/Spotify-Webapp-Visualizer/`
 
-## 📱 Usage
+## 🏗️ Production Build & Deployment
 
-1. **Start playing music on Spotify** (on your phone or any device)
-2. **Open the app** in your browser at `http://127.0.0.1:3000`
-3. **Log in with Spotify** when prompted
-4. **Watch the visualization** - it will:
-   - Detect the current track from Spotify
-   - Check if MP3 is already cached (instant if cached!)
-   - Search YouTube for the song (if not cached)
-   - Download and analyze the audio
-   - Display real-time visualization synced with playback
+To build and deploy the app to GitHub Pages (production):
 
-## 🗂️ Project Structure
+1. **Production Build**
+   ```bash
+   npm run build
+   ```
+   This will generate the optimized production files in the `dist/` folder using Vite.
 
+2. **Deploy to GitHub Pages**
+   ```bash
+   npm run deploy
+   ```
+   This will publish the contents of the `dist/` folder to the `gh-pages` branch using the `gh-pages` package.
+
+3. **Push Code to GitHub**
+   ```bash
+   git add .
+   git commit -m "your message"
+   git push
+   ```
+   This will commit and push your latest changes to your repository.
+
+---
+
+## 🖥️ Local Development (Windows Example)
+
+You can run the app locally with the following commands (in two terminals):
+
+**Terminal 1: Start the React Frontend**
+```bash
+cd "c:\Users\jerry\OneDrive\Desktop\REPOs\Spotify-Webapp-Visualizer"
+npm run dev
 ```
-Spotify-Webapp-Visualizer/
-├── .env                    # Environment variables (create this)
-├── package.json            # Frontend dependencies
-├── vite.config.js          # Vite configuration
-├── index.html              # HTML template (Vite root)
-├── README.md               # This file
-├── public/
-│   ├── test-runner.html    # Standalone audio analysis test page
-│   ├── pitch-worker.js     # Web Worker for pitch extraction
-│   ├── essentia.js-core.js       # Local Essentia.js core
-│   ├── essentia-wasm.web.js      # Essentia WASM loader
-│   └── essentia-wasm.web.wasm    # Essentia WASM binary
-├── src/
-│   ├── main.jsx            # React entry point (Vite)
-│   ├── App.jsx             # Main React component
-│   ├── App.css             # Main styles
-│   ├── config.js           # API URL configuration
-│   ├── spotifyService.js   # Spotify API integration
-│   ├── youtubeService.js   # YouTube search via Browser-Use API (FREE!)
-│   ├── audioAnalysisService.js   # Essentia.js audio analysis
-│   └── components/
-│       ├── AudioVisualizer.jsx   # Main visualizer component
-│       ├── TrackInfo.jsx         # Track information display
-│       ├── PlaybackControls.jsx  # Playback control buttons
-│       ├── UserProfile.jsx       # User profile display
-│       ├── SideMenu.jsx          # Side menu with settings
-│       └── visualizers/          # Visualization renderers
-│           ├── index.js          # Visualizer exports
-│           ├── VisualizerAudio.js    # Main audio visualization (12 waveform styles)
-│           ├── VisualizerIdle.js     # Idle state animation
-│           └── VisualizerLoading.js  # Loading state animation
-└── server/
-    ├── server.js           # Express backend for MP3 extraction + YouTube search proxy
-    ├── package.json        # Backend dependencies
-    ├── README.md           # Server documentation
-    ├── mp3files/           # Downloaded MP3 storage (cached as artist-song.mp3)
-    └── analysis/           # Pre-computed analysis JSON files (committed to repo)
-```
-
-## 🔧 Technologies Used
-
-- **Frontend**: React 18, Vite, Canvas API
-- **Audio Analysis**: [Essentia.js](https://essentia.upf.edu/essentiajs/) (WASM) @ 10fps
-- **APIs**: Spotify Web API, Browser-Use API (FREE YouTube search)
-- **Backend**: Express.js, yt-dlp, ffmpeg
-- **Authentication**: Spotify OAuth 2.0 PKCE Flow
-
-## 🎨 Waveform Styles & Defaults
-
-Each waveform style has optimized default settings. Enable "Custom Settings" in the side menu to override with sliders.
-
-| Style | Start Position | Max Height | Description |
-|-------|---------------|------------|-------------|
-| Layered Waves | 95% | 50% | Multiple overlapping sine waves |
-| Oscilloscope | 60% | 30% | Classic oscilloscope lines |
-| Spectrum Bars | 95% | 50% | Frequency spectrum analyzer |
-| Flowing Ribbons | 50% | 15% | Smooth ribbon animations |
-| Mirrored Wave | 50% | 50% | Symmetrical waveform |
-| Particle Dots | 50% | 40% | Dotted wave pattern |
-| Pixelated | 95% | 50% | Retro block style |
-| 3D Mesh | 95% | 45% | Wireframe with depth |
-| Gradient Bars | 95% | 50% | Glowing gradient bars |
-| Sine Layers | 50% | 50% | Layered sine waves |
-| Circular Dots | 60% | 40% | Circular dot arrangement |
-| Neon Lines | 50% | 50% | Glowing neon effect |
-
-## 📝 Caching System
-
-The app implements a multi-layer caching system to minimize API usage:
-
-| Cache Layer | Location | Duration | Purpose |
-|-------------|----------|----------|---------|
-| MP3 Files | Server (`mp3files/`) | Permanent | Skip YouTube API + download if song was played before |
-| Analysis JSON | Server (`analysis/`) | Permanent | Skip audio analysis if already computed |
-| YouTube URLs | localStorage | 7 days | Skip YouTube API if URL is known |
-| Memory Cache | In-memory | Session | Backup for localStorage |
-
-### Cache File Naming
-MP3 files are saved as `artist_name-song_name.mp3` (sanitized lowercase with underscores). Analysis files follow the same pattern with `.json` extension. The server uses **fuzzy matching** to handle special characters (smart quotes, accented characters) in song names.
-
-### API Rate Limiting
-- **Track Change Debouncing**: 800ms delay after track changes before processing
-- **YouTube API Rate Limit**: Minimum 2 seconds between API calls
-- **403 Error Blocking**: If YouTube returns 403 (quota exceeded), further API calls are blocked
-
-## ⚠️ Important Notes
-
-- **This app does NOT play audio** - it only visualizes. Audio plays from your Spotify app.
-- **MP3 files are cached** in `server/mp3files/` - clear periodically to save disk space
-- **YouTube API has quotas** - 10,000 units/day free tier (~100 searches)
-- **First analysis may take time** - downloading and analyzing a 4-minute song takes ~10-30 seconds
-- **Subsequent plays are instant** - thanks to the caching system
-
-## 🐛 Troubleshooting
-
-### "REACT_APP_YOUTUBE_API_KEY not set"
-- Make sure `.env` file exists in root directory
-- Make sure the key starts with `REACT_APP_`
-- Restart the React dev server after changing `.env`
-
-### "yt-dlp: command not found" or "Failed to download MP3"
-- Make sure `yt-dlp.exe` is in the `server/` folder
-- Make sure `ffmpeg.exe` is in the `server/` folder
-- Check that the YouTube URL is valid
-
-### "YouTube API returned 403"
-- Your daily quota (10,000 units) may be exhausted
-- Wait until midnight Pacific Time for quota reset
-- The app will block further API calls to prevent wasted requests
-
-### Visualization not syncing correctly
-- The YouTube audio version may differ slightly from Spotify
-- Analysis is approximate and beat detection may vary
-
-## 📄 License
-
-This project is for educational and research purposes only.
-
-## 🙏 Acknowledgments
-
-- [Essentia.js](https://essentia.upf.edu/essentiajs/) - Audio analysis library
-- [Spotify Web API](https://developer.spotify.com/documentation/web-api/)
-- [YouTube Data API](https://developers.google.com/youtube/v3)
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube downloader
-
-## Screenshots
-
-<img width="641" alt="Login Screen" src="https://github.com/user-attachments/assets/7d6169e7-9d8b-48a7-9817-36537c0d762a" />
-<img width="1168" alt="Visualization" src="https://github.com/user-attachments/assets/815966be-48af-4f94-bf45-9ad9ae885af9" />
-<img width="633" alt="Track Info" src="https://github.com/user-attachments/assets/70fdedcb-5881-4115-b6cf-22588dd708db" />
-<img width="2491" alt="Full Screen" src="https://github.com/user-attachments/assets/aa150ec7-2781-4350-94fd-5e7e33426efe" />
+This starts the Vite development server at `http://127.0.0.1:3000/Spotify-Webapp-Visualizer/`.
 
 
