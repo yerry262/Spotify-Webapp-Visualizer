@@ -487,6 +487,41 @@
   padding-bottom: 12px;
 }
 
+/* Dropdown Info/Note styles */
+.dropdown-info,
+.dropdown-note {
+  padding: 8px 16px;
+}
+
+.info-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+}
+
+.note-text {
+  font-size: 11px;
+  color: rgba(255, 200, 100, 0.7);
+  line-height: 1.4;
+}
+
+/* Sample Rate preset styling */
+.dropdown-item .preset-name {
+  flex: 1;
+  margin-left: 8px;
+}
+
+.dropdown-item .preset-info {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: auto;
+  padding-left: 8px;
+}
+
+.dropdown-item.active .preset-info {
+  color: rgba(30, 215, 96, 0.7);
+}
+
 /* Footer */
 .side-menu-footer {
   padding: 20px;

@@ -58,6 +58,18 @@ const AudioVisualizer = ({
   const animate = useCallback((timestamp) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // RESIZE CHECK INSIDE ANIMATION LOOP
+    // This ensures that if the canvas resizes (clearing it), we redraw IMMEDIATELY in the same frame.
+    // This prevents the "black flash" issue during smooth CSS transitions.
+    const container = canvas.parentElement;
+    if (container) {
+      if (canvas.width !== container.clientWidth || canvas.height !== container.clientHeight) {
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        // Do NOT re-initialize particles here, just let them adapt
+      }
+    }
     
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
@@ -119,23 +131,22 @@ const AudioVisualizer = ({
     animationIdRef.current = requestAnimationFrame(animate);
   }, [analysisData, isPlaying, isAnalyzing]);
 
-  // Handle canvas resize
+  // Handle resize - only initial setup and cleanup
+  // Actual resizing is now handled in the animation loop for smoothness
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const resizeCanvas = () => {
-      const container = canvas.parentElement;
-      if (container) {
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
-        initializeParticles();
-      }
-    };
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    return () => window.removeEventListener('resize', resizeCanvas);
+    // Initial setup
+    const container = canvas.parentElement;
+    if (container) {
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      initializeParticles();
+    }
+    
+    // We no longer need ResizeObserver because the animate loop checks dimensions every frame
+    // This is much more efficient for smooth animations
   }, [initializeParticles]);
 
   // Handle track changes - reset time and state

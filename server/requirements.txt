@@ -1,0 +1,6 @@
+# Python dependencies for the server
+# Install with: pip install -r requirements.txt
+
+# yt-dlp - YouTube video/audio downloader (required for MP3 extraction)
+# Can also be installed via: winget install yt-dlp (Windows) or brew install yt-dlp (Mac)
+yt-dlp>=2024.1.0

@@ -257,9 +257,9 @@ body {
 }
 
 .visualizer-section {
-  flex: 1;
-  min-height: 40%;
-  max-height: 50%;
+  height: 50%;
+  width: 100%;
+  flex: 0 0 auto;
 }
 
 .track-section {
@@ -285,7 +285,7 @@ body {
 }
 
 .visualizer-section.expanded {
-  /* Already full screen, no change needed */
+  height: 100%;
 }
 
 /* Collapsible Divider */

@@ -232,6 +232,11 @@ export const SpotifyAPI = {
     return this.request('/me/player');
   },
   
+  // Get user's playback queue (next tracks)
+  async getQueue() {
+    return this.request('/me/player/queue');
+  },
+  
   // Get currently playing track
   async getCurrentlyPlaying() {
     return this.request('/me/player/currently-playing');

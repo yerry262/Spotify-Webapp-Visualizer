@@ -16,19 +16,44 @@ let lastWaveformStyleChange = 0;
 let isAutoWaveformMode = true; // Auto-switch mode
 
 // Hardcoded default values per waveform style
+// Each style can have: basePosition, maxAmplitude, particles (enabled, count, size, speed), 
+// and center elements (chromaWheel, circularMel, pitchOrb, beatFlash)
 export const WAVEFORM_DEFAULTS = {
-  layered: { basePosition: 95, maxAmplitude: 50 },
-  oscilloscope: { basePosition: 60, maxAmplitude: 30 },
-  bars: { basePosition: 95, maxAmplitude: 50 },
-  ribbon: { basePosition: 50, maxAmplitude: 15 },
-  mirrored: { basePosition: 50, maxAmplitude: 50 },
-  dotted: { basePosition: 50, maxAmplitude: 40 },
-  pixelated: { basePosition: 95, maxAmplitude: 50 },
-  mesh3d: { basePosition: 95, maxAmplitude: 45 },
-  gradient_bars: { basePosition: 95, maxAmplitude: 50 },
-  sine_layers: { basePosition: 50, maxAmplitude: 50 },
-  circular_dots: { basePosition: 60, maxAmplitude: 40 },
-  neon_lines: { basePosition: 50, maxAmplitude: 50 }
+  // Featured styles (user favorites)
+  liquid_mercury:   { basePosition: 50,  maxAmplitude: 46, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  cosmic_nebula:    { basePosition: 54,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
+  terrain_3d:       { basePosition: 95,  maxAmplitude: 60, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 83, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  gradient_bars:    { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 97,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: true } },
+  matrix_rain:      { basePosition: 10,  maxAmplitude: 90, basePositionFullScreen: 100,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  plasma_fire:      { basePosition: 90,  maxAmplitude: 70, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  helix_dna:        { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+
+  // Classic styles
+  layered:          { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  oscilloscope:     { basePosition: 60,  maxAmplitude: 30, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  bars:             { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  ribbon:           { basePosition: 50,  maxAmplitude: 15, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  mirrored:         { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  dotted:           { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 40, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  pixelated:        { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  mesh3d:           { basePosition: 95,  maxAmplitude: 45, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 45, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  sine_layers:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  circular_dots:    { basePosition: 60,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  neon_lines:       { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  aurora_borealis:  { basePosition: 100, maxAmplitude: 70, basePositionFullScreen: 100, maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  shockwave:        { basePosition: 62,  maxAmplitude: 80, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  kaleidoscope:     { basePosition: 65,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  lightning:        { basePosition: 15,  maxAmplitude: 70, basePositionFullScreen: 15,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  heartbeat:        { basePosition: 60,  maxAmplitude: 35, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  fractal_tree:     { basePosition: 90,  maxAmplitude: 40, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  sound_tornado:    { basePosition: 90,  maxAmplitude: 50, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  geo_mandala:      { basePosition: 50,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  glitch_art:       { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  fireworks:        { basePosition: 90,  maxAmplitude: 70, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  ocean_waves:      { basePosition: 70,  maxAmplitude: 30, basePositionFullScreen: 80,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  galaxy_spiral:    { basePosition: 50,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  neon_city:        { basePosition: 85,  maxAmplitude: 60, basePositionFullScreen: 85,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  particle_explosion: { basePosition: 50, maxAmplitude: 50, basePositionFullScreen: 50, maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
 };
 
 // Waveform settings state
@@ -37,6 +62,18 @@ let waveformSettings = {
   basePosition: 60, // Custom slider value (used when useCustomSettings is true)
   useCustomSettings: false // Toggle: false = use hardcoded defaults, true = use sliders
 };
+
+// Animation state for smooth transitions
+let isVisualizerFullScreen = false;
+let vizAnimationState = {
+  basePosition: 60,
+  maxAmplitude: 45,
+  lastStyleId: null
+};
+
+export function setVisualizerFullScreen(isFull) {
+  isVisualizerFullScreen = isFull;
+}
 
 // Waveform settings getters/setters
 export function getWaveformSettings() {
@@ -48,29 +85,73 @@ export function setWaveformSettings(settings) {
 }
 
 export function setWaveformMaxAmplitude(amplitude) {
-  waveformSettings.maxAmplitude = Math.max(10, Math.min(50, amplitude));
+  waveformSettings.maxAmplitude = Math.max(10, Math.min(100, amplitude));
 }
 
 export function setWaveformBasePosition(position) {
-  waveformSettings.basePosition = Math.max(25, Math.min(100, position));
+  waveformSettings.basePosition = Math.max(25, Math.min(200, position));
+}
+
+// Internal function to update animation state (called by draw loop)
+export function updateWaveformAnimationState(styleId) {
+  let targetBase, targetAmp;
+
+  if (waveformSettings.useCustomSettings) {
+    targetBase = waveformSettings.basePosition;
+    targetAmp = waveformSettings.maxAmplitude;
+  } else {
+    // Determine defaults based on current style and fullscreen mode
+    const defaults = WAVEFORM_DEFAULTS[styleId] || WAVEFORM_DEFAULTS.layered;
+    
+    // Check if style changed
+    if (vizAnimationState.lastStyleId !== styleId) {
+        vizAnimationState.lastStyleId = styleId;
+        // Snap to target immediately on style change
+        targetBase = isVisualizerFullScreen ? (defaults.basePositionFullScreen ?? defaults.basePosition) : defaults.basePosition;
+        targetAmp = isVisualizerFullScreen ? (defaults.maxAmplitudeFullScreen ?? defaults.maxAmplitude) : defaults.maxAmplitude;
+        vizAnimationState.basePosition = targetBase;
+        vizAnimationState.maxAmplitude = targetAmp;
+        return;
+    }
+
+    targetBase = isVisualizerFullScreen ? (defaults.basePositionFullScreen ?? defaults.basePosition) : defaults.basePosition;
+    targetAmp = isVisualizerFullScreen ? (defaults.maxAmplitudeFullScreen ?? defaults.maxAmplitude) : defaults.maxAmplitude;
+  }
+
+  // Smoothly interpolate current values towards target
+  vizAnimationState.basePosition += (targetBase - vizAnimationState.basePosition) * 0.1;
+  vizAnimationState.maxAmplitude += (targetAmp - vizAnimationState.maxAmplitude) * 0.1;
 }
 
 // Get effective waveform settings (either custom or hardcoded defaults based on toggle)
 export function getEffectiveWaveformSettings(styleId) {
+  // If the requested style matches our animation state tracking, return animated values
+  if (styleId === vizAnimationState.lastStyleId) {
+      return {
+          basePosition: vizAnimationState.basePosition,
+          maxAmplitude: vizAnimationState.maxAmplitude
+      };
+  }
+  
+  // Fallback logic for non-active styles or initial load
   if (waveformSettings.useCustomSettings) {
     return {
       basePosition: waveformSettings.basePosition,
       maxAmplitude: waveformSettings.maxAmplitude
     };
   }
-  // Use hardcoded defaults for the current style
-  return WAVEFORM_DEFAULTS[styleId] || WAVEFORM_DEFAULTS.layered;
+  const defaults = WAVEFORM_DEFAULTS[styleId] || WAVEFORM_DEFAULTS.layered;
+  // Make sure to return the correct target based on fullscreen even if not animated yet
+  return {
+      basePosition: isVisualizerFullScreen ? (defaults.basePositionFullScreen ?? defaults.basePosition) : defaults.basePosition,
+      maxAmplitude: isVisualizerFullScreen ? (defaults.maxAmplitudeFullScreen ?? defaults.maxAmplitude) : defaults.maxAmplitude
+  };
 }
 
 // Particle settings state
 let particleSettings = {
   enabled: true,
-  count: 20,
+  count: 5,
   size: 1.0,
   speed: 1.0
 };
@@ -117,8 +198,53 @@ export function setCenterElementSettings(settings) {
   centerElementSettings = { ...centerElementSettings, ...settings };
 }
 
+// Sample rate / resolution settings
+// These control the visualization resolution (frames per second for each analysis type)
+// FPS values: 0-60, where 0 disables the analysis. Default is 5 fps for each.
+let sampleRateSettings = {
+  chromaFps: 5,        // HPCP Chroma analysis fps (0-60)
+  melFps: 5,           // Mel Spectrogram analysis fps (0-60)
+  pitchFps: 2,         // Pitch analysis fps (0-60)
+  rhythmFps: 5         // Rhythm/Beat density fps (0-60)
+};
+
+// Convert FPS to interval (seconds between frames)
+export function fpsToInterval(fps) {
+  if (fps <= 0) return 999; // Effectively disabled
+  return 1 / fps;
+}
+
+// Sample rate getters/setters
+export function getSampleRateSettings() {
+  return { ...sampleRateSettings };
+}
+
+export function setSampleRateSettings(settings) {
+  sampleRateSettings = { ...sampleRateSettings, ...settings };
+}
+
+// Get interval for a specific analysis type
+export function getAnalysisInterval(type) {
+  switch (type) {
+    case 'chroma': return fpsToInterval(sampleRateSettings.chromaFps);
+    case 'mel': return fpsToInterval(sampleRateSettings.melFps);
+    case 'pitch': return fpsToInterval(sampleRateSettings.pitchFps);
+    case 'rhythm': return fpsToInterval(sampleRateSettings.rhythmFps);
+    default: return 0.2; // Default 5fps
+  }
+}
+
 // Export waveform styles for menu
 export const WAVEFORM_STYLES = [
+  // Featured styles (user favorites)
+  { id: 'liquid_mercury', name: 'Liquid Mercury' },
+  { id: 'cosmic_nebula', name: 'Cosmic Nebula' },
+  { id: 'terrain_3d', name: 'Soundwave Terrain' },
+  { id: 'gradient_bars', name: 'Gradient Bars' },
+  { id: 'matrix_rain', name: 'Matrix Rain' },
+  { id: 'plasma_fire', name: 'Plasma Fire' },
+  { id: 'helix_dna', name: 'DNA Helix' },
+  // Classic styles
   { id: 'layered', name: 'Layered Waves' },
   { id: 'oscilloscope', name: 'Oscilloscope' },
   { id: 'bars', name: 'Spectrum Bars' },
@@ -127,25 +253,18 @@ export const WAVEFORM_STYLES = [
   { id: 'dotted', name: 'Particle Dots' },
   { id: 'pixelated', name: 'Pixelated' },
   { id: 'mesh3d', name: '3D Mesh' },
-  { id: 'gradient_bars', name: 'Gradient Bars' },
   { id: 'sine_layers', name: 'Sine Layers' },
   { id: 'circular_dots', name: 'Circular Dots' },
   { id: 'neon_lines', name: 'Neon Lines' },
-  { id: 'helix_dna', name: 'DNA Helix' },
-  { id: 'plasma_fire', name: 'Plasma Fire' },
-  { id: 'matrix_rain', name: 'Matrix Rain' },
   { id: 'aurora_borealis', name: 'Aurora Borealis' },
   { id: 'shockwave', name: 'Shockwave Rings' },
   { id: 'kaleidoscope', name: 'Kaleidoscope' },
   { id: 'lightning', name: 'Lightning Storm' },
   { id: 'heartbeat', name: 'Heartbeat ECG' },
   { id: 'fractal_tree', name: 'Fractal Tree' },
-  { id: 'liquid_mercury', name: 'Liquid Mercury' },
-  { id: 'cosmic_nebula', name: 'Cosmic Nebula' },
   { id: 'sound_tornado', name: 'Sound Tornado' },
   { id: 'geo_mandala', name: 'Geometric Mandala' },
   { id: 'glitch_art', name: 'Glitch Art' },
-  { id: 'terrain_3d', name: 'Soundwave Terrain' },
   { id: 'fireworks', name: 'Fireworks Show' },
   { id: 'ocean_waves', name: 'Ocean Waves' },
   { id: 'galaxy_spiral', name: 'Galaxy Spiral' },
@@ -172,13 +291,14 @@ export function isWaveformAutoMode() {
 export function setWaveformAutoMode(enabled) {
   isAutoWaveformMode = enabled;
   if (enabled) {
-    lastWaveformStyleChange = 0; // Force immediate change on next frame
+    lastWaveformStyleChange = -9999; // Force immediate change on next frame
   }
 }
 
 // Reset waveform timing for track changes - should be called when a new song starts
 export function resetWaveformTiming() {
-  lastWaveformStyleChange = 0;
+  lastWaveformStyleChange = -9999; // Force immediate change
+
   // Force a style change on next frame
   console.log('🔄 Waveform timing reset for new track');
 }
@@ -265,12 +385,21 @@ export function drawAudioVisualization(ctx, width, height, vizState, frame, time
   // Update waveform style every 30 seconds - random selection (only in auto mode)
   // Also detect if time went backwards (new song started) and reset timing
   if (isAutoWaveformMode) {
-    // If time is less than lastWaveformStyleChange, a new song started - reset
-    if (time < lastWaveformStyleChange - 5) {
-      lastWaveformStyleChange = 0;
+    // If time is less than lastWaveformStyleChange (but huge negative means we forced it),
+    // we should only reset IF it wasn't our forced change.
+    // Our forced change makes lastWaveformStyleChange = -9999.
+    // So if time < lastWaveformStyleChange - 5, it means time went VERY negative (impossible) 
+    // OR we just wanted to fix the "new song detection".
+    // Actually, simply checking if it's > 30 handles the forced update.
+    // The "new song" detection is tricky if we use -9999.
+    // Let's rely on resetWaveformTiming() being called externally for new songs,
+    // or just check for backwards time travel relative to positive timestamps.
+    // If lastWaveformStyleChange is positive and time < last, then new song.
+    if (lastWaveformStyleChange > 0 && time < lastWaveformStyleChange - 5) {
+      lastWaveformStyleChange = -9999;
     }
     
-    if (time - lastWaveformStyleChange > 30) {
+    if (time - lastWaveformStyleChange > 30 || lastWaveformStyleChange < -9000) {
       let newStyle;
       do {
         newStyle = Math.floor(Math.random() * WAVEFORM_STYLES.length);
@@ -279,6 +408,11 @@ export function drawAudioVisualization(ctx, width, height, vizState, frame, time
       lastWaveformStyleChange = time;
     }
   }
+
+  // Update animation state for smooth transitions
+  const currentStyleObj = WAVEFORM_STYLES[currentWaveformStyle];
+  const currentStyleId = currentStyleObj?.id || 'layered';
+  updateWaveformAnimationState(currentStyleId);
   
   // Background with fade trail
   ctx.fillStyle = 'rgba(10, 10, 15, 0.12)';
@@ -695,6 +829,53 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
       break;
   }
 }
+
+/**
+ * =============================================================================
+ * WAVEFORM DRAWING FUNCTIONS
+ * =============================================================================
+ * 
+ * AUDIO ANALYSIS DATA (use these to control the visualization):
+ * 
+ * 1. CHROMA (12 values) - The 12 musical notes (C, C#, D, D#, E, F, F#, G, G#, A, A#, B)
+ *    - Use for: Color selection (hue via CHROMA_HUES[idx]), note-specific effects
+ *    - Higher values (0-1) = that note is more prominent in the audio
+ * 
+ * 2. MEL SPECTROGRAM (array) - Frequency distribution across mel-scale bands
+ *    - Use for: Wave heights, bar amplitudes, energy/intensity effects
+ *    - Raw values are dB (-10 to 0), normalize with: (mel[idx] + 10) / 10
+ * 
+ * 3. BEAT PULSE (0-1) - Derived from rhythm analysis, decays after each beat
+ *    - Use for: Pulsing effects, size boosts, flash effects
+ *    - Spikes to 1 on beat, then decays (~0.92 per frame)
+ * 
+ * 4. TIME (seconds) - Current playback position
+ *    - Use for: Animation timing, phase offsets, cyclic effects (Math.sin(time * speed))
+ * 
+ * SETTINGS (user-adjustable via sliders when "Use Custom Settings" is enabled):
+ * 
+ * - basePosition (0-200%): Controls WHERE the visualization is positioned
+ *   * Linear waveforms: Vertical position (0=top, 100=bottom)
+ *   * Radial waveforms: Center vertical position
+ *   * Scattered waveforms: Origin point
+ * 
+ * - maxAmplitude (10-100%): Controls SIZE of the visualization
+ *   * Linear waveforms: Maximum wave height as % of screen
+ *   * Radial waveforms: Radius as % of screen
+ *   * Scattered waveforms: Spread/size of elements
+ * 
+ * HOW TO USE SETTINGS IN YOUR WAVEFORM:
+ *   const settings = getEffectiveWaveformSettings('your_style_id');
+ *   const baseY = height * (settings.basePosition / 100);
+ *   const maxHeight = height * (settings.maxAmplitude / 100);
+ *   // OR for radial:
+ *   const centerY = height * (settings.basePosition / 100);
+ *   const radius = Math.min(width, height) * (settings.maxAmplitude / 100);
+ * 
+ * Note: PITCH is used for the central orb and particle system but is not 
+ * passed to waveform functions. Add it to the signature if needed.
+ * =============================================================================
+ */
 
 /**
  * Original layered wave style
@@ -1864,9 +2045,12 @@ function drawShockwaveWave(ctx, width, height, chroma, mel, beatPulse, time) {
  * Uses chroma for segment colors and mel for pattern complexity
  */
 function drawKaleidoscopeWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('kaleidoscope');
   const centerX = width / 2;
-  const centerY = height * 0.65;
-  const maxRadius = Math.min(width, height) * 0.45;
+  // basePosition controls vertical center (0-100 = top to bottom)
+  const centerY = height * (settings.basePosition / 100);
+  // maxAmplitude controls the radius/size of the kaleidoscope
+  const maxRadius = Math.min(width, height) * (settings.maxAmplitude / 100);
   const numSegments = 12; // One for each chroma
   const segmentAngle = (Math.PI * 2) / numSegments;
   
@@ -1959,8 +2143,11 @@ function drawKaleidoscopeWave(ctx, width, height, chroma, mel, beatPulse, time) 
  * Chroma controls bolt colors, mel controls branching intensity
  */
 function drawLightningWave(ctx, width, height, chroma, mel, beatPulse, time) {
-  const baseY = height * 0.15;
-  const targetY = height * 0.85;
+  const settings = getEffectiveWaveformSettings('lightning');
+  // basePosition controls where bolts originate (top)
+  const baseY = height * (settings.basePosition / 100);
+  // maxAmplitude controls how far bolts travel
+  const targetY = baseY + height * (settings.maxAmplitude / 100);
   
   // Number of main bolts based on total energy
   const totalEnergy = chroma.reduce((a, b) => a + b, 0) / 12;
@@ -2063,8 +2250,11 @@ function drawLightningWave(ctx, width, height, chroma, mel, beatPulse, time) {
  * Uses chroma for line colors and mel frequencies for ECG complexity
  */
 function drawHeartbeatWave(ctx, width, height, chroma, mel, beatPulse, time) {
-  const centerY = height * 0.6;
-  const maxAmplitude = height * 0.35;
+  const settings = getEffectiveWaveformSettings('heartbeat');
+  // basePosition controls vertical center of the ECG lines
+  const centerY = height * (settings.basePosition / 100);
+  // maxAmplitude controls the height of the ECG spikes
+  const maxAmplitude = height * (settings.maxAmplitude / 100);
   const scrollSpeed = 100; // pixels per second
   
   // Sort chroma for layering
@@ -2168,7 +2358,11 @@ function drawHeartbeatWave(ctx, width, height, chroma, mel, beatPulse, time) {
  * Each chroma value creates a tree that grows/shrinks with its intensity
  */
 function drawFractalTreeWave(ctx, width, height, chroma, mel, beatPulse, time) {
-  const groundY = height * 0.9;
+  const settings = getEffectiveWaveformSettings('fractal_tree');
+  // basePosition controls where the ground/tree base is
+  const groundY = height * (settings.basePosition / 100);
+  // maxAmplitude controls tree height
+  const maxTreeHeight = height * (settings.maxAmplitude / 100);
   const numTrees = 6;
   const treeSpacing = width / (numTrees + 1);
   
@@ -2178,7 +2372,7 @@ function drawFractalTreeWave(ctx, width, height, chroma, mel, beatPulse, time) {
     const hue = CHROMA_HUES[chromaIdx];
     
     const treeX = (tree + 1) * treeSpacing;
-    const treeHeight = height * 0.4 * (0.4 + chromaValue * 0.6) * (1 + beatPulse * 0.2);
+    const treeHeight = maxTreeHeight * (0.4 + chromaValue * 0.6) * (1 + beatPulse * 0.2);
     
     // Get mel for branching angle variation
     const melIdx = tree % (mel?.length || 1);
@@ -2247,7 +2441,11 @@ function drawFractalTreeWave(ctx, width, height, chroma, mel, beatPulse, time) {
  * Creates organic, flowing metallic shapes
  */
 function drawLiquidMercuryWave(ctx, width, height, chroma, mel, beatPulse, time) {
-  const centerY = height * 0.6;
+  const settings = getEffectiveWaveformSettings('liquid_mercury');
+  // basePosition controls vertical center of the blob field
+  const centerY = height * (settings.basePosition / 100);
+  // maxAmplitude controls blob size and spread
+  const sizeMultiplier = settings.maxAmplitude / 50; // normalize to 1.0 at 50%
   const numBlobs = 20;
   
   // Calculate blob positions based on mel and time
@@ -2270,8 +2468,8 @@ function drawLiquidMercuryWave(ctx, width, height, chroma, mel, beatPulse, time)
     const moveY = Math.cos(time * 1.2 + i * 0.5) * 40 * melValue + 
                   Math.sin(time * 2 + i) * 20 * chromaValue;
     
-    // Size based on mel and chroma
-    const size = 15 + melValue * 35 + chromaValue * 25 + beatPulse * 15;
+    // Size based on mel and chroma, scaled by settings
+    const size = (15 + melValue * 35 + chromaValue * 25 + beatPulse * 15) * sizeMultiplier;
     
     blobs.push({
       x: baseX + moveX,
@@ -2362,8 +2560,12 @@ function drawLiquidMercuryWave(ctx, width, height, chroma, mel, beatPulse, time)
  * Features gas clouds, twinkling stars, and gravitational distortion
  */
 function drawCosmicNebulaWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('cosmic_nebula');
   const centerX = width / 2;
-  const centerY = height * 0.55;
+  // basePosition controls vertical center of the nebula
+  const centerY = height * (settings.basePosition / 100);
+  // maxAmplitude controls the size/spread of the nebula
+  const sizeMultiplier = settings.maxAmplitude / 45; // normalize to 1.0 at default 45%
   
   // Draw swirling nebula clouds
   const numClouds = 8;
@@ -2376,13 +2578,13 @@ function drawCosmicNebulaWave(ctx, width, height, chroma, mel, beatPulse, time) 
     const melIdx = Math.floor((cloud / numClouds) * (mel?.length || 1));
     const melValue = mel ? Math.max(0.2, Math.min(1, (mel[melIdx] + 10) / 10)) : 0.5;
     
-    // Spiral rotation
+    // Spiral rotation - scaled by sizeMultiplier
     const spiralAngle = (cloud / numClouds) * Math.PI * 2 + time * 0.3;
-    const spiralRadius = 100 + melValue * 150 + beatPulse * 50;
+    const spiralRadius = (100 + melValue * 150 + beatPulse * 50) * sizeMultiplier;
     
     const cloudX = centerX + Math.cos(spiralAngle) * spiralRadius;
     const cloudY = centerY + Math.sin(spiralAngle) * spiralRadius * 0.5;
-    const cloudSize = 80 + chromaValue * 120 + melValue * 60;
+    const cloudSize = (80 + chromaValue * 120 + melValue * 60) * sizeMultiplier;
     
     // Multi-layered cloud gradient
     for (let layer = 2; layer >= 0; layer--) {
@@ -2487,14 +2689,17 @@ function drawCosmicNebulaWave(ctx, width, height, chroma, mel, beatPulse, time) 
  * Particles spiral based on mel frequencies, tornado width pulses with beat
  */
 function drawSoundTornadoWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('sound_tornado');
   const centerX = width / 2;
-  const baseY = height * 0.95;
-  const topY = height * 0.1;
+  // basePosition controls where the tornado base is
+  const baseY = height * (settings.basePosition / 100);
+  // maxAmplitude controls tornado height (how far up it reaches)
+  const tornadoHeight = height * (settings.maxAmplitude / 100);
+  const topY = baseY - tornadoHeight;
   
   // Tornado parameters
   const baseWidth = 150 + beatPulse * 50;
   const topWidth = 20 + beatPulse * 10;
-  const tornadoHeight = baseY - topY;
   
   // Calculate average mel for overall intensity
   const avgMel = mel ? mel.reduce((a, b) => a + b, 0) / mel.length : 0;
@@ -2618,9 +2823,12 @@ function drawSoundTornadoWave(ctx, width, height, chroma, mel, beatPulse, time) 
  * Each chroma note adds geometric elements that scale and rotate
  */
 function drawGeoMandalaWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('geo_mandala');
   const centerX = width / 2;
-  const centerY = height * 0.55;
-  const maxRadius = Math.min(width, height) * 0.4;
+  // basePosition controls vertical center of the mandala
+  const centerY = height * (settings.basePosition / 100);
+  // maxAmplitude controls the radius of the mandala
+  const maxRadius = Math.min(width, height) * (settings.maxAmplitude / 100);
   
   ctx.save();
   ctx.translate(centerX, centerY);
@@ -2760,6 +2968,12 @@ function drawGeoMandalaWave(ctx, width, height, chroma, mel, beatPulse, time) {
  * Intensity based on beat, colors shift with chroma
  */
 function drawGlitchArtWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('glitch_art');
+  // basePosition controls vertical center of glitch effect concentration
+  const centerY = height * (settings.basePosition / 100);
+  // maxAmplitude controls the spread/intensity of glitch slices
+  const spreadMultiplier = settings.maxAmplitude / 50; // normalize to 1.0 at 50%
+  
   // Find dominant chroma for base color
   let dominantIdx = 0;
   let maxChroma = 0;
@@ -2885,8 +3099,12 @@ function drawGlitchArtWave(ctx, width, height, chroma, mel, beatPulse, time) {
 function drawTerrain3DWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
   
-  const horizonY = height * 0.25;
-  const groundY = height * 0.9;
+  const settings = getEffectiveWaveformSettings('terrain_3d');
+  // basePosition controls where the ground/terrain sits
+  const groundY = height * (settings.basePosition / 100);
+  // maxAmplitude controls the height of the terrain peaks
+  const terrainHeight = height * (settings.maxAmplitude / 100);
+  const horizonY = groundY - terrainHeight;
   const numRows = 25;
   const numCols = 30;
   
@@ -3035,6 +3253,12 @@ function drawTerrain3DWave(ctx, width, height, chroma, mel, beatPulse, time) {
 function drawFireworksWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
   
+  const settings = getEffectiveWaveformSettings('fireworks');
+  // basePosition controls where fireworks launch from (ground level)
+  const launchY = height * (settings.basePosition / 100);
+  // maxAmplitude controls how high fireworks can explode
+  const explosionHeight = height * (settings.maxAmplitude / 100);
+  
   // Generate fireworks based on chroma peaks
   const numFireworks = 8;
   
@@ -3050,7 +3274,8 @@ function drawFireworksWave(ctx, width, height, chroma, mel, beatPulse, time) {
     const seed1 = Math.sin(fw * 1234.5 + Math.floor(time * 0.5) * 100);
     const seed2 = Math.cos(fw * 5678.9 + Math.floor(time * 0.5) * 100);
     const centerX = width * 0.15 + ((seed1 + 1) / 2) * width * 0.7;
-    const centerY = height * 0.15 + ((seed2 + 1) / 2) * height * 0.4;
+    // Position fireworks between launch point and explosion height
+    const centerY = launchY - ((seed2 + 1) / 2) * explosionHeight;
     
     // Explosion phase (cycles every 2 seconds offset by firework index)
     const explosionCycle = ((time + fw * 0.4) % 2) / 2;
@@ -3155,6 +3380,12 @@ function drawFireworksWave(ctx, width, height, chroma, mel, beatPulse, time) {
 function drawOceanWavesWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
   
+  const settings = getEffectiveWaveformSettings('ocean_waves');
+  // basePosition controls where the ocean sits
+  const oceanBaseY = height * (settings.basePosition / 100);
+  // maxAmplitude controls wave height
+  const waveHeight = height * (settings.maxAmplitude / 100);
+  
   // Find dominant color for water
   let dominantIdx = 0;
   let maxVal = 0;
@@ -3171,7 +3402,8 @@ function drawOceanWavesWave(ctx, width, height, chroma, mel, beatPulse, time) {
   
   for (let layer = 0; layer < numWaveLayers; layer++) {
     const layerT = layer / numWaveLayers;
-    const baseY = height * 0.35 + layerT * height * 0.5;
+    // Position waves between oceanBaseY - waveHeight and oceanBaseY
+    const baseY = (oceanBaseY - waveHeight) + layerT * waveHeight;
     
     const chromaIdx = (layer * 2) % 12;
     const chromaValue = chroma[chromaIdx] || 0.3;
@@ -3299,9 +3531,12 @@ function drawOceanWavesWave(ctx, width, height, chroma, mel, beatPulse, time) {
 function drawGalaxySpiralWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
   
+  const settings = getEffectiveWaveformSettings('galaxy_spiral');
   const centerX = width / 2;
-  const centerY = height * 0.5;
-  const maxRadius = Math.min(width, height) * 0.45;
+  // basePosition controls vertical center of the galaxy
+  const centerY = height * (settings.basePosition / 100);
+  // maxAmplitude controls the radius of the galaxy
+  const maxRadius = Math.min(width, height) * (settings.maxAmplitude / 100);
   
   // Rotation speed based on total energy
   const totalEnergy = chroma.reduce((a, b) => a + b, 0) / 12;
@@ -3410,7 +3645,11 @@ function drawGalaxySpiralWave(ctx, width, height, chroma, mel, beatPulse, time) 
 function drawNeonCityWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
   
-  const groundY = height * 0.85;
+  const settings = getEffectiveWaveformSettings('neon_city');
+  // basePosition controls where the ground/city base is
+  const groundY = height * (settings.basePosition / 100);
+  // maxAmplitude controls maximum building height
+  const maxBuildingHeight = height * (settings.maxAmplitude / 100);
   
   // Night sky gradient
   const skyGradient = ctx.createLinearGradient(0, 0, 0, groundY);
@@ -3435,8 +3674,8 @@ function drawNeonCityWave(ctx, width, height, chroma, mel, beatPulse, time) {
     const melIdx = Math.floor(buildingT * (mel?.length || 1));
     const melValue = mel ? Math.max(0.2, (mel[melIdx] + 10) / 10) : 0.4;
     
-    // Building height pulses with mel and beat
-    const baseHeight = 80 + melValue * 150 + beatPulse * 30;
+    // Building height pulses with mel and beat, scaled by maxBuildingHeight
+    const baseHeight = maxBuildingHeight * (0.3 + melValue * 0.5 + beatPulse * 0.1);
     const buildingHeight = baseHeight + Math.sin(time * 2 + b) * 10;
     const buildingY = groundY - buildingHeight;
     
@@ -3563,8 +3802,12 @@ function drawNeonCityWave(ctx, width, height, chroma, mel, beatPulse, time) {
 function drawParticleExplosionWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
   
+  const settings = getEffectiveWaveformSettings('particle_explosion');
   const centerX = width / 2;
-  const centerY = height * 0.5;
+  // basePosition controls vertical center of the explosion
+  const centerY = height * (settings.basePosition / 100);
+  // maxAmplitude controls how far particles spread
+  const spreadMultiplier = settings.maxAmplitude / 50; // normalize to 1.0 at 50%
   
   // Calculate explosion intensity
   const avgMel = mel ? mel.reduce((a, b) => a + b, 0) / mel.length : 0;
@@ -3579,7 +3822,8 @@ function drawParticleExplosionWave(ctx, width, height, chroma, mel, beatPulse, t
     // Each layer has different timing
     const layerTime = (time * (1 + layer * 0.2)) % 3;
     const expansionPhase = layerTime / 3;
-    const maxRadius = 200 + layer * 50;
+    // Scale max radius by spreadMultiplier
+    const maxRadius = (200 + layer * 50) * spreadMultiplier;
     const currentRadius = expansionPhase * maxRadius * intensity;
     const fadeOut = 1 - expansionPhase;
     

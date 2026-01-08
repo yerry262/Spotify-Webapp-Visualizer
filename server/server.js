@@ -115,18 +115,24 @@ app.post('/search-youtube', async (req, res) => {
 // Clear all MP3 files endpoint
 app.post('/clear-mp3s', (req, res) => {
   try {
-    const files = fs.readdirSync(MP3_DIR).filter(f => f.endsWith('.mp3'));
+    const { exclude } = req.body;
+    // Filter for .mp3 AND .part files
+    const files = fs.readdirSync(MP3_DIR).filter(f => f.endsWith('.mp3') || f.endsWith('.part'));
     let deletedCount = 0;
     files.forEach(file => {
+      // Don't delete excluded file (only if it matches exactly, typically the mp3)
+      if (exclude && file === exclude) return;
+      
       try {
         fs.unlinkSync(path.join(MP3_DIR, file));
+        console.log(`   ❌ Deleted old file: ${file}`);
         deletedCount++;
       } catch (e) {
         console.error(`Could not delete ${file}:`, e.message);
       }
     });
-    console.log(`🗑️ Cleared ${deletedCount} MP3 files`);
-    res.json({ message: 'MP3 files cleared', count: deletedCount });
+    console.log(`🗑️ Cleared ${deletedCount} files${exclude ? ` (kept ${exclude})` : ''}`);
+    res.json({ message: 'Files cleared', count: deletedCount });
   } catch (error) {
     res.status(500).json({ error: 'Could not clear files' });
   }
@@ -193,7 +199,7 @@ function findFileByFuzzyMatch(directory, artist, song, extension) {
     const artistKeywords = extractKeywords(artist);
     const songKeywords = extractKeywords(song);
     
-    console.log(`🔍 Fuzzy search: artist=[${artistKeywords.join(', ')}] song=[${songKeywords.join(', ')}]`);
+    // console.log(`🔍 Fuzzy search: artist=[${artistKeywords.join(', ')}] song=[${songKeywords.join(', ')}]`);
     
     for (const file of files) {
       if (fuzzyMatchFilename(file, artistKeywords, songKeywords)) {
@@ -362,6 +368,7 @@ app.post('/get-mp3', async (req, res) => {
       if (cacheFilename && file === cacheFilename) return;
       try {
         fs.unlinkSync(path.join(MP3_DIR, file));
+        console.log(`   ❌ Deleted old MP3: ${file}`);
         deletedCount++;
       } catch (e) {
         console.error(`Could not delete ${file}:`, e.message);

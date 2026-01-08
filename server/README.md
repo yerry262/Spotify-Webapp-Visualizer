@@ -19,14 +19,32 @@ Server runs on `http://localhost:3001`
 ## 📋 Prerequisites
 
 - **Node.js** v16+
-- **yt-dlp** - Download executable and place in this folder, or `pip install yt-dlp`
-- **FFmpeg** - Download executable and place in this folder, or install system-wide
+- **yt-dlp** - YouTube downloader (see installation below)
+- **FFmpeg** - Audio conversion tool (see installation below)
 
-### Windows Setup
-Place these files in the `server/` folder:
-- `yt-dlp.exe` - [Download from GitHub releases](https://github.com/yt-dlp/yt-dlp/releases)
-- `ffmpeg.exe` - [Download from FFmpeg](https://ffmpeg.org/download.html)
-- `ffprobe.exe` - Comes with FFmpeg
+### Installation
+
+**Windows:**
+```bash
+winget install yt-dlp
+winget install ffmpeg
+```
+
+**Mac:**
+```bash
+brew install yt-dlp ffmpeg
+```
+
+**Linux:**
+```bash
+sudo apt install ffmpeg
+pip install yt-dlp
+```
+
+**Or use pip (all platforms):**
+```bash
+pip install -r requirements.txt
+```
 
 ## 🔌 API Endpoints
 

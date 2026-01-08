@@ -5,7 +5,7 @@ import TrackInfo from './components/TrackInfo';
 import PlaybackControls from './components/PlaybackControls';
 import UserProfile from './components/UserProfile';
 import SideMenu from './components/SideMenu';
-import { analyzeAudio, getCachedAnalysis, loadEssentia } from './audioAnalysisService';
+import { analyzeAudio, getCachedAnalysis, cancelAnalysis } from './audioAnalysisService';
 import { YouTubeService } from './youtubeService';
 import { 
   getWaveformStyles, 
@@ -18,7 +18,10 @@ import {
   getWaveformSettings,
   setWaveformSettings,
   getCenterElementSettings,
-  setCenterElementSettings
+  setCenterElementSettings,
+  getSampleRateSettings,
+  setSampleRateSettings,
+  setVisualizerFullScreen
 } from './components/visualizers/VisualizerAudio';
 import './App.css';
 
@@ -52,6 +55,9 @@ function App() {
   // Center element visibility settings state
   const [centerElementSettingsState, setCenterElementSettingsState] = useState(getCenterElementSettings());
   
+  // Sample rate settings state
+  const [sampleRateSettingsState, setSampleRateSettingsState] = useState(getSampleRateSettings());
+  
   // Visualizer expanded/collapsed state
   const [isVisualizerExpanded, setIsVisualizerExpanded] = useState(false);
   
@@ -62,7 +68,13 @@ function App() {
   // Debounce timer for track changes
   const trackChangeTimerRef = useRef(null);
   // Track change debounce delay (ms) - wait for track to "settle"
-  const TRACK_CHANGE_DEBOUNCE = 800;
+  const TRACK_CHANGE_DEBOUNCE = 1500;
+  
+  // Prefetch next track refs
+  const prefetchedTrackIdRef = useRef(null); // Track ID we've prefetched
+  const isPrefetchingRef = useRef(false); // Currently prefetching
+  const prefetchTriggeredForTrackRef = useRef(null); // Current track that triggered prefetch
+  const prefetchNextTrackRef = useRef(null); // Ref to the prefetch function (to break circular deps)
 
   // Load version info
   useEffect(() => {
@@ -70,23 +82,6 @@ function App() {
       .then(res => res.json())
       .then(data => setVersionInfo(data))
       .catch(err => console.error('Failed to load version info:', err));
-  }, []);
-
-  // Preload Essentia.js WASM module when browser is idle (non-blocking)
-  useEffect(() => {
-    const startPreload = () => {
-      loadEssentia().catch(err => 
-        console.warn('Essentia.js preload failed (will retry when needed):', err)
-      );
-    };
-    
-    // Use requestIdleCallback if available, otherwise use setTimeout
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(startPreload, { timeout: 2000 });
-    } else {
-      // Fallback: start after a short delay to let initial render complete
-      setTimeout(startPreload, 100);
-    }
   }, []);
 
   // Handle OAuth callback and restore session
@@ -142,17 +137,28 @@ function App() {
       if (state?.item) {
         // Only update when track changes - use ref to avoid dependency issues
         if (state.item.id !== currentTrackIdRef.current) {
-          // Prevent duplicate processing - strict lock check
-          if (isProcessingRef.current) {
-            console.log(ts(), '⏳ Already processing a track, skipping...', state.item.name);
-            return;
-          }
-          
           // Cancel any pending debounced track change
           if (trackChangeTimerRef.current) {
             clearTimeout(trackChangeTimerRef.current);
             trackChangeTimerRef.current = null;
           }
+          
+          // If currently processing, CANCEL it and start the new track
+          if (isProcessingRef.current) {
+            console.log(ts(), '⚡ Cancelling current processing for new track:', state.item.name);
+            YouTubeService.cancelCurrentProcessing();
+            cancelAnalysis();
+            isProcessingRef.current = false;
+            setIsAnalyzing(false);
+          }
+          
+          // Cancel any ongoing prefetch and reset prefetch state for new track
+          if (isPrefetchingRef.current) {
+            console.log(ts(), '⚡ Cancelling prefetch for track change');
+            cancelAnalysis();
+            isPrefetchingRef.current = false;
+          }
+          prefetchTriggeredForTrackRef.current = null;
           
           // Immediately update ref to prevent duplicate triggers
           const previousTrackId = currentTrackIdRef.current;
@@ -166,9 +172,6 @@ function App() {
           
           // Clear old audio data immediately
           setAnalysisData(null);
-          
-          // Cancel any previous processing
-          YouTubeService.cancelCurrentProcessing();
           
           // DEBOUNCED PROCESSING: Wait for track to "settle" before starting
           // This prevents rapid API calls when user is skipping through tracks
@@ -207,27 +210,9 @@ function App() {
                 return;
               }
               
-              // STEP 2: Check if MP3 is cached on server (even if API is blocked)
-              console.log(ts(), '🔍 Step 2: Checking MP3 cache...');
-              const mp3Cache = await YouTubeService.checkServerCache(artistName, trackName);
-              
-              if (mp3Cache) {
-                // MP3 is cached! We can analyze it even if YouTube API is blocked
-                console.log(ts(), '📦 Found cached MP3! Running analysis...');
-                const analysis = await analyzeAudio(mp3Cache.mp3Url, artistName, trackName, state.item.duration_ms);
-                
-                if (state.item.id === currentTrackIdRef.current) {
-                  setAnalysisData(analysis);
-                  setIsAnalyzing(false);
-                  isProcessingRef.current = false;
-                  console.log(ts(), '✅ Audio analysis complete (from cached MP3)!');
-                }
-                return;
-              }
-              
-              // STEP 3: No cache - search YouTube via Browser-Use API (FREE!)
-              // Get MP3 from YouTube via server
-              console.log(ts(), '🔍 Step 3: Fetching from YouTube...');
+              // STEP 2: Fetch MP3 (Check cache first, then YouTube)
+              // NOTE: keeping logic simple - getMP3ForTrack handles server cache check + locking
+              console.log(ts(), '🔍 Step 2: Fetching MP3 (Cache check + YouTube)...');
               const mp3Result = await YouTubeService.getMP3ForTrack(artistName, trackName);
               
               if (!mp3Result) {
@@ -269,6 +254,24 @@ function App() {
             }
           }, TRACK_CHANGE_DEBOUNCE);
         }
+        
+        // Check if we should prefetch the next track (at 50% progress)
+        // Only prefetch if we have analysis data (current track is ready)
+        // and we're not already processing or prefetching
+        if (state.progress_ms && state.item.duration_ms) {
+          const progress = state.progress_ms / state.item.duration_ms;
+          if (progress >= 0.5 && !isPrefetchingRef.current && !isProcessingRef.current) {
+            // Check if we haven't already triggered prefetch for this track
+            if (prefetchTriggeredForTrackRef.current !== currentTrackIdRef.current) {
+              // Use setTimeout to avoid blocking and break circular dependency
+              setTimeout(() => {
+                if (prefetchNextTrackRef.current) {
+                  prefetchNextTrackRef.current();
+                }
+              }, 0);
+            }
+          }
+        }
       } else {
         // No track playing - clean up state
         setAnalysisData(null);
@@ -286,6 +289,99 @@ function App() {
       console.error('Error fetching playback state:', error);
     }
   }, [isLoggedIn]); // Only depend on isLoggedIn, not currentTrackId
+
+  // Prefetch next track when current song is 50% complete
+  const prefetchNextTrack = useCallback(async () => {
+    // Don't prefetch if already prefetching or processing
+    if (isPrefetchingRef.current || isProcessingRef.current) return;
+    
+    // Don't re-prefetch if we already prefetched for this track
+    if (prefetchTriggeredForTrackRef.current === currentTrackIdRef.current) return;
+    
+    try {
+      // Get the queue from Spotify
+      const queue = await SpotifyAPI.getQueue();
+      if (!queue?.queue || queue.queue.length === 0) {
+        console.log(ts(), '📭 No tracks in queue to prefetch');
+        return;
+      }
+      
+      const nextTrack = queue.queue[0];
+      const nextTrackId = nextTrack.id;
+      const nextArtist = nextTrack.artists[0]?.name;
+      const nextSong = nextTrack.name;
+      
+      // Don't prefetch if we already have this track prefetched
+      if (prefetchedTrackIdRef.current === nextTrackId) {
+        return;
+      }
+      
+      // Mark that we've triggered prefetch for current track
+      prefetchTriggeredForTrackRef.current = currentTrackIdRef.current;
+      isPrefetchingRef.current = true;
+      
+      console.log(ts(), `🔮 Prefetching next track: ${nextSong} - ${nextArtist}`);
+      
+      // Check if analysis is already cached
+      const cachedAnalysis = await getCachedAnalysis(nextArtist, nextSong);
+      if (cachedAnalysis) {
+        console.log(ts(), '📦 Next track already cached!');
+        prefetchedTrackIdRef.current = nextTrackId;
+        isPrefetchingRef.current = false;
+        return;
+      }
+      
+      // Check if MP3 is cached
+      const mp3Cache = await YouTubeService.checkServerCache(nextArtist, nextSong);
+      if (mp3Cache) {
+        console.log(ts(), '📦 Next track MP3 cached, pre-analyzing...');
+        
+        // Verify we should still continue (user hasn't changed track)
+        if (currentTrackIdRef.current !== prefetchTriggeredForTrackRef.current) {
+          console.log(ts(), '🛑 User changed track, cancelling prefetch');
+          isPrefetchingRef.current = false;
+          return;
+        }
+        
+        await analyzeAudio(mp3Cache.mp3Url, nextArtist, nextSong, nextTrack.duration_ms);
+        prefetchedTrackIdRef.current = nextTrackId;
+        console.log(ts(), '✅ Prefetch analysis complete!');
+        isPrefetchingRef.current = false;
+        return;
+      }
+      
+      // Fetch from YouTube
+      console.log(ts(), '🔮 Prefetching MP3 from YouTube...');
+      const mp3Result = await YouTubeService.getMP3ForTrack(nextArtist, nextSong);
+      
+      if (!mp3Result) {
+        console.warn(ts(), '⚠️ Could not prefetch MP3');
+        isPrefetchingRef.current = false;
+        return;
+      }
+      
+      // Verify we should still continue
+      if (currentTrackIdRef.current !== prefetchTriggeredForTrackRef.current) {
+        console.log(ts(), '🛑 User changed track, cancelling prefetch analysis');
+        isPrefetchingRef.current = false;
+        return;
+      }
+      
+      // Analyze the prefetched MP3
+      console.log(ts(), '🔮 Pre-analyzing next track...');
+      await analyzeAudio(mp3Result.mp3.mp3Url, nextArtist, nextSong, nextTrack.duration_ms);
+      prefetchedTrackIdRef.current = nextTrackId;
+      console.log(ts(), '✅ Prefetch complete!');
+      
+    } catch (err) {
+      console.warn(ts(), '⚠️ Prefetch failed:', err.message);
+    } finally {
+      isPrefetchingRef.current = false;
+    }
+  }, []);
+
+  // Set the ref so fetchPlaybackState can call it
+  prefetchNextTrackRef.current = prefetchNextTrack;
 
   useEffect(() => {
     fetchPlaybackState();
@@ -358,6 +454,13 @@ function App() {
     const updated = { ...centerElementSettingsState, ...newSettings };
     setCenterElementSettings(updated);
     setCenterElementSettingsState(updated);
+  };
+
+  // Sample rate settings handler
+  const handleSampleRateSettingsChange = (newSettings) => {
+    const updated = { ...sampleRateSettingsState, ...newSettings };
+    setSampleRateSettings(updated);
+    setSampleRateSettingsState(updated);
   };
 
   // Sync waveform state when it changes externally (auto mode)
@@ -434,6 +537,8 @@ function App() {
         onParticleSettingsChange={handleParticleSettingsChange}
         centerElementSettings={centerElementSettingsState}
         onCenterElementSettingsChange={handleCenterElementSettingsChange}
+        sampleRateSettings={sampleRateSettingsState}
+        onSampleRateSettingsChange={handleSampleRateSettingsChange}
       />
       
       {/* Main Content */}
@@ -454,7 +559,11 @@ function App() {
             {/* Collapsible Divider */}
             <div 
               className={`section-divider ${isVisualizerExpanded ? 'expanded' : ''}`}
-              onClick={() => setIsVisualizerExpanded(!isVisualizerExpanded)}
+              onClick={() => {
+                const newState = !isVisualizerExpanded;
+                setIsVisualizerExpanded(newState);
+                setVisualizerFullScreen(newState);
+              }}
             >
               <div className="divider-line"></div>
               <div className="divider-arrow">

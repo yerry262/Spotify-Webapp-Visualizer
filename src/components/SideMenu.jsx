@@ -16,11 +16,14 @@ const SideMenu = ({
   particleSettings,
   onParticleSettingsChange,
   centerElementSettings,
-  onCenterElementSettingsChange
+  onCenterElementSettingsChange,
+  sampleRateSettings,
+  onSampleRateSettingsChange
 }) => {
   const [isWaveformOpen, setIsWaveformOpen] = useState(false);
   const [isParticlesOpen, setIsParticlesOpen] = useState(false);
   const [isCenterElementsOpen, setIsCenterElementsOpen] = useState(false);
+  const [isSampleRateOpen, setIsSampleRateOpen] = useState(false);
   const profileImage = user?.images?.[0]?.url;
   const displayName = user?.display_name || user?.id || 'User';
 
@@ -121,7 +124,7 @@ const SideMenu = ({
                 <input 
                   type="range" 
                   min="10" 
-                  max="50" 
+                  max="100" 
                   value={waveformSettings?.maxAmplitude ?? 45}
                   onChange={(e) => onWaveformSettingsChange?.({ maxAmplitude: parseInt(e.target.value) })}
                   className="setting-slider"
@@ -134,7 +137,7 @@ const SideMenu = ({
                 <input 
                   type="range" 
                   min="25" 
-                  max="100" 
+                  max="200" 
                   value={waveformSettings?.basePosition ?? 60}
                   onChange={(e) => onWaveformSettingsChange?.({ basePosition: parseInt(e.target.value) })}
                   className="setting-slider"
@@ -292,6 +295,86 @@ const SideMenu = ({
                   />
                   <span className="toggle-slider"></span>
                 </label>
+              </div>
+            </div>
+          </div>
+          
+          {/* Sample Rate Dropdown */}
+          <div className="menu-dropdown">
+            <button 
+              className={`menu-item dropdown-toggle ${isSampleRateOpen ? 'open' : ''}`}
+              onClick={() => setIsSampleRateOpen(!isSampleRateOpen)}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span>Sample Rate</span>
+              <svg className="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            
+            <div className={`dropdown-content ${isSampleRateOpen ? 'open' : ''}`}>
+              <div className="dropdown-info">
+                <span className="info-text">Frames per second for each analysis type. Higher = smoother but uses more CPU.</span>
+              </div>
+              <div className="dropdown-divider"></div>
+              
+              {/* Chroma FPS Slider */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Chroma: {sampleRateSettings?.chromaFps ?? 5} fps</span>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="60" 
+                  value={sampleRateSettings?.chromaFps ?? 5}
+                  onChange={(e) => onSampleRateSettingsChange?.({ chromaFps: parseInt(e.target.value) })}
+                  className="setting-slider"
+                />
+              </div>
+              
+              {/* Mel Spectrogram FPS Slider */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Mel Spec: {sampleRateSettings?.melFps ?? 5} fps</span>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="60" 
+                  value={sampleRateSettings?.melFps ?? 5}
+                  onChange={(e) => onSampleRateSettingsChange?.({ melFps: parseInt(e.target.value) })}
+                  className="setting-slider"
+                />
+              </div>
+              
+              {/* Pitch FPS Slider */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Pitch: {sampleRateSettings?.pitchFps ?? 5} fps</span>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="60" 
+                  value={sampleRateSettings?.pitchFps ?? 5}
+                  onChange={(e) => onSampleRateSettingsChange?.({ pitchFps: parseInt(e.target.value) })}
+                  className="setting-slider"
+                />
+              </div>
+              
+              {/* Rhythm FPS Slider */}
+              <div className="dropdown-setting">
+                <span className="setting-label">Rhythm: {sampleRateSettings?.rhythmFps ?? 5} fps</span>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="60" 
+                  value={sampleRateSettings?.rhythmFps ?? 5}
+                  onChange={(e) => onSampleRateSettingsChange?.({ rhythmFps: parseInt(e.target.value) })}
+                  className="setting-slider"
+                />
+              </div>
+              
+              <div className="dropdown-divider"></div>
+              <div className="dropdown-note">
+                <span className="note-text">⚠️ Changes apply to new song analyses only</span>
               </div>
             </div>
           </div>
