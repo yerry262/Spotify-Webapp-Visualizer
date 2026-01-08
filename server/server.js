@@ -112,27 +112,41 @@ app.post('/search-youtube', async (req, res) => {
   }
 });
 
-// Clear all MP3 files endpoint
+// Clear old MP3 files endpoint - only delete files older than 3 minutes
 app.post('/clear-mp3s', (req, res) => {
   try {
     const { exclude } = req.body;
+    const THREE_MINUTES_MS = 3 * 60 * 1000; // 3 minutes in milliseconds
+    const now = Date.now();
+    
     // Filter for .mp3 AND .part files
     const files = fs.readdirSync(MP3_DIR).filter(f => f.endsWith('.mp3') || f.endsWith('.part'));
     let deletedCount = 0;
+    
     files.forEach(file => {
       // Don't delete excluded file (only if it matches exactly, typically the mp3)
       if (exclude && file === exclude) return;
       
       try {
-        fs.unlinkSync(path.join(MP3_DIR, file));
-        console.log(`   ❌ Deleted old file: ${file}`);
-        deletedCount++;
+        const filepath = path.join(MP3_DIR, file);
+        const stats = fs.statSync(filepath);
+        const fileAge = now - stats.mtimeMs;
+        
+        // Only delete if file is older than 3 minutes
+        if (fileAge > THREE_MINUTES_MS) {
+          fs.unlinkSync(filepath);
+          console.log(`   ❌ Deleted old file (${Math.round(fileAge / 1000 / 60)}min old): ${file}`);
+          deletedCount++;
+        } else {
+          console.log(`   ⏳ Kept recent file (${Math.round(fileAge / 1000)}sec old): ${file}`);
+        }
       } catch (e) {
         console.error(`Could not delete ${file}:`, e.message);
       }
     });
-    console.log(`🗑️ Cleared ${deletedCount} files${exclude ? ` (kept ${exclude})` : ''}`);
-    res.json({ message: 'Files cleared', count: deletedCount });
+    
+    console.log(`🗑️ Cleared ${deletedCount} old files (>3min)${exclude ? ` (excluded ${exclude})` : ''}`);
+    res.json({ message: 'Old files cleared', count: deletedCount });
   } catch (error) {
     res.status(500).json({ error: 'Could not clear files' });
   }
@@ -359,25 +373,8 @@ app.post('/get-mp3', async (req, res) => {
     }
   }
 
-  // Clear old MP3 files if requested (but preserve the current cache file if it exists)
-  if (clearOld) {
-    const files = fs.readdirSync(MP3_DIR).filter(f => f.endsWith('.mp3'));
-    let deletedCount = 0;
-    files.forEach(file => {
-      // Don't delete the cache file we're about to create
-      if (cacheFilename && file === cacheFilename) return;
-      try {
-        fs.unlinkSync(path.join(MP3_DIR, file));
-        console.log(`   ❌ Deleted old MP3: ${file}`);
-        deletedCount++;
-      } catch (e) {
-        console.error(`Could not delete ${file}:`, e.message);
-      }
-    });
-    if (deletedCount > 0) {
-      console.log(`🗑️ Cleared ${deletedCount} old MP3 files`);
-    }
-  }
+  // Note: Automatic cleanup during download removed
+  // Cleanup now happens at the start of song via /clear-mp3s endpoint
 
   // Legacy cache check by video ID (fallback)
   if (videoId && !cacheFilename) {

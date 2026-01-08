@@ -279,18 +279,18 @@ export const YouTubeService = {
   },
 
   /**
-   * Clear all old MP3 files from the server
-   * @param {string} excludeFilename - Optional filename to keep (e.g. current track)
+   * Clear old MP3 files from the server (only files older than 3 minutes)
+   * Called at the start of each song to clean up stale files
    */
-  async clearOldMP3s(excludeFilename = null) {
+  async clearOldMP3s() {
     try {
       const response = await fetch(`${API_BASE_URL}/clear-mp3s`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exclude: excludeFilename })
+        body: JSON.stringify({})
       });
       const data = await response.json();
-      console.log('🗑️ Cleared old MP3s:', data);
+      console.log('🗑️ Cleared old MP3s (>3min):', data);
       return data;
     } catch (error) {
       console.error('Error clearing MP3s:', error);
@@ -302,7 +302,7 @@ export const YouTubeService = {
    * Get MP3 from YouTube video via backend server
    * Now includes artist/song for proper cache filename
    */
-  async getMP3(youtubeUrl, artistName, songName, clearOld = false) {
+  async getMP3(youtubeUrl, artistName, songName) {
     try {
       const response = await fetch(`${API_BASE_URL}/get-mp3`, {
         method: 'POST',
@@ -312,8 +312,7 @@ export const YouTubeService = {
         body: JSON.stringify({ 
           url: youtubeUrl, 
           artist: artistName,
-          song: songName,
-          clearOld 
+          song: songName
         })
       });
 
@@ -383,15 +382,16 @@ export const YouTubeService = {
     console.log(`🎵 Processing: ${artistName} - ${songName}`);
     
     try {
+      // STEP 0: Clean up old files (>3 minutes) at the start of song
+      console.log('🧹 Cleaning up old files...');
+      this.clearOldMP3s().catch(e => console.warn('Cleanup failed:', e));
+      
       // STEP 1: Check server MP3 cache FIRST (before any YouTube API call!)
       console.log('📦 Step 1: Checking server MP3 cache...');
       const serverCache = await this.checkServerCache(artistName, songName);
       
       if (serverCache && serverCache.cached) {
         console.log('✅ MP3 found in server cache - SKIPPING YouTube API!');
-        
-        // CLEANUP: Clear other old MP3s to save space, but keep this one
-        this.clearOldMP3s(serverCache.filename).catch(e => console.warn('Cleanup failed:', e));
         
         // Verify track hasn't changed
         if (!this.shouldContinue(artistName, songName)) {
@@ -439,9 +439,8 @@ export const YouTubeService = {
       console.log(`🔗 URL: ${videoInfo.url}`);
 
       // STEP 3: Download MP3 via server (saves as artist-song.mp3)
-      // Note: clearOld=true to remove previous MP3s and keep only this one
       console.log('📥 Step 3: Downloading MP3...');
-      const mp3Info = await this.getMP3(videoInfo.url, artistName, songName, true);
+      const mp3Info = await this.getMP3(videoInfo.url, artistName, songName);
       
       if (!mp3Info) {
         console.error('Could not extract MP3');
