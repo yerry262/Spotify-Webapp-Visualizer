@@ -11,6 +11,8 @@ export const PITCH_CLASSES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', '
 export const CHROMA_HUES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
 
 // Waveform style tracking (changes every 30 seconds)
+export let autoWaveformInterval = 30;
+export const setWaveformAutoInterval = (seconds) => { autoWaveformInterval = seconds; };
 let currentWaveformStyle = 0;
 let lastWaveformStyleChange = 0;
 let isAutoWaveformMode = true; // Auto-switch mode
@@ -408,7 +410,7 @@ export function drawAudioVisualization(ctx, width, height, vizState, frame, time
       lastWaveformStyleChange = -9999;
     }
     
-    if (time - lastWaveformStyleChange > 30 || lastWaveformStyleChange < -9000) {
+    if (time - lastWaveformStyleChange > autoWaveformInterval || lastWaveformStyleChange < -9000) {
       let newStyle;
       do {
         newStyle = Math.floor(Math.random() * WAVEFORM_STYLES.length);

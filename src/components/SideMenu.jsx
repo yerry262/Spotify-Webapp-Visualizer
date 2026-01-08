@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { setWaveformAutoInterval, autoWaveformInterval } from './visualizers/VisualizerAudio';
 import './SideMenu.css';
 
 const SideMenu = ({ 
@@ -24,6 +25,17 @@ const SideMenu = ({
   const [isParticlesOpen, setIsParticlesOpen] = useState(false);
   const [isCenterElementsOpen, setIsCenterElementsOpen] = useState(false);
   const [isSampleRateOpen, setIsSampleRateOpen] = useState(false);
+  const [autoInterval, setAutoInterval] = useState(autoWaveformInterval || 30);
+
+  const handleIntervalChange = (e, seconds) => {
+    e.stopPropagation();
+    setAutoInterval(seconds);
+    setWaveformAutoInterval(seconds);
+    if (!isWaveformAuto && onWaveformChange) {
+      onWaveformChange('auto');
+    }
+  };
+
   const profileImage = user?.images?.[0]?.url;
   const displayName = user?.display_name || user?.id || 'User';
 
@@ -87,13 +99,29 @@ const SideMenu = ({
             </button>
             
             <div className={`dropdown-content ${isWaveformOpen ? 'open' : ''}`}>
-              <button 
-                className={`dropdown-item ${isWaveformAuto ? 'active' : ''}`}
-                onClick={() => onWaveformChange && onWaveformChange('auto')}
-              >
-                <span className="item-dot"></span>
-                Random (Auto 30s)
-              </button>
+              <div className={`dropdown-item auto-row ${isWaveformAuto ? 'active' : ''}`}>
+                <div 
+                  className="auto-label-area"
+                  onClick={() => onWaveformChange && onWaveformChange('auto')}
+                >
+                  <span className="item-dot"></span>
+                  <span>Random</span>
+                </div>
+                <div className="interval-buttons">
+                  <button 
+                    className={`interval-btn ${autoInterval === 5 ? 'active' : ''}`}
+                    onClick={(e) => handleIntervalChange(e, 5)}
+                  >5s</button>
+                  <button 
+                    className={`interval-btn ${autoInterval === 15 ? 'active' : ''}`}
+                    onClick={(e) => handleIntervalChange(e, 15)}
+                  >15s</button>
+                  <button 
+                    className={`interval-btn ${autoInterval === 30 ? 'active' : ''}`}
+                    onClick={(e) => handleIntervalChange(e, 30)}
+                  >30s</button>
+                </div>
+              </div>
               <div className="dropdown-divider"></div>
               {waveformStyles && waveformStyles.map(style => (
                 <button 

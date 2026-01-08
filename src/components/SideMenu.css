@@ -552,3 +552,57 @@
     font-size: 14px;
   }
 }
+
+/* Auto Interval Selector Styles */
+.dropdown-item.auto-row {
+  justify-content: space-between;
+  padding-right: 12px;
+  cursor: default;
+}
+
+.dropdown-item.auto-row:hover {
+    background: transparent; /* Reset hover background on container to avoid confusion? No, keep it. */
+    background: rgba(255, 255, 255, 0.08); /* Match original */
+}
+
+.auto-label-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.interval-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.interval-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 4px 6px;
+  transition: all 0.2s ease;
+  min-width: 32px;
+  text-align: center;
+}
+
+.interval-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.interval-btn.active {
+  background: #1ed760;
+  border-color: #1ed760;
+  color: #000;
+  font-weight: 700;
+  box-shadow: 0 0 5px rgba(30, 215, 96, 0.4);
+}
+
