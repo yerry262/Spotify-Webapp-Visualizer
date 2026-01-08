@@ -432,6 +432,12 @@ body {
     min-height: 35%;
     max-height: 45%;
   }
+  
+  .visualizer-section.expanded {
+    min-height: 100%;
+    max-height: 100%;
+    height: 100%;
+  }
 }
 
 /* Prevent text selection during interactions */
