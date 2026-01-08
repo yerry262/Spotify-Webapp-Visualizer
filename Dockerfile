@@ -1,14 +1,21 @@
 FROM node:18-slim
 
-# Install yt-dlp and ffmpeg
+# Install yt-dlp, ffmpeg, and deno (required for yt-dlp YouTube extraction)
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     ffmpeg \
     curl \
+    unzip \
     && pip3 install --break-system-packages yt-dlp \
+    && curl -fsSL https://deno.land/install.sh | sh \
+    && ln -s /root/.deno/bin/deno /usr/local/bin/deno \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Set deno in PATH for yt-dlp
+ENV DENO_INSTALL="/root/.deno"
+ENV PATH="${DENO_INSTALL}/bin:${PATH}"
 
 # Create app directory
 WORKDIR /app

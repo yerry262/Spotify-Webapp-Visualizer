@@ -1,8 +1,8 @@
 # Nixpacks configuration for Railway deployment
-# Install yt-dlp and ffmpeg for audio extraction
+# Install yt-dlp, ffmpeg, and deno (required for yt-dlp YouTube extraction)
 
 [phases.setup]
-nixPkgs = ["yt-dlp", "ffmpeg"]
+nixPkgs = ["yt-dlp", "ffmpeg", "deno"]
 
 [phases.install]
 cmds = ["npm install"]
