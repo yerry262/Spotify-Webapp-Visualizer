@@ -81,23 +81,24 @@ async function initEssentia() {
 }
 
 self.onmessage = async function(e) {
-  const { audioSignal, sampleRate, frameSize } = e.data;
+  const { audioSignal, sampleRate, frameSize, frameInterval = 0.2 } = e.data;
   
   try {
     await initEssentia();
     
-    // Calculate optimal hop size to get ~10 frames per second (0.1s intervals)
-    // Target: 1 frame per 0.1 seconds = sampleRate * 0.1 samples between frames
-    const targetHopSize = Math.round(sampleRate * 0.1);  // ~4410 for 44100Hz
+    // Calculate optimal hop size based on frameInterval setting
+    // Target: 1 frame per frameInterval seconds
+    const targetHopSize = Math.round(sampleRate * frameInterval);
+    const fps = Math.round(1 / frameInterval);
     
     const duration = audioSignal.length / sampleRate;
-    const expectedFrames = Math.ceil(duration / 0.1);
+    const expectedFrames = Math.ceil(duration / frameInterval);
     
-    self.postMessage({ type: 'progress', message: `Running PitchMelodia (${duration.toFixed(1)}s audio, ~${expectedFrames} frames at 10fps)...` });
+    self.postMessage({ type: 'progress', message: `Running PitchMelodia (${duration.toFixed(1)}s audio, ~${expectedFrames} frames at ${fps}fps)...` });
     
     const signalVector = essentia.arrayToVector(audioSignal);
     
-    // PitchMelodia parameters - using hop size for 10fps
+    // PitchMelodia parameters - using hop size based on user settings
     // Parameters: binResolution, filterIterations, frameSize, guessUnvoiced, harmonicWeight, 
     //             hopSize, magnitudeCompression, magnitudeThreshold, maxFrequency, minDuration,
     //             minFrequency, numberHarmonics, peakDistributionThreshold, peakFrameThreshold,
@@ -109,7 +110,7 @@ self.onmessage = async function(e) {
       frameSize,    // frameSize (2048)
       false,        // guessUnvoiced
       0.8,          // harmonicWeight
-      targetHopSize, // hopSize - ~4410 for 10fps at 44100Hz
+      targetHopSize, // hopSize - based on frameInterval setting
       1,            // magnitudeCompression
       40,           // magnitudeThreshold
       20000,        // maxFrequency
@@ -131,10 +132,10 @@ self.onmessage = async function(e) {
     
     const frames = [];
     
-    // No need to downsample anymore - we already have the right number of frames
+    // Build frames with correct timing based on frameInterval
     for (let i = 0; i < pitchArray.length; i++) {
       frames.push({
-        time: (i * targetHopSize) / sampleRate,
+        time: i * frameInterval,
         pitch: pitchArray[i],
         confidence: confidenceArray[i]
       });
