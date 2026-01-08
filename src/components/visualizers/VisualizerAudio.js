@@ -24,18 +24,23 @@ export const WAVEFORM_DEFAULTS = {
   cosmic_nebula:    { basePosition: 54,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
   terrain_3d:       { basePosition: 95,  maxAmplitude: 60, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 83, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   gradient_bars:    { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 97,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: true } },
-  matrix_rain:      { basePosition: 10,  maxAmplitude: 90, basePositionFullScreen: 100,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
-  plasma_fire:      { basePosition: 90,  maxAmplitude: 70, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  helix_dna:        { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  matrix_rain:      { basePosition: 90,  maxAmplitude: 90, basePositionFullScreen: 100,  maxAmplitudeFullScreen: 90, particles: { enabled: false, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  plasma_fire:      { basePosition: 95,  maxAmplitude: 90, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 90, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  helix_dna:        { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 100,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: true, pitchOrb: false, beatFlash: false } },
+  pacman:           { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  snake:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  sacred_geometry:  { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 30, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  fractal_void:     { basePosition: 50,  maxAmplitude: 80, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 50, size: 0.8, speed: 1.5 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: true } },
 
   // Classic styles
-  layered:          { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  oscilloscope:     { basePosition: 60,  maxAmplitude: 30, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  bars:             { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  ribbon:           { basePosition: 50,  maxAmplitude: 15, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  mirrored:         { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  dotted:           { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 40, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  pixelated:        { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  layered:          { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  oscilloscope:     { basePosition: 45,  maxAmplitude: 48, basePositionFullScreen: 45,  maxAmplitudeFullScreen: 48, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  bars:             { basePosition: 95,  maxAmplitude: 57, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 57, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
+  ribbon:           { basePosition: 50,  maxAmplitude: 15, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 15, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
+  mirrored:         { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 40, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  dotted:           { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 40, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  pixelated:        { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  //updated to here
   mesh3d:           { basePosition: 95,  maxAmplitude: 45, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 45, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
   sine_layers:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
   circular_dots:    { basePosition: 60,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
@@ -244,6 +249,10 @@ export const WAVEFORM_STYLES = [
   { id: 'matrix_rain', name: 'Matrix Rain' },
   { id: 'plasma_fire', name: 'Plasma Fire' },
   { id: 'helix_dna', name: 'DNA Helix' },
+  { id: 'pacman', name: '8-Bit Chase' },
+  { id: 'snake', name: 'Rhythm Snake' },
+  { id: 'sacred_geometry', name: 'Sacred Geometry' },
+  { id: 'fractal_void', name: 'Fractal Void' },
   // Classic styles
   { id: 'layered', name: 'Layered Waves' },
   { id: 'oscilloscope', name: 'Oscilloscope' },
@@ -822,6 +831,18 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
       break;
     case 'particle_explosion':
       drawParticleExplosionWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'pacman':
+      drawPacmanWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'snake':
+      drawSnakeWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'sacred_geometry':
+      drawSacredGeometryWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'fractal_void':
+      drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
     case 'layered':
     default:
@@ -3973,4 +3994,506 @@ function drawWaveLabels(ctx, width, height, chroma) {
     ctx.fillStyle = `hsla(${hue}, 80%, 65%, ${alpha})`;
     ctx.fillText(PITCH_CLASSES[i], x, labelY);
   }
+}
+
+/**
+ * =============================================================================
+ * NEW VISUALIZERS: Pacman, Snake, Sacred Geometry
+ * =============================================================================
+ */
+
+// --- PACMAN STATE ---
+let pacmanState = {
+  pacman: { x: 0.5, y: 0.5, dir: 0, mouthTimer: 0 },
+  ghosts: [
+    { x: 0.2, y: 0.2, color: 0, type: 'blinky' },    // Red
+    { x: 0.8, y: 0.2, color: 330, type: 'pinky' },   // Pink
+    { x: 0.2, y: 0.8, color: 180, type: 'inky' },    // Cyan
+    { x: 0.8, y: 0.8, color: 40, type: 'clyde' }     // Orange
+  ],
+  dots: [],
+  blueMode: false,
+  blueTimer: 0,
+  lastBlueTime: 0,
+  score: 0
+};
+
+function drawPacmanWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  // Initialize dots if empty
+  if (pacmanState.dots.length < 10) {
+    for(let i=0; i<50; i++) {
+        pacmanState.dots.push({x: Math.random(), y: Math.random(), active: true});
+    }
+  }
+
+  // Draw Background Grid (neon style)
+  ctx.strokeStyle = `rgba(20, 20, 80, ${0.3 + beatPulse*0.2})`;
+  ctx.lineWidth = 1;
+  const gridSize = 40;
+  for(let x=0; x<width; x+=gridSize) {
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,height); ctx.stroke();
+  }
+  for(let y=0; y<height; y+=gridSize) {
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(width,y); ctx.stroke();
+  }
+
+  // High Energy => Blue Ghosts (Occasional - with cooldown)
+  // Only trigger if beat is strong AND it hasn't happened recently (e.g. 10s cooldown)
+  if (beatPulse > 0.9 && !pacmanState.blueMode && (time - pacmanState.lastBlueTime > 15)) {
+      pacmanState.blueMode = true;
+      pacmanState.blueTimer = time + 4; // 4 seconds of blue (chase time)
+      pacmanState.lastBlueTime = time;
+  }
+  if (time > pacmanState.blueTimer) {
+      pacmanState.blueMode = false;
+  }
+
+  const speed = 0.005 * (1 + beatPulse);
+  const size = Math.min(width, height) * 0.04;
+
+  // Moves Pacman
+  if (pacmanState.blueMode) {
+      // PACMAN CHASES: Move towards nearest ghost
+      let nearestDist = 999;
+      let targetG = null;
+      for(let g of pacmanState.ghosts) {
+          if (g.isDead) continue; // Ignore eaten ghosts
+          const dx = g.x - pacmanState.pacman.x;
+          const dy = g.y - pacmanState.pacman.y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if(d < nearestDist) { nearestDist = d; targetG = g; }
+      }
+      
+      if(targetG) {
+          // Chase nearest ghost
+          const dx = targetG.x - pacmanState.pacman.x;
+          const dy = targetG.y - pacmanState.pacman.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if(dist > 0.01) {
+             pacmanState.pacman.x += (dx/dist) * speed * 1.5; // Faster when chasing
+             pacmanState.pacman.y += (dy/dist) * speed * 1.5;
+             
+             // Update direction for mouth
+             pacmanState.pacman.dir = Math.atan2(dy, dx);
+          }
+      }
+  } else {
+      // NORMAL MODE: PACMAN CIRCLES
+      // Large circular path
+      const radius = 0.35;
+      const omega = 0.8; // Rotation speed
+      
+      const targetX = 0.5 + Math.cos(time * omega) * radius;
+      const targetY = 0.5 + Math.sin(time * omega) * radius;
+      
+      // Smoothly move towards target point on circle (prevents snapping)
+      pacmanState.pacman.x += (targetX - pacmanState.pacman.x) * 0.1;
+      pacmanState.pacman.y += (targetY - pacmanState.pacman.y) * 0.1;
+      
+      // Face direction of movement (tangent to circle)
+      // Tangent of circle at angle theta is theta + PI/2
+      pacmanState.pacman.dir = (time * omega) + Math.PI/2;
+  }
+  
+  // Constrain to screen
+  pacmanState.pacman.x = Math.max(0.05, Math.min(0.95, pacmanState.pacman.x));
+  pacmanState.pacman.y = Math.max(0.05, Math.min(0.95, pacmanState.pacman.y));
+
+  // Draw and Eat Dots
+  ctx.fillStyle = '#ffb8ae';
+  for(let d of pacmanState.dots) {
+      if(!d.active) continue;
+      // Eat check
+      const dx = d.x * width - pacmanState.pacman.x * width;
+      const dy = d.y * height - pacmanState.pacman.y * height;
+      if (Math.sqrt(dx*dx + dy*dy) < size) {
+          d.active = false;
+          pacmanState.score += 10;
+          // Respawn elsewhere
+          setTimeout(() => {
+             d.x = Math.random(); d.y = Math.random(); d.active = true; 
+          }, 2000);
+      } else {
+          ctx.beginPath();
+          ctx.arc(d.x * width, d.y * height, 3, 0, Math.PI*2);
+          ctx.fill();
+      }
+  }
+
+  // Draw Pacman
+  const px = pacmanState.pacman.x * width;
+  const py = pacmanState.pacman.y * height;
+  ctx.fillStyle = '#FFFF00';
+  ctx.beginPath();
+  const mouth = Math.abs(Math.sin(time * 15)) * 0.2 * Math.PI;
+  
+  // Use calculated direction
+  const dir = pacmanState.pacman.dir || 0;
+  
+  ctx.arc(px, py, size/2, dir + mouth, dir + Math.PI * 2 - mouth);
+  ctx.lineTo(px, py);
+  ctx.fill();
+
+  // Draw Ghosts
+  for(let g of pacmanState.ghosts) {
+    // Respawn Logic
+    if (g.isDead) {
+        if (time > g.respawnTime) {
+            g.isDead = false;
+            g.x = 0.5; g.y = 0.5; // Respawn center
+        } else {
+            // Draw Eyes returning to center (optional visualization of 'dead' ghost)
+            const eyesX = g.x * width;
+            const eyesY = g.y * height;
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(eyesX - size*0.15, eyesY, size*0.15, 0, Math.PI*2);
+            ctx.arc(eyesX + size*0.15, eyesY, size*0.15, 0, Math.PI*2);
+            ctx.fill();
+            // Move eyes to center
+            g.x += (0.5 - g.x) * 0.05;
+            g.y += (0.5 - g.y) * 0.05;
+            continue; 
+        }
+    }
+
+    // Determine Color
+    let color = `hsl(${g.color}, 100%, 50%)`;
+    if (pacmanState.blueMode) color = '#0000FF';
+
+    // Move Ghosts
+    const dx = pacmanState.pacman.x - g.x;
+    const dy = pacmanState.pacman.y - g.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    
+    // Collision Detect (Eat Ghost)
+    // 0.04 is approx size in normalized coords relative to screen min dim, but let's use a safe threshold
+    if (pacmanState.blueMode && dist < 0.04) {
+        g.isDead = true;
+        g.respawnTime = time + 5; // Respawn after 5s
+        pacmanState.score += 200;
+        continue;
+    }
+
+    // If Blue, run away. Else chase.
+    // Make ghosts slightly slower than likely Pacman speed (speed * 0.9)
+    let vx = (dx/dist) * speed * 0.85; 
+    let vy = (dy/dist) * speed * 0.85;
+
+    if (pacmanState.blueMode) {
+        vx = -vx;
+        vy = -vy;
+    }
+
+    g.x += vx;
+    g.y += vy;
+    
+    // Constrain ghosts
+    g.x = Math.max(0, Math.min(1, g.x));
+    g.y = Math.max(0, Math.min(1, g.y));
+    
+    // Draw Ghost
+    const gx = g.x * width;
+    const gy = g.y * height;
+    ctx.fillStyle = color;
+    
+    // Ghost Body
+    ctx.beginPath();
+    ctx.arc(gx, gy - size*0.2, size/2, Math.PI, 0);
+    ctx.lineTo(gx + size/2, gy + size/2);
+    // Feet
+    for(let k=1; k<=3; k++) {
+        ctx.lineTo(gx + size/2 - (k*size/3), gy + size/2 - (k%2===0 ? 5 : 0));
+    }
+    ctx.lineTo(gx - size/2, gy + size/2);
+    ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(gx - size*0.15, gy - size*0.2, size*0.15, 0, Math.PI*2);
+    ctx.arc(gx + size*0.15, gy - size*0.2, size*0.15, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = pacmanState.blueMode ? 'white' : 'blue'; // Typo protection: pacmanState
+    ctx.beginPath();
+    ctx.arc(gx - size*0.15 + (dx>0?2:-2), gy - size*0.2 + (dy>0?2:-2), size*0.07, 0, Math.PI*2);
+    ctx.arc(gx + size*0.15 + (dx>0?2:-2), gy - size*0.2 + (dy>0?2:-2), size*0.07, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+// Correcting possible typo above in variable usage if I manually type it...
+// Use pacmanState exactly.
+
+// --- SNAKE STATE ---
+let snakeState = {
+    snake: [],
+    dir: {x:1, y:0},
+    lastBeat: 0
+};
+// Grid size
+const SNAKE_GRID = 30; 
+
+function drawSnakeWave(ctx, width, height, chroma, mel, beatPulse, time) {
+    const cellSize = width / SNAKE_GRID;
+    
+    // Initialize Snake
+    if(snakeState.snake.length === 0) {
+        snakeState.snake = [{x: 10, y: 10}, {x:9, y:10}, {x:8, y:10}, {x:7, y:10}];
+    }
+    
+    // Direction change based on dominant chroma (giving "control" to the music)
+    let maxChroma = 0; let maxVal = 0;
+    chroma.forEach((v, i) => { if(v > maxVal) { maxVal = v; maxChroma = i; } });
+    
+    // Map 12 notes to 4 directions
+    // ADDED: Random turns on beat for more chaos
+    if (beatPulse > 0.7 && Math.random() < 0.3) {
+         // Force a 90-degree turn
+         if (snakeState.dir.x !== 0) {
+             snakeState.dir = Math.random() > 0.5 ? {x: 0, y: 1} : {x: 0, y: -1};
+         } else {
+             snakeState.dir = Math.random() > 0.5 ? {x: 1, y: 0} : {x: -1, y: 0};
+         }
+    } 
+    else if (maxVal > 0.5) { // Lowered threshold slightly for more responsiveness
+        if (maxChroma <= 2 && snakeState.dir.y !== 1) snakeState.dir = {x:0, y:-1}; // Up
+        else if (maxChroma <= 5 && snakeState.dir.x !== -1) snakeState.dir = {x:1, y:0}; // Right
+        else if (maxChroma <= 8 && snakeState.dir.y !== -1) snakeState.dir = {x:0, y:1}; // Down
+        else if (maxChroma >= 9 && snakeState.dir.x !== 1) snakeState.dir = {x:-1, y:0}; // Left
+    }
+
+    // Move Update - synced to beat or fixed interval
+    // We update approximately every 0.1s or faster on beat
+    if (time - snakeState.lastBeat > 0.08) {
+        snakeState.lastBeat = time;
+        
+        let head = snakeState.snake[0];
+        let newHead = { x: head.x + snakeState.dir.x, y: head.y + snakeState.dir.y };
+        
+        // Wrap around screen
+        if(newHead.x < 0) newHead.x = SNAKE_GRID-1;
+        if(newHead.x >= SNAKE_GRID) newHead.x = 0;
+        if(newHead.y < 0) newHead.y = Math.floor(height/cellSize)-1;
+        if(newHead.y >= Math.floor(height/cellSize)) newHead.y = 0;
+        
+        snakeState.snake.unshift(newHead);
+        
+        // Growth Logic
+        // Grow if beatPulse is high, else maintain length (slide)
+        // Default length constraint
+        const targetLen = 10 + beatPulse * 20;
+        if (snakeState.snake.length > targetLen) {
+             snakeState.snake.pop();
+        }
+    }
+
+    // Draw Grid (Optional, faint)
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    // ... skipping explicit grid loop for perf
+
+    // Draw Snake
+    // Shadow bloom
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = `hsl(${maxChroma * 30}, 100%, 50%)`;
+    
+    snakeState.snake.forEach((p, i) => {
+        const hue = (maxChroma * 30 + i * 5) % 360;
+        ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+        ctx.fillRect(p.x * cellSize, p.y * cellSize, cellSize-1, cellSize-1);
+    });
+    ctx.shadowBlur = 0;
+}
+
+// --- SACRED GEOMETRY ---
+function drawSacredGeometryWave(ctx, width, height, chroma, mel, beatPulse, time) {
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const baseRadius = Math.min(width, height) * 0.15;
+    
+    // Calculate average energy
+    let energy = 0;
+    if (mel && mel.length) energy = mel.reduce((a,b)=>a+b,0) / mel.length;
+
+    const layers = 3 + Math.floor(beatPulse * 3); // Dynamic complexity
+    const rotation = time * 0.2;
+    
+    ctx.lineWidth = 2;
+    
+    for (let l = 0; l < layers; l++) {
+        const r = baseRadius * (l + 1) * 0.6; 
+        const circleCount = 6 * (l + 1);
+        
+        ctx.strokeStyle = `hsla(${(time * 20 + l * 30) % 360}, 70%, 60%, ${0.3 + energy*0.5 + beatPulse*0.2})`;
+        
+        for (let i = 0; i < circleCount; i++) {
+            // Complex rotation pattern
+            const angle = (i / circleCount) * Math.PI * 2 + rotation * (l % 2 === 0 ? 1 : -1);
+            
+            const cx = centerX + Math.cos(angle) * r;
+            const cy = centerY + Math.sin(angle) * r;
+            
+            // Draw Circle
+            const circleSize = baseRadius * (0.8 + beatPulse * 0.3);
+            ctx.beginPath();
+            ctx.arc(cx, cy, circleSize, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Connect to center if beat is strong
+            if (beatPulse > 0.6) {
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(cx, cy);
+                ctx.strokeStyle = `rgba(255,255,255,${0.1 * beatPulse})`;
+                ctx.stroke();
+            }
+        }
+    }
+    
+    // Central Geometric Figure (Hexagon/Cube)
+    ctx.beginPath();
+    const vertices = 6;
+    const polyR = baseRadius * 1.5 * (1+beatPulse*0.1);
+    ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 + beatPulse*0.5})`;
+    ctx.lineWidth = 3;
+    
+    for (let i = 0; i <= vertices; i++) {
+        const angle = (i / vertices) * Math.PI * 2 + rotation;
+        const x = centerX + Math.cos(angle) * polyR;
+        const y = centerY + Math.sin(angle) * polyR;
+        if (i===0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        
+        // Inner connections
+        ctx.lineTo(centerX, centerY);
+        ctx.moveTo(x, y);
+    }
+    ctx.stroke();
+}
+
+// --- FRACTAL VOID STATE ---
+let fractalState = {
+    rotation: 0,
+    smoothedEnergy: 0,
+    hueOffset: 0
+};
+
+// --- FRACTAL VOID ---
+function drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time) {
+    const centerX = width / 2;
+    const centerY = height / 2;
+    // Smoother visual: Constant depth
+    const maxDepth = 4;
+    
+    // Get average energy
+    let energy = 0;
+    if (mel && mel.length) energy = mel.reduce((a,b)=>a+b,0) / mel.length;
+    // Normalize -20 to -5 db range roughly
+    energy = Math.max(0, (energy + 15) / 20); 
+
+    // Smooth the energy value (Linear Interpolation)
+    fractalState.smoothedEnergy += (energy - fractalState.smoothedEnergy) * 0.08;
+    const smoothE = fractalState.smoothedEnergy;
+    
+    // Smooth rotation - accumulate speed based on energy
+    fractalState.rotation += 0.002 + smoothE * 0.01 + beatPulse * 0.005;
+
+    // Get Dominant Pitch for Color only (not geometry popping)
+    let maxChroma = 0; let maxVal = -1;
+    chroma.forEach((v, i) => { if(v > maxVal) { maxVal = v; maxChroma = i; } });
+    
+    // Smooth hue transition
+    const targetHue = maxChroma * 30;
+    // Shortest path interpolation for angles (0-360)
+    let diff = targetHue - fractalState.hueOffset;
+    while (diff < -180) diff += 360;
+    while (diff > 180) diff -= 360;
+    fractalState.hueOffset += diff * 0.05;
+
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    // Recursive Function
+    const drawFractal = (x, y, radius, angle, depth) => {
+        if (depth <= 0 || radius < 3) return;
+        
+        // Use fixed sides (Hexagon) for stability + smooth morphing
+        // We can morph the shape by drawing curves or varying vertices
+        const sides = 6; 
+        
+        // Color based on depth and smooth hue
+        const hue = (fractalState.hueOffset + time * 10 + depth * 30) % 360;
+        const opacity = 0.5 + smoothE * 0.5; // Pulse opacity
+        
+        // Add Glow
+        ctx.shadowBlur = beatPulse * 15 * (depth === maxDepth ? 1 : 0);
+        ctx.shadowColor = `hsla(${hue}, 80%, 60%, 0.8)`;
+        
+        ctx.strokeStyle = `hsla(${hue}, 70%, 50%, ${opacity * (depth/maxDepth)})`;
+        ctx.lineWidth = 1 + depth * 0.5 + smoothE * 2;
+        
+        ctx.beginPath();
+        for (let i = 0; i <= sides; i++) {
+            const theta = angle + (i / sides) * Math.PI * 2;
+            // Morph shape slightly with beat (make it breathe)
+            const r = radius * (1 + 0.1 * Math.sin(time * 2 + i + beatPulse));
+            const px = x + Math.cos(theta) * r;
+            const py = y + Math.sin(theta) * r;
+            if (i===0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        ctx.shadowBlur = 0; // Reset for performance in deep recursion
+        
+        // Recursion - FIXED number of children (3) for smoothness
+        const children = 3; 
+        const nextRadius = radius * 0.55;
+        // The distance of children expands with energy (Zoom/Explosion effect)
+        const expansion = 1 + smoothE * 0.6 + beatPulse * 0.1;
+        
+        for(let c=0; c<children; c++) {
+            const childOffset = (c / children) * Math.PI * 2 + fractalState.rotation;
+            const dist = radius * 0.85 * expansion;
+            
+            const nx = x + Math.cos(childOffset) * dist;
+            const ny = y + Math.sin(childOffset) * dist;
+            
+            // Twist angle for children
+            drawFractal(nx, ny, nextRadius, angle + childOffset + Math.PI/3, depth - 1);
+        }
+    };
+    
+    // Draw Main Fractal
+    const startRadius = Math.min(width, height) * 0.22;
+    drawFractal(centerX, centerY, startRadius, fractalState.rotation, maxDepth);
+    
+    // Background Tunnel - Smoother and separate from fractal logic
+    const tunnelDepth = 8;
+    for(let i=0; i<tunnelDepth; i++) {
+        // Logarithmic scale for tunnel feeling
+        const scale = 1.0 + (i * 0.5) + (time*0.5 % 0.5); // Infinite zoom feeling
+        const tSize = startRadius * 3 / scale; 
+        if (tSize < 5) continue;
+        
+        const alpha = Math.max(0, (1 - (scale/4))); // Fade out as it gets bigger
+        if (alpha <= 0) continue;
+
+        const rot = -fractalState.rotation * (0.5 + i*0.1);
+        const hue = (fractalState.hueOffset + i * 20 - time*20) % 360;
+        
+        ctx.strokeStyle = `hsla(${hue}, 60%, 40%, ${alpha * 0.3})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const sides = 6;
+        for (let j = 0; j <= sides; j++) {
+            const theta = rot + (j / sides) * Math.PI * 2;
+            const px = centerX + Math.cos(theta) * tSize;
+            const py = centerY + Math.sin(theta) * tSize;
+            if (j===0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+    }
 }
