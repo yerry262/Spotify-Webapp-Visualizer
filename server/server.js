@@ -437,11 +437,10 @@ app.post('/get-mp3', async (req, res) => {
   //   --audio-quality 0: Best quality
   //   --no-playlist: Don't download playlists
   //   --force-overwrites: Overwrite any existing partial/corrupt files
-  //   --extractor-args youtube:player_client=web: Use web client to avoid bot detection
   
   // Use globally installed yt-dlp and ffmpeg (installed via winget/pip)
   // Both Windows and Linux should have these in PATH
-  const command = `yt-dlp -x --audio-format mp3 --audio-quality 0 --no-playlist --force-overwrites --extractor-args "youtube:player_client=web" -o "${outputPath}" "${youtubeUrl}"`;
+  const command = `yt-dlp -x --audio-format mp3 --audio-quality 0 --no-playlist --force-overwrites -o "${outputPath}" "${youtubeUrl}"`;
 
   exec(command, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
     console.log('📋 yt-dlp stdout:', stdout);
