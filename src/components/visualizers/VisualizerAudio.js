@@ -24,45 +24,49 @@ export const WAVEFORM_DEFAULTS = {
   // Featured styles (user favorites)
   liquid_mercury:   { basePosition: 50,  maxAmplitude: 46, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   cosmic_nebula:    { basePosition: 54,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
-  terrain_3d:       { basePosition: 95,  maxAmplitude: 60, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 83, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
-  gradient_bars:    { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 97,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: true } },
-  matrix_rain:      { basePosition: 90,  maxAmplitude: 90, basePositionFullScreen: 100,  maxAmplitudeFullScreen: 90, particles: { enabled: false, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  terrain_3d:       { basePosition: 95,  maxAmplitude: 60, basePositionFullScreen: 87,  maxAmplitudeFullScreen: 75, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  gradient_bars:    { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 97,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 2, size: 6.0, speed: 0.3 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: true } },
+  matrix_rain:      { basePosition: 95,  maxAmplitude: 90, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 100, particles: { enabled: false, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   plasma_fire:      { basePosition: 95,  maxAmplitude: 90, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 90, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
-  helix_dna:        { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 100,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: true, pitchOrb: false, beatFlash: false } },
+  helix_dna:        { basePosition: 100,  maxAmplitude: 50, basePositionFullScreen: 100,  maxAmplitudeFullScreen: 55, particles: { enabled: true, count: 5, size: 2.0, speed: 0.5 }, centerElements: { chromaWheel: false, circularMel: true, pitchOrb: false, beatFlash: false } },
   pacman:           { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
-  snake:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  snake:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: false, beatFlash: false } },
   rain_tetris:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   dvd_bouncer:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
-  sacred_geometry:  { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 30, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  fractal_void:     { basePosition: 50,  maxAmplitude: 80, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 50, size: 0.8, speed: 1.5 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: true } },
+  gummy:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  sacred_geometry:  { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 4, size: 1.0, speed: 0.6 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: true, beatFlash: false } },
+  fractal_void:     { basePosition: 50,  maxAmplitude: 80, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 4, size: 0.8, speed: 1.5 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: false, beatFlash: true } },
+  quantum_flux:     { basePosition: 50,  maxAmplitude: 85, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 95, particles: { enabled: true, count: 4, size: 1.2, speed: 2.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: true } },
+  water_ripple:     { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
 
   // Classic styles
-  layered:          { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  oscilloscope:     { basePosition: 45,  maxAmplitude: 48, basePositionFullScreen: 45,  maxAmplitudeFullScreen: 48, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  bars:             { basePosition: 95,  maxAmplitude: 57, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 57, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
-  ribbon:           { basePosition: 50,  maxAmplitude: 15, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 15, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
-  mirrored:         { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 40, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  dotted:           { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 40, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  pixelated:        { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  layered:          { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  oscilloscope:     { basePosition: 45,  maxAmplitude: 48, basePositionFullScreen: 45,  maxAmplitudeFullScreen: 48, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  bars:             { basePosition: 95,  maxAmplitude: 57, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 57, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
+  ribbon:           { basePosition: 50,  maxAmplitude: 15, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 30, particles: { enabled: true, count: 10, size: 5.0, speed: 0.7 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
+  mirrored:         { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 40, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  dotted:           { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 40, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  pixelated:        { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: true } },
   //updated to here
-  mesh3d:           { basePosition: 95,  maxAmplitude: 45, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 45, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  sine_layers:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  circular_dots:    { basePosition: 60,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  neon_lines:       { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  aurora_borealis:  { basePosition: 100, maxAmplitude: 70, basePositionFullScreen: 100, maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  shockwave:        { basePosition: 62,  maxAmplitude: 80, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  kaleidoscope:     { basePosition: 65,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  lightning:        { basePosition: 15,  maxAmplitude: 70, basePositionFullScreen: 15,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  heartbeat:        { basePosition: 60,  maxAmplitude: 35, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  fractal_tree:     { basePosition: 90,  maxAmplitude: 40, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  sound_tornado:    { basePosition: 90,  maxAmplitude: 50, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  geo_mandala:      { basePosition: 50,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  glitch_art:       { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  fireworks:        { basePosition: 90,  maxAmplitude: 70, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  ocean_waves:      { basePosition: 70,  maxAmplitude: 30, basePositionFullScreen: 80,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  galaxy_spiral:    { basePosition: 50,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  neon_city:        { basePosition: 85,  maxAmplitude: 60, basePositionFullScreen: 85,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
-  particle_explosion: { basePosition: 50, maxAmplitude: 50, basePositionFullScreen: 50, maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  mesh3d:           { basePosition: 95,  maxAmplitude: 45, basePositionFullScreen: 80,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  sine_layers:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: true } },
+  circular_dots:    { basePosition: 60,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 40, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  neon_lines:       { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 35, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
+  aurora_borealis:  { basePosition: 100, maxAmplitude: 70, basePositionFullScreen: 100, maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  shockwave:        { basePosition: 62,  maxAmplitude: 80, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  kaleidoscope:     { basePosition: 50,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  lightning:        { basePosition: 15,  maxAmplitude: 70, basePositionFullScreen: 15,  maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  heartbeat:        { basePosition: 70,  maxAmplitude: 35, basePositionFullScreen: 70,  maxAmplitudeFullScreen: 60, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  fractal_tree:     { basePosition: 95,  maxAmplitude: 35, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 40, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  sound_tornado:    { basePosition: 84,  maxAmplitude: 81, basePositionFullScreen: 84,  maxAmplitudeFullScreen: 81, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  geo_mandala:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 45,  maxAmplitudeFullScreen: 45, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  glitch_art:       { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  glitch_art_2:     { basePosition: 50,  maxAmplitude: 60, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  fireworks:        { basePosition: 90,  maxAmplitude: 70, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  ocean_waves:      { basePosition: 70,  maxAmplitude: 30, basePositionFullScreen: 80,  maxAmplitudeFullScreen: 50, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  galaxy_spiral:    { basePosition: 50,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  neon_city:        { basePosition: 85,  maxAmplitude: 60, basePositionFullScreen: 85,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 2, size: 0.7, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  particle_explosion: { basePosition: 50, maxAmplitude: 50, basePositionFullScreen: 50, maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
 };
 
 // Waveform settings state
@@ -79,6 +83,11 @@ let vizAnimationState = {
   maxAmplitude: 45,
   lastStyleId: null
 };
+
+// --- Waveform Specific Animation States ---
+let oceanState = { sChroma: new Float32Array(12).fill(0), sMel: null, sBeat: 0, timeOffset: 0, foamParticles: [] };
+let galaxyState = { sChroma: new Float32Array(12).fill(0), sMel: null, sBeat: 0, rotation: 0 };
+let glitch2State = { sChroma: new Float32Array(12).fill(0), sBeat: 0, blocks: [], glitchActive: 0, lastScanlineShift: 0 };
 
 export function setVisualizerFullScreen(isFull) {
   isVisualizerFullScreen = isFull;
@@ -257,8 +266,11 @@ export const WAVEFORM_STYLES = [
   { id: 'snake', name: 'Rhythm Snake' },
   { id: 'rain_tetris', name: 'Rain Tetris' },
   { id: 'dvd_bouncer', name: 'DVD Bouncer' },
+  { id: 'gummy', name: 'Gummy' },
   { id: 'sacred_geometry', name: 'Sacred Geometry' },
   { id: 'fractal_void', name: 'Fractal Void' },
+  { id: 'quantum_flux', name: 'Quantum Flux' },
+  { id: 'water_ripple', name: 'Water Ripple' },
   // Classic styles
   { id: 'layered', name: 'Layered Waves' },
   { id: 'oscilloscope', name: 'Oscilloscope' },
@@ -280,6 +292,7 @@ export const WAVEFORM_STYLES = [
   { id: 'sound_tornado', name: 'Sound Tornado' },
   { id: 'geo_mandala', name: 'Geometric Mandala' },
   { id: 'glitch_art', name: 'Glitch Art' },
+  { id: 'glitch_art_2', name: 'Glitch Art 2' },
   { id: 'fireworks', name: 'Fireworks Show' },
   { id: 'ocean_waves', name: 'Ocean Waves' },
   { id: 'galaxy_spiral', name: 'Galaxy Spiral' },
@@ -316,6 +329,9 @@ export function resetWaveformTiming() {
 
   // Reset Rain Tetris state for new track
   resetRainTetrisState();
+  
+  // Reset Snake state for new track
+  resetSnakeState();
 
   // Force a style change on next frame
   console.log('🔄 Waveform timing reset for new track');
@@ -333,6 +349,22 @@ export function setWaveformStyle(styleId) {
       currentWaveformStyle = index;
       // Reset Rain Tetris state when switching waveforms
       resetRainTetrisState();
+      
+      // Reset Snake state when switching waveforms
+      resetSnakeState();
+      
+      // Load settings from WAVEFORM_DEFAULTS for this style
+      const defaults = WAVEFORM_DEFAULTS[styleId];
+      if (defaults) {
+        // Apply particle settings
+        if (defaults.particles) {
+          particleSettings = { ...particleSettings, ...defaults.particles };
+        }
+        // Apply center element settings
+        if (defaults.centerElements) {
+          centerElementSettings = { ...centerElementSettings, ...defaults.centerElements };
+        }
+      }
     }
   }
 }
@@ -428,6 +460,23 @@ export function drawAudioVisualization(ctx, width, height, vizState, frame, time
       lastWaveformStyleChange = time;
       // Reset Rain Tetris state when auto-switching waveforms
       resetRainTetrisState();
+      
+      // Reset Snake state when auto-switching waveforms
+      resetSnakeState();
+      
+      // Load settings from WAVEFORM_DEFAULTS for the new style
+      const styleId = WAVEFORM_STYLES[newStyle]?.id;
+      const defaults = WAVEFORM_DEFAULTS[styleId];
+      if (defaults) {
+        // Apply particle settings
+        if (defaults.particles) {
+          particleSettings = { ...particleSettings, ...defaults.particles };
+        }
+        // Apply center element settings
+        if (defaults.centerElements) {
+          centerElementSettings = { ...centerElementSettings, ...defaults.centerElements };
+        }
+      }
     }
   }
 
@@ -827,6 +876,9 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
     case 'glitch_art':
       drawGlitchArtWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
+    case 'glitch_art_2':
+      drawGlitchArt2Wave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
     case 'terrain_3d':
       drawTerrain3DWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
@@ -857,11 +909,20 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
     case 'dvd_bouncer':
       drawDVDBouncerWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
+    case 'gummy':
+      drawGummyWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
     case 'sacred_geometry':
       drawSacredGeometryWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
     case 'fractal_void':
       drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'quantum_flux':
+      drawQuantumFluxWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'water_ripple':
+      drawWaterRippleWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
     case 'layered':
     default:
@@ -1112,24 +1173,57 @@ function drawBarWave(ctx, width, height, chroma, mel, beatPulse, time) {
 /**
  * Flowing ribbon style - 12 chroma ribbons
  */
+// --- RIBBON STATE ---
+let ribbonState = {
+  smoothedChroma: new Array(12).fill(0),
+  smoothedMel: [],
+  smoothedBeat: 0,
+  lastTime: 0
+};
+
 function drawRibbonWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  if (!chroma || chroma.length !== 12) return;
+  
+  if (!ribbonState.lastTime) ribbonState.lastTime = time;
+  ribbonState.lastTime = time;
+
+  // Smoothing audio data
+  ribbonState.smoothedBeat += (beatPulse - ribbonState.smoothedBeat) * 0.12;
+  for (let i = 0; i < 12; i++) {
+    ribbonState.smoothedChroma[i] += ((chroma[i] || 0) - ribbonState.smoothedChroma[i]) * 0.1;
+  }
+  
+  if (mel && mel.length > 0) {
+    if (ribbonState.smoothedMel.length !== mel.length) {
+      ribbonState.smoothedMel = [...mel];
+    } else {
+      for (let i = 0; i < mel.length; i++) {
+        ribbonState.smoothedMel[i] += (mel[i] - ribbonState.smoothedMel[i]) * 0.1;
+      }
+    }
+  }
+
   const settings = getEffectiveWaveformSettings('ribbon');
   const centerY = height * (settings.basePosition / 100);
   const ribbonHeight = height * (settings.maxAmplitude / 100) * 0.3;
-  const numPoints = 60;
+  const numPoints = 80; // Increased for smoothness
   
+  const sChroma = ribbonState.smoothedChroma;
+  const sMel = ribbonState.smoothedMel;
+  const sBeat = ribbonState.smoothedBeat;
+
   // Sort and draw all 12 chroma ribbons
-  const sortedIndices = [...Array(12).keys()].sort((a, b) => chroma[a] - chroma[b]);
+  const sortedIndices = [...Array(12).keys()].sort((a, b) => sChroma[a] - sChroma[b]);
   
   for (const chromaIdx of sortedIndices) {
-    const chromaValue = chroma[chromaIdx] || 0;
-    if (chromaValue < 0.1) continue;
+    const chromaValue = sChroma[chromaIdx];
+    if (chromaValue < 0.05) continue;
     
     const hue = CHROMA_HUES[chromaIdx];
-    const yOffset = (chromaIdx - 5.5) * 4; // Spread ribbons vertically
-    const speed = 1.5 + chromaIdx * 0.08;
+    const yOffset = (chromaIdx - 5.5) * (ribbonHeight * 0.15); // Dynamic spread
+    const speed = 1.2 + chromaIdx * 0.06;
     const phase = chromaIdx * Math.PI / 6;
-    const waveAmplitude = 15 + chromaValue * 25;
+    const waveAmplitude = 10 + chromaValue * 30;
     
     const topPoints = [];
     const bottomPoints = [];
@@ -1140,44 +1234,52 @@ function drawRibbonWave(ctx, width, height, chroma, mel, beatPulse, time) {
       
       // Get mel for local variation
       let melInfluence = 0.5;
-      if (mel && mel.length > 0) {
-        const melIdx = Math.floor(t * mel.length);
-        melInfluence = Math.max(0.3, Math.min(1, (mel[melIdx] + 10) / 10));
+      if (sMel && sMel.length > 0) {
+        const melIdx = Math.floor(t * sMel.length);
+        melInfluence = Math.max(0.3, Math.min(1, (sMel[melIdx] + 10) / 10));
       }
       
-      const wave = Math.sin(t * Math.PI * 3 + time * speed + phase) * waveAmplitude * melInfluence * (1 + beatPulse * 0.3);
-      const thickness = ribbonHeight * (0.5 + chromaValue * 0.5);
+      const wave = Math.sin(t * Math.PI * 2.5 + time * speed + phase) * waveAmplitude * melInfluence * (1 + sBeat * 0.4);
+      const thickness = ribbonHeight * (0.4 + chromaValue * 0.6) * (1 + sBeat * 0.2);
       
       topPoints.push({ x, y: centerY + yOffset + wave - thickness / 2 });
       bottomPoints.push({ x, y: centerY + yOffset + wave + thickness / 2 });
     }
     
-    // Draw ribbon shape
+    // Draw ribbon shape with quadratic curves for extra smoothness
     ctx.beginPath();
     ctx.moveTo(topPoints[0].x, topPoints[0].y);
-    for (let i = 1; i < topPoints.length; i++) {
-      ctx.lineTo(topPoints[i].x, topPoints[i].y);
+    for (let i = 1; i < topPoints.length - 1; i++) {
+      const xc = (topPoints[i].x + topPoints[i + 1].x) / 2;
+      const yc = (topPoints[i].y + topPoints[i + 1].y) / 2;
+      ctx.quadraticCurveTo(topPoints[i].x, topPoints[i].y, xc, yc);
     }
-    for (let i = bottomPoints.length - 1; i >= 0; i--) {
-      ctx.lineTo(bottomPoints[i].x, bottomPoints[i].y);
+    ctx.lineTo(topPoints[topPoints.length - 1].x, topPoints[topPoints.length - 1].y);
+    
+    ctx.lineTo(bottomPoints[bottomPoints.length - 1].x, bottomPoints[bottomPoints.length - 1].y);
+    for (let i = bottomPoints.length - 2; i > 0; i--) {
+      const xc = (bottomPoints[i].x + bottomPoints[i - 1].x) / 2;
+      const yc = (bottomPoints[i].y + bottomPoints[i - 1].y) / 2;
+      ctx.quadraticCurveTo(bottomPoints[i].x, bottomPoints[i].y, xc, yc);
     }
+    ctx.lineTo(bottomPoints[0].x, bottomPoints[0].y);
     ctx.closePath();
     
-    const alpha = 0.3 + chromaValue * 0.5;
-    const lightness = 45 + chromaValue * 20;
+    const alpha = 0.2 + chromaValue * 0.6;
+    const lightness = 40 + chromaValue * 25;
     
-    const gradient = ctx.createLinearGradient(0, centerY - 30, 0, centerY + 30);
-    gradient.addColorStop(0, `hsla(${hue}, 80%, ${lightness + 10}%, ${alpha * 0.7})`);
-    gradient.addColorStop(0.5, `hsla(${hue}, 85%, ${lightness}%, ${alpha})`);
-    gradient.addColorStop(1, `hsla(${hue}, 80%, ${lightness - 10}%, ${alpha * 0.7})`);
+    const gradient = ctx.createLinearGradient(0, centerY + yOffset - 50, 0, centerY + yOffset + 50);
+    gradient.addColorStop(0, `hsla(${hue}, 80%, ${lightness + 15}%, ${alpha * 0.6})`);
+    gradient.addColorStop(0.5, `hsla(${hue}, 90%, ${lightness}%, ${alpha})`);
+    gradient.addColorStop(1, `hsla(${hue}, 80%, ${lightness - 15}%, ${alpha * 0.6})`);
     
     ctx.fillStyle = gradient;
     ctx.fill();
     
-    // Edge glow for prominent notes
-    if (chromaValue > 0.4) {
-      ctx.strokeStyle = `hsla(${hue}, 90%, 70%, ${chromaValue * 0.5})`;
-      ctx.lineWidth = 1;
+    // Subtle inner highlight
+    if (chromaValue > 0.3) {
+      ctx.lineWidth = 0.5 + chromaValue * 1.5;
+      ctx.strokeStyle = `hsla(${hue}, 100%, 80%, ${alpha * 0.4})`;
       ctx.stroke();
     }
   }
@@ -1544,22 +1646,55 @@ function drawSineLayersWave(ctx, width, height, chroma, mel, beatPulse, time) {
 /**
  * Dots arranged in wave pattern - 12 chroma colored dot rows
  */
+// --- CIRCULAR DOTS STATE ---
+let circularDotsState = {
+  smoothedChroma: new Array(12).fill(0),
+  smoothedMel: [],
+  smoothedBeat: 0,
+  lastTime: 0
+};
+
 function drawCircularDotsWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  if (!chroma || chroma.length !== 12) return;
+
+  if (!circularDotsState.lastTime) circularDotsState.lastTime = time;
+  circularDotsState.lastTime = time;
+
+  // Smoothing audio data
+  circularDotsState.smoothedBeat += (beatPulse - circularDotsState.smoothedBeat) * 0.12;
+  for (let i = 0; i < 12; i++) {
+    circularDotsState.smoothedChroma[i] += ((chroma[i] || 0) - circularDotsState.smoothedChroma[i]) * 0.1;
+  }
+  
+  if (mel && mel.length > 0) {
+    if (circularDotsState.smoothedMel.length !== mel.length) {
+      circularDotsState.smoothedMel = [...mel];
+    } else {
+      for (let i = 0; i < mel.length; i++) {
+        circularDotsState.smoothedMel[i] += (mel[i] - circularDotsState.smoothedMel[i]) * 0.1;
+      }
+    }
+  }
+
   const settings = getEffectiveWaveformSettings('circular_dots');
   const centerY = height * (settings.basePosition / 100);
   const maxAmplitude = height * (settings.maxAmplitude / 100);
-  const numDots = 40;
+  const numDots = 50; // Increased for smoother lines
   
+  const sChroma = circularDotsState.smoothedChroma;
+  const sMel = circularDotsState.smoothedMel;
+  const sBeat = circularDotsState.smoothedBeat;
+
   // Sort chroma (draw quieter first)
-  const sortedIndices = [...Array(12).keys()].sort((a, b) => chroma[a] - chroma[b]);
+  const sortedIndices = [...Array(12).keys()].sort((a, b) => sChroma[a] - sChroma[b]);
   
   for (const chromaIdx of sortedIndices) {
-    const chromaValue = chroma[chromaIdx] || 0;
-    if (chromaValue < 0.1) continue;
+    const chromaValue = sChroma[chromaIdx];
+    if (chromaValue < 0.05) continue;
     
     const hue = CHROMA_HUES[chromaIdx];
-    const yOffset = (chromaIdx - 5.5) * 3;
-    const speed = 1.5 + chromaIdx * 0.1;
+    const yOffset = (chromaIdx - 5.5) * (maxAmplitude * 0.05);
+    const speed = 1.2 + chromaIdx * 0.08;
     const phaseOffset = chromaIdx * 0.5;
     
     for (let i = 0; i < numDots; i++) {
@@ -1568,29 +1703,38 @@ function drawCircularDotsWave(ctx, width, height, chroma, mel, beatPulse, time) 
       
       // Get mel for local variation
       let melInfluence = 0.5;
-      if (mel && mel.length > 0) {
-        const melIdx = Math.floor(t * mel.length);
-        melInfluence = Math.max(0.3, Math.min(1, (mel[melIdx] + 10) / 10));
+      if (sMel && sMel.length > 0) {
+        const melIdx = Math.floor(t * sMel.length);
+        melInfluence = Math.max(0.3, Math.min(1, (sMel[melIdx] + 10) / 10));
       }
       
       // Wave with phase offset
-      const wave = Math.sin(t * Math.PI * 4 + time * speed + phaseOffset);
-      const y = centerY + yOffset + wave * chromaValue * maxAmplitude * melInfluence * (1 + beatPulse * 0.3);
+      const wave = Math.sin(t * Math.PI * 3.5 + time * speed + phaseOffset);
+      const y = centerY + yOffset + wave * chromaValue * maxAmplitude * 0.4 * melInfluence * (1 + sBeat * 0.4);
       
-      // Size varies with chroma and mel
-      const size = 1.5 + chromaValue * 3 + melInfluence * 1.5;
-      const alpha = 0.4 + chromaValue * 0.5;
-      const lightness = 50 + chromaValue * 20;
+      // Size reflects audio intensity
+      const size = (1.2 + chromaValue * 4 + melInfluence * 2) * settings.maxAmplitude / 50;
+      const alpha = 0.3 + chromaValue * 0.6;
+      const lightness = 45 + chromaValue * 25;
       
-      // Gradient fill for 3D effect
-      const dotGradient = ctx.createRadialGradient(x - size * 0.3, y - size * 0.3, 0, x, y, size);
-      dotGradient.addColorStop(0, `hsla(${hue}, 80%, ${lightness + 15}%, ${alpha})`);
-      dotGradient.addColorStop(1, `hsla(${hue}, 85%, ${lightness - 10}%, ${alpha * 0.7})`);
+      // Gradient fill for 3D glow effect
+      const dotGradient = ctx.createRadialGradient(x - size * 0.25, y - size * 0.25, 0, x, y, size);
+      dotGradient.addColorStop(0, `hsla(${hue}, 90%, ${lightness + 20}%, ${alpha})`);
+      dotGradient.addColorStop(0.4, `hsla(${hue}, 85%, ${lightness}%, ${alpha * 0.8})`);
+      dotGradient.addColorStop(1, `hsla(${hue}, 80%, ${lightness - 15}%, 0)`);
       
       ctx.fillStyle = dotGradient;
       ctx.beginPath();
       ctx.arc(x, y, size, 0, Math.PI * 2);
       ctx.fill();
+
+      // Add a tiny spark in the center for high energy
+      if (chromaValue > 0.6 && sBeat > 0.5) {
+        ctx.fillStyle = `hsla(${hue}, 100%, 95%, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   }
   
@@ -1600,56 +1744,94 @@ function drawCircularDotsWave(ctx, width, height, chroma, mel, beatPulse, time) 
 /**
  * Neon lines - 12 chroma colored neon waves
  */
+let neonLinesState = {
+  sChroma: new Float32Array(12).fill(0),
+  sMel: null,
+  sBeat: 0
+};
+
 function drawNeonLinesWave(ctx, width, height, chroma, mel, beatPulse, time) {
   const settings = getEffectiveWaveformSettings('neon_lines');
   const centerY = height * (settings.basePosition / 100);
   const maxAmplitude = height * (settings.maxAmplitude / 100);
-  const numPoints = 60;
+  const numPoints = 120;
   
-  // Sort chroma (draw quieter first)
-  const sortedIndices = [...Array(12).keys()].sort((a, b) => chroma[a] - chroma[b]);
-  
-  for (const chromaIdx of sortedIndices) {
-    const chromaValue = chroma[chromaIdx] || 0;
-    if (chromaValue < 0.1) continue;
-    
-    const hue = CHROMA_HUES[chromaIdx];
-    const yOffset = (chromaIdx - 5.5) * 4;
-    const speed = 1.5 + chromaIdx * 0.1;
-    const phaseOffset = chromaIdx * 0.5;
-    const amplitude = maxAmplitude * (0.3 + chromaValue * 0.7) * (1 + beatPulse * 0.3);
-    
-    // Draw outer glow first, then inner line
-    for (let glow = 2; glow >= 0; glow--) {
-      ctx.beginPath();
-      ctx.lineWidth = glow === 0 ? (1.5 + chromaValue * 2) : (4 - glow);
-      
-      for (let i = 0; i <= numPoints; i++) {
-        const t = i / numPoints;
-        const x = t * width;
-        
-        // Get mel for local variation
-        let melInfluence = 0.5;
-        if (mel && mel.length > 0) {
-          const melIdx = Math.floor(t * mel.length);
-          melInfluence = Math.max(0.3, Math.min(1, (mel[melIdx] + 10) / 10));
-        }
-        
-        const wave1 = Math.sin(t * Math.PI * 3 + time * speed + phaseOffset);
-        const wave2 = Math.sin(t * Math.PI * 6 + time * speed * 1.3 + phaseOffset) * 0.3;
-        const y = centerY + yOffset + (wave1 + wave2) * amplitude * melInfluence;
-        
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      
-      const alpha = glow === 0 ? (0.5 + chromaValue * 0.4) : (0.2 - glow * 0.05);
-      const lightness = glow === 0 ? (55 + chromaValue * 15) : 50;
-      ctx.strokeStyle = `hsla(${hue}, 100%, ${lightness}%, ${alpha})`;
-      ctx.stroke();
+  // Initialize state if needed
+  if (!neonLinesState.sMel || (mel && neonLinesState.sMel.length !== mel.length)) {
+    neonLinesState.sMel = new Float32Array(mel ? mel.length : 1).fill(0);
+  }
+
+  // Smooth values
+  const lerp = 0.1;
+  neonLinesState.sBeat += (beatPulse - neonLinesState.sBeat) * lerp;
+  for (let i = 0; i < 12; i++) {
+    neonLinesState.sChroma[i] += (chroma[i] - neonLinesState.sChroma[i]) * lerp;
+  }
+  if (mel) {
+    for (let i = 0; i < mel.length; i++) {
+      neonLinesState.sMel[i] += (mel[i] - neonLinesState.sMel[i]) * lerp;
     }
   }
+
+  const sChroma = neonLinesState.sChroma;
+  const sBeat = neonLinesState.sBeat;
+  const sMel = neonLinesState.sMel;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
   
+  // Sort chroma (draw quieter first)
+  const sortedIndices = [...Array(12).keys()].sort((a, b) => sChroma[a] - sChroma[b]);
+  
+  for (const chromaIdx of sortedIndices) {
+    const chromaValue = sChroma[chromaIdx] || 0;
+    if (chromaValue < 0.05) continue;
+    
+    const hue = CHROMA_HUES[chromaIdx];
+    const yOffset = (chromaIdx - 5.5) * 6;
+    const speed = 1.0 + chromaIdx * 0.1;
+    const phaseOffset = chromaIdx * Math.PI / 6;
+    const amplitude = maxAmplitude * (0.2 + chromaValue * 0.8) * (1 + sBeat * 0.5);
+    
+    // Draw trail/glow
+    ctx.shadowBlur = 15 + chromaValue * 20;
+    ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.8)`;
+    
+    ctx.beginPath();
+    ctx.lineWidth = 2 + chromaValue * 3;
+    
+    for (let i = 0; i <= numPoints; i++) {
+      const t = i / numPoints;
+      const x = t * width;
+      
+      let melInfluence = 0.5;
+      if (sMel && sMel.length > 0) {
+        const melIdx = Math.floor(t * (sMel.length - 1));
+        melInfluence = Math.max(0.1, (sMel[melIdx] + 15) / 15);
+      }
+      
+      const wave1 = Math.sin(t * Math.PI * 2 + time * speed + phaseOffset);
+      const wave2 = Math.sin(t * Math.PI * 4 + time * speed * 1.4 + phaseOffset) * 0.4;
+      const wave3 = Math.cos(t * Math.PI * 1.5 - time * 0.8) * 0.2;
+      
+      const y = centerY + yOffset + (wave1 + wave2 + wave3) * amplitude * melInfluence;
+      
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    
+    const alpha = 0.3 + chromaValue * 0.6;
+    ctx.strokeStyle = `hsla(${hue}, 100%, 65%, ${alpha})`;
+    ctx.stroke();
+    
+    // Bright core
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 1 + chromaValue;
+    ctx.strokeStyle = `hsla(${hue}, 50%, 95%, ${alpha})`;
+    ctx.stroke();
+  }
+  
+  ctx.restore();
   drawWaveLabels(ctx, width, height, chroma);
 }
 
@@ -1839,8 +2021,13 @@ function drawMatrixRainWave(ctx, width, height, chroma, mel, beatPulse, time) {
   const settings = getEffectiveWaveformSettings('matrix_rain');
   const baseY = height * (settings.basePosition / 100);
   const dropHeight = height * (settings.maxAmplitude / 100);
-  const numColumns = 60;
+  
+  // Dynamic columns based on window width - one column every 30 pixels
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+  const numColumns = Math.floor(windowWidth / 30);
   const columnWidth = width / numColumns;
+  
   
   // Characters for matrix effect
   const matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
@@ -1863,7 +2050,7 @@ function drawMatrixRainWave(ctx, width, height, chroma, mel, beatPulse, time) {
     
     // Unique phase for each column
     const columnPhase = col * 0.7;
-    const dropSpeed = 2 + melValue * 3 + beatPulse * 2;
+    const dropSpeed = (2 + melValue * 3 + beatPulse * 2) * .2;
     const dropPos = ((time * dropSpeed + columnPhase) % 2) / 2; // 0 to 1 cycling
     
     // Number of characters in the drop
@@ -2084,99 +2271,170 @@ function drawShockwaveWave(ctx, width, height, chroma, mel, beatPulse, time) {
  * Kaleidoscope - Mirrored geometric patterns that rotate with beat
  * Uses chroma for segment colors and mel for pattern complexity
  */
+let kaleidoscopeState = {
+  sChroma: new Float32Array(12).fill(0),
+  sMel: null,
+  sBeat: 0,
+  rotation: 0,
+  drift: 0,
+  particles: []
+};
+
 function drawKaleidoscopeWave(ctx, width, height, chroma, mel, beatPulse, time) {
   const settings = getEffectiveWaveformSettings('kaleidoscope');
   const centerX = width / 2;
-  // basePosition controls vertical center (0-100 = top to bottom)
   const centerY = height * (settings.basePosition / 100);
-  // maxAmplitude controls the radius/size of the kaleidoscope
-  const maxRadius = Math.min(width, height) * (settings.maxAmplitude / 100);
-  const numSegments = 12; // One for each chroma
-  const segmentAngle = (Math.PI * 2) / numSegments;
+  const maxRadius = Math.min(width, height) * (settings.maxAmplitude / 100) * 0.8;
+  const numSectors = 12; // 6 axes of symmetry (12 mirrored triangles)
+  const sectorAngle = (Math.PI * 2) / numSectors;
   
-  // Rotation speed affected by beat
-  const rotation = time * 0.3 + beatPulse * 0.5;
+  // Initialize state
+  if (!kaleidoscopeState.sMel || (mel && kaleidoscopeState.sMel.length !== mel.length)) {
+    kaleidoscopeState.sMel = new Float32Array(mel ? mel.length : 1).fill(0);
+    // Initialize some random particles for the "inner" kaleidoscope motion
+    kaleidoscopeState.particles = Array.from({ length: 15 }, () => ({
+      r: Math.random(),
+      angle: Math.random() * Math.PI * 2,
+      size: 5 + Math.random() * 15,
+      speed: 0.2 + Math.random() * 0.5,
+      type: Math.floor(Math.random() * 3)
+    }));
+  }
+
+  // Smooth values
+  const lerp = 0.08;
+  kaleidoscopeState.sBeat += (beatPulse - kaleidoscopeState.sBeat) * lerp;
+  for (let i = 0; i < 12; i++) {
+    kaleidoscopeState.sChroma[i] += (chroma[i] - kaleidoscopeState.sChroma[i]) * lerp;
+  }
+  if (mel) {
+    for (let i = 0; i < mel.length; i++) {
+      kaleidoscopeState.sMel[i] += (mel[i] - kaleidoscopeState.sMel[i]) * lerp;
+    }
+  }
+
+  const sChroma = kaleidoscopeState.sChroma;
+  const sBeat = kaleidoscopeState.sBeat;
+  const sMel = kaleidoscopeState.sMel;
   
+  // Update rotations with momentum
+  kaleidoscopeState.rotation += 0.005 + sBeat * 0.02;
+  kaleidoscopeState.drift += 0.002 + sChroma[0] * 0.01;
+
   ctx.save();
   ctx.translate(centerX, centerY);
-  ctx.rotate(rotation);
   
-  // Draw each kaleidoscope segment
-  for (let seg = 0; seg < numSegments; seg++) {
-    const chromaIdx = seg % 12;
-    const chromaValue = chroma[chromaIdx] || 0.3;
-    const hue = CHROMA_HUES[chromaIdx];
-    
+  // Outer Ambient Glow
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, maxRadius);
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  grad.addColorStop(1, `hsla(${time * 10 % 360}, 50%, 10%, 0.3)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(-width/2, -height/2, width, height);
+
+  ctx.rotate(kaleidoscopeState.rotation);
+
+  // Draw 12 mirrored sectors
+  for (let i = 0; i < numSectors; i++) {
     ctx.save();
-    ctx.rotate(seg * segmentAngle);
+    ctx.rotate(i * sectorAngle);
     
-    // Create segment clip path
+    // Mirror every other sector
+    if (i % 2 === 1) {
+      ctx.scale(1, -1);
+    }
+
+    // Clip to triangle sector
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(maxRadius, 0);
-    ctx.arc(0, 0, maxRadius, 0, segmentAngle);
+    ctx.arc(0, 0, maxRadius, 0, sectorAngle);
     ctx.closePath();
     ctx.clip();
+
+    // --- DRAW PATTERN INSIDE SECTOR ---
+    // Background based on chroma
+    const mainChromaIdx = i % 12;
+    const hue = CHROMA_HUES[mainChromaIdx];
+    const cVal = sChroma[mainChromaIdx];
     
-    // Draw patterns inside segment based on mel
-    const numShapes = Math.floor(3 + chromaValue * 5);
+    ctx.globalCompositeOperation = 'lighter';
     
-    for (let shape = 0; shape < numShapes; shape++) {
-      const melIdx = shape % (mel?.length || 1);
-      const melValue = mel ? Math.max(0.2, Math.min(1, (mel[melIdx] + 10) / 10)) : 0.5;
+    // 1. Draw drifting particles
+    kaleidoscopeState.particles.forEach((p, pIdx) => {
+      const pMel = sMel[pIdx % sMel.length] || 0;
+      const r = ((p.r * maxRadius) + time * p.speed * 20) % maxRadius;
+      const angle = p.angle + kaleidoscopeState.drift;
       
-      const shapeRadius = (shape + 1) / numShapes * maxRadius * 0.9;
-      const shapeSize = 10 + melValue * 25 * (1 + beatPulse * 0.5);
-      const shapeAngle = time * (0.5 + shape * 0.1) + shape * 0.5;
+      const x = Math.cos(angle) * r;
+      const y = Math.sin(angle) * r;
+      const size = p.size * (1 + sBeat * 1.5) * (1 + (pMel + 10) / 20);
       
-      const x = Math.cos(shapeAngle) * shapeRadius * 0.3 + shapeRadius * 0.5;
-      const y = Math.sin(shapeAngle) * shapeRadius * 0.2;
+      ctx.fillStyle = `hsla(${(hue + pIdx * 20) % 360}, 80%, 60%, ${0.2 + cVal * 0.4})`;
+      ctx.shadowBlur = 5 + cVal * 15;
+      ctx.shadowColor = ctx.fillStyle;
       
-      // Alternate between shapes
-      const alpha = 0.3 + chromaValue * 0.5 + melValue * 0.2;
-      const lightness = 45 + chromaValue * 25;
-      
-      ctx.fillStyle = `hsla(${(hue + shape * 15) % 360}, 85%, ${lightness}%, ${alpha})`;
-      
-      if (shape % 3 === 0) {
-        // Diamond
+      if (p.type === 0) {
         ctx.beginPath();
-        ctx.moveTo(x, y - shapeSize);
-        ctx.lineTo(x + shapeSize * 0.7, y);
-        ctx.lineTo(x, y + shapeSize);
-        ctx.lineTo(x - shapeSize * 0.7, y);
-        ctx.closePath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
         ctx.fill();
-      } else if (shape % 3 === 1) {
-        // Circle
-        ctx.beginPath();
-        ctx.arc(x, y, shapeSize * 0.5, 0, Math.PI * 2);
-        ctx.fill();
+      } else if (p.type === 1) {
+        ctx.fillRect(x - size/2, y - size/2, size, size);
       } else {
-        // Triangle
         ctx.beginPath();
-        ctx.moveTo(x, y - shapeSize);
-        ctx.lineTo(x + shapeSize * 0.8, y + shapeSize * 0.6);
-        ctx.lineTo(x - shapeSize * 0.8, y + shapeSize * 0.6);
+        const rot = time + pIdx;
+        ctx.moveTo(x + Math.cos(rot) * size, y + Math.sin(rot) * size);
+        ctx.lineTo(x + Math.cos(rot + 2.4) * size, y + Math.sin(rot + 2.4) * size);
+        ctx.lineTo(x + Math.cos(rot + 4.2) * size, y + Math.sin(rot + 4.2) * size);
         ctx.closePath();
         ctx.fill();
       }
+    });
+
+    // 2. Draw "Energy Rays"
+    const numRays = 4;
+    for (let r = 0; r < numRays; r++) {
+      const rayAngle = (r / numRays) * sectorAngle;
+      const mIdx = Math.floor((r / numRays) * sMel.length);
+      const mVal = (sMel[mIdx] + 15) / 15;
       
-      // Glow for high chroma
-      if (chromaValue > 0.5) {
-        ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.6)`;
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
+      const rayLen = maxRadius * mVal * (0.8 + sBeat * 0.2);
+      
+      const rayGrad = ctx.createLinearGradient(0, 0, Math.cos(rayAngle) * rayLen, Math.sin(rayAngle) * rayLen);
+      rayGrad.addColorStop(0, `hsla(${hue}, 100%, 70%, 0.8)`);
+      rayGrad.addColorStop(1, `hsla(${(hue + 40) % 360}, 100%, 50%, 0)`);
+      
+      ctx.strokeStyle = rayGrad;
+      ctx.lineWidth = 1 + cVal * 4;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(rayAngle) * rayLen, Math.sin(rayAngle) * rayLen);
+      ctx.stroke();
     }
-    
+
     ctx.restore();
   }
-  
+
+  // Draw central Hub
+  ctx.beginPath();
+  const hubRadius = 20 + sBeat * 30;
+  const hubGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, hubRadius);
+  hubGrad.addColorStop(0, '#fff');
+  hubGrad.addColorStop(0.5, `hsla(${time * 50 % 360}, 100%, 70%, 0.5)`);
+  hubGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = hubGrad;
+  ctx.arc(0, 0, hubRadius, 0, Math.PI * 2);
+  ctx.fill();
+
   ctx.restore();
   drawWaveLabels(ctx, width, height, chroma);
 }
+
+let lightningState = {
+  sChroma: new Float32Array(12).fill(0),
+  sMel: null,
+  sBeat: 0,
+  bolts: []
+};
 
 /**
  * Lightning Storm - Electric bolts that branch based on mel energy
@@ -2184,105 +2442,142 @@ function drawKaleidoscopeWave(ctx, width, height, chroma, mel, beatPulse, time) 
  */
 function drawLightningWave(ctx, width, height, chroma, mel, beatPulse, time) {
   const settings = getEffectiveWaveformSettings('lightning');
-  // basePosition controls where bolts originate (top)
-  const baseY = height * (settings.basePosition / 100);
-  // maxAmplitude controls how far bolts travel
-  const targetY = baseY + height * (settings.maxAmplitude / 100);
+  const centerX = width / 2;
+  const centerY = height * (settings.basePosition / 100);
+  const maxTravel = height * (settings.maxAmplitude / 100);
   
-  // Number of main bolts based on total energy
-  const totalEnergy = chroma.reduce((a, b) => a + b, 0) / 12;
-  const numBolts = Math.floor(3 + totalEnergy * 4 + beatPulse * 3);
-  
-  // Draw lightning bolts
-  for (let bolt = 0; bolt < numBolts; bolt++) {
-    const chromaIdx = bolt % 12;
-    const chromaValue = chroma[chromaIdx] || 0.3;
-    const hue = CHROMA_HUES[chromaIdx];
-    
-    // Bolt starting position varies with time
-    const boltPhase = bolt * 1.7 + time * 0.5;
-    const startX = (Math.sin(boltPhase) * 0.4 + 0.5) * width;
-    
-    // Get mel energy for this bolt's branching
-    const melIdx = bolt % (mel?.length || 1);
-    const melValue = mel ? Math.max(0.2, Math.min(1, (mel[melIdx] + 10) / 10)) : 0.5;
-    
-    // Draw the bolt recursively
-    drawBolt(ctx, startX, baseY, startX + (Math.random() - 0.5) * 100, targetY, 
-             hue, chromaValue, melValue, beatPulse, 0, 4);
+  // Initialize state
+  if (!lightningState.sMel || (mel && lightningState.sMel.length !== mel.length)) {
+    lightningState.sMel = new Float32Array(mel ? mel.length : 1).fill(0);
   }
+
+  // Smooth values
+  const lerp = 0.12;
+  lightningState.sBeat += (beatPulse - lightningState.sBeat) * lerp;
+  for (let i = 0; i < 12; i++) {
+    lightningState.sChroma[i] += (chroma[i] - lightningState.sChroma[i]) * lerp;
+  }
+  if (mel) {
+    for (let i = 0; i < mel.length; i++) {
+      lightningState.sMel[i] += (mel[i] - lightningState.sMel[i]) * lerp;
+    }
+  }
+
+  const sChroma = lightningState.sChroma;
+  const sBeat = lightningState.sBeat;
+  const sMel = lightningState.sMel;
+
+  // Manage persistent bolts
+  const totalEnergy = sChroma.reduce((a, b) => a + b, 0) / 12;
   
-  // Helper function to draw branching bolt
-  function drawBolt(ctx, x1, y1, x2, y2, hue, chromaValue, melValue, beatPulse, depth, maxDepth) {
-    if (depth >= maxDepth) return;
+  // High energy / beat triggers new bolts
+  if (sBeat > 0.6 && Math.random() < 0.2 + totalEnergy * 0.3 && lightningState.bolts.length < 15) {
+    const idx = Math.floor(Math.random() * 12);
+    lightningState.bolts.push({
+      id: Math.random(),
+      startTime: time,
+      duration: 0.1 + Math.random() * 0.2,
+      chromaIdx: idx,
+      angle: Math.random() * Math.PI * 2,
+      startX: (Math.random() - 0.5) * 50, // Slight offset from center
+      startY: (Math.random() - 0.5) * 50,
+      complexity: 3 + Math.floor(sChroma[idx] * 5)
+    });
+  }
+
+  // Filter out dead bolts
+  lightningState.bolts = lightningState.bolts.filter(b => time - b.startTime < b.duration);
+
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.globalCompositeOperation = 'lighter';
+  
+  // Ambient radial flash on beats
+  if (sBeat > 0.7) {
+    const flashGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, maxTravel);
+    flashGrad.addColorStop(0, `hsla(0, 0%, 100%, ${sBeat * 0.15})`);
+    flashGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = flashGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, maxTravel, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Draw each active bolt
+  lightningState.bolts.forEach(bolt => {
+    const age = (time - bolt.startTime) / bolt.duration;
+    const chromaValue = sChroma[bolt.chromaIdx];
+    const hue = CHROMA_HUES[bolt.chromaIdx];
+    const mVal = (sMel[bolt.chromaIdx % sMel.length] + 15) / 15;
     
-    const segments = 5 + Math.floor(melValue * 5);
+    // Bolt structure
+    const travel = maxTravel * mVal * (0.6 + Math.random() * 0.4);
+    const endX = Math.cos(bolt.angle) * travel;
+    const endY = Math.sin(bolt.angle) * travel;
+    
+    drawBolt(ctx, bolt.startX, bolt.startY, endX, endY, hue, chromaValue, age, 0, 3);
+  });
+
+  ctx.restore();
+  drawWaveLabels(ctx, width, height, chroma);
+
+  // Recursive bolt drawing logic
+  function drawBolt(ctx, x1, y1, x2, y2, hue, chromaValue, age, depth, maxDepth) {
+    if (depth > maxDepth) return;
+    
+    const segments = 4 + Math.floor(chromaValue * 6);
     const points = [{ x: x1, y: y1 }];
     
-    // Generate jagged path
     for (let i = 1; i <= segments; i++) {
       const t = i / segments;
-      const baseX = x1 + (x2 - x1) * t;
-      const baseY = y1 + (y2 - y1) * t;
+      const bx = x1 + (x2 - x1) * t;
+      const by = y1 + (y2 - y1) * t;
       
-      // Add randomness (more at middle, less at ends)
-      const jitter = Math.sin(t * Math.PI) * 40 * melValue;
-      const offsetX = (Math.random() - 0.5) * jitter * 2;
-      
-      points.push({ x: baseX + offsetX, y: baseY });
+      // Jitter based on bolt age and depth
+      const jitter = (1 - age) * 50 * (1 / (depth + 1));
+      points.push({
+        x: bx + (Math.random() - 0.5) * jitter,
+        y: by + (Math.random() - 0.5) * jitter
+      });
     }
+
+    const alpha = (1 - age) * (0.9 - depth * 0.2);
+    const lineWidth = (3 - depth * 0.7) * (0.6 + chromaValue);
     
-    // Draw main bolt
-    const alpha = 0.6 + chromaValue * 0.4 - depth * 0.15;
-    const lineWidth = (3 - depth * 0.5) * (1 + beatPulse * 0.5);
-    
-    // Outer glow
-    ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${alpha * 0.3})`;
-    ctx.lineWidth = lineWidth * 3;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    
+    // Outer Glow
+    ctx.shadowBlur = 12 * (1 - age);
+    ctx.shadowColor = `hsla(${hue}, 100%, 70%, 0.9)`;
+    ctx.strokeStyle = `hsla(${hue}, 100%, 80%, ${alpha})`;
+    ctx.lineWidth = lineWidth;
+    
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-      ctx.lineTo(points[i].x, points[i].y);
-    }
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
     ctx.stroke();
     
-    // Core bolt
-    ctx.strokeStyle = `hsla(${hue}, 90%, ${60 + chromaValue * 20}%, ${alpha})`;
-    ctx.lineWidth = lineWidth;
-    ctx.shadowColor = `hsla(${hue}, 100%, 80%, 0.8)`;
-    ctx.shadowBlur = 15 * chromaValue;
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-      ctx.lineTo(points[i].x, points[i].y);
-    }
-    ctx.stroke();
     ctx.shadowBlur = 0;
     
-    // Bright core
-    ctx.strokeStyle = `hsla(${hue}, 50%, 95%, ${alpha * 0.8})`;
-    ctx.lineWidth = lineWidth * 0.3;
+    // High-energy Core
+    ctx.strokeStyle = `hsla(${hue}, 50%, 100%, ${alpha})`;
+    ctx.lineWidth = lineWidth * 0.4;
     ctx.stroke();
-    
-    // Branch at random points (more branches with higher mel)
-    if (depth < maxDepth - 1 && melValue > 0.3) {
-      const branchChance = 0.3 + melValue * 0.3;
-      for (let i = 1; i < points.length - 1; i++) {
-        if (Math.random() < branchChance) {
-          const branchDir = Math.random() > 0.5 ? 1 : -1;
-          const branchLen = 30 + melValue * 50;
-          const branchX = points[i].x + branchDir * branchLen;
-          const branchY = points[i].y + branchLen * 0.7;
-          drawBolt(ctx, points[i].x, points[i].y, branchX, branchY,
-                   (hue + 30) % 360, chromaValue * 0.7, melValue * 0.6, beatPulse, depth + 1, maxDepth);
-        }
+
+    // Branching logic
+    if (depth < maxDepth && Math.random() < 0.4 * (1 - depth * 0.2)) {
+      const bAge = age + 0.05; 
+      if (bAge < 1) {
+        const branchAngle = Math.atan2(y2 - y1, x2 - x1) + (Math.random() - 0.5) * 1.5;
+        const branchLen = 40 + Math.random() * 60;
+        const bx2 = points[points.length-1].x + Math.cos(branchAngle) * branchLen;
+        const by2 = points[points.length-1].y + Math.sin(branchAngle) * branchLen;
+        drawBolt(ctx, points[points.length-1].x, points[points.length-1].y, bx2, by2, 
+                 (hue + 30) % 360, chromaValue, bAge, depth + 1, maxDepth);
       }
     }
   }
-  
-  drawWaveLabels(ctx, width, height, chroma);
 }
 
 /**
@@ -2730,133 +3025,150 @@ function drawCosmicNebulaWave(ctx, width, height, chroma, mel, beatPulse, time) 
  */
 function drawSoundTornadoWave(ctx, width, height, chroma, mel, beatPulse, time) {
   const settings = getEffectiveWaveformSettings('sound_tornado');
-  const centerX = width / 2;
-  // basePosition controls where the tornado base is
-  const baseY = height * (settings.basePosition / 100);
-  // maxAmplitude controls tornado height (how far up it reaches)
-  const tornadoHeight = height * (settings.maxAmplitude / 100);
-  const topY = baseY - tornadoHeight;
   
-  // Tornado parameters
-  const baseWidth = 150 + beatPulse * 50;
-  const topWidth = 20 + beatPulse * 10;
-  
-  // Calculate average mel for overall intensity
-  const avgMel = mel ? mel.reduce((a, b) => a + b, 0) / mel.length : 0;
-  const intensity = Math.max(0.3, (avgMel + 10) / 10);
-  
-  // Draw tornado layers (back to front)
-  for (let layer = 2; layer >= 0; layer--) {
-    const layerOffset = layer * 15;
+  // Determine number of tornados based on screen width/height
+  const isLandscape = width > height;
+  const numTornados = isLandscape ? 3 : 2;
+  const spacingX = width / numTornados;
+
+  for (let tIdx = 0; tIdx < numTornados; tIdx++) {
+    const centerX = spacingX * (tIdx + 0.5);
+    const tOffset = tIdx * Math.PI * 0.5; // Offset for each tornado
+    const tTime = time + tIdx * 10; // Time offset for particles/rotation
+
+    // basePosition controls where the tornado base is
+    const baseY = height * (settings.basePosition / 100);
+    // maxAmplitude controls tornado height (how far up it reaches)
+    const tornadoHeight = height * (settings.maxAmplitude / 100);
     
-    // Draw spiral bands
-    const numBands = 20;
-    for (let band = 0; band < numBands; band++) {
-      const t = band / numBands;
-      const y = baseY - t * tornadoHeight;
+    // Tornado parameters
+    const baseWidth = (spacingX * 0.4) + beatPulse * 50;
+    const topWidth = (spacingX * 0.05) + beatPulse * 10;
+    
+    // Calculate average mel for overall intensity
+    const avgMel = mel ? mel.reduce((a, b) => a + b, 0) / mel.length : 0;
+    const intensity = Math.max(0.3, (avgMel + 10) / 10);
+    
+    // Draw tornado layers (back to front)
+    for (let layer = 2; layer >= 0; layer--) {
+      const layerOffset = layer * 15;
       
-      // Width narrows toward top
-      const widthAtY = baseWidth * (1 - t * 0.85) + topWidth * t * 0.85;
-      
-      const chromaIdx = band % 12;
+      // Draw spiral bands
+      const numBands = 20;
+      for (let band = 0; band < numBands; band++) {
+        const t = band / numBands;
+        const y = baseY - t * tornadoHeight;
+        
+        // Width narrows toward top
+        const widthAtY = baseWidth * (1 - t * 0.85) + topWidth * t * 0.85;
+        
+        const chromaIdx = (band + tIdx * 4) % 12;
+        const chromaValue = chroma[chromaIdx] || 0.3;
+        const hue = CHROMA_HUES[chromaIdx];
+        
+        // Spiral rotation
+        const spiralAngle = t * Math.PI * 6 + tTime * 3 * (1 + t);
+        const spiralOffset = Math.sin(spiralAngle) * widthAtY * 0.3;
+        
+        // Band height based on mel
+        const melIdx = Math.floor(t * (mel?.length || 1));
+        const melValue = mel ? Math.max(0.1, (mel[melIdx] + 10) / 10) : 0.3;
+        const bandHeight = 8 + melValue * 15;
+        
+        const x1 = centerX + spiralOffset - widthAtY / 2 + layerOffset;
+        const x2 = centerX + spiralOffset + widthAtY / 2 + layerOffset;
+        
+        // Gradient for depth
+        const gradient = ctx.createLinearGradient(x1, y, x2, y);
+        const alpha = (0.3 + chromaValue * 0.4) * (1 - layer * 0.2);
+        const lightness = 50 + chromaValue * 20 - layer * 10;
+        
+        gradient.addColorStop(0, `hsla(${hue}, 70%, ${lightness - 10}%, ${alpha * 0.3})`);
+        gradient.addColorStop(0.3, `hsla(${hue}, 80%, ${lightness}%, ${alpha})`);
+        gradient.addColorStop(0.7, `hsla(${hue}, 80%, ${lightness}%, ${alpha})`);
+        gradient.addColorStop(1, `hsla(${hue}, 70%, ${lightness - 10}%, ${alpha * 0.3})`);
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.ellipse(centerX + spiralOffset + layerOffset, y, widthAtY / 2, bandHeight / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    // Draw debris particles spiraling around
+    const numDebris = 30; // Slightly reduced for multi-instance performance
+    for (let i = 0; i < numDebris; i++) {
+      const chromaIdx = (i + tIdx * 3) % 12;
       const chromaValue = chroma[chromaIdx] || 0.3;
       const hue = CHROMA_HUES[chromaIdx];
       
-      // Spiral rotation
-      const spiralAngle = t * Math.PI * 6 + time * 3 * (1 + t);
-      const spiralOffset = Math.sin(spiralAngle) * widthAtY * 0.3;
+      // Particle height cycles
+      const cycleSpeed = 0.3 + (i % 5) * 0.1;
+      const heightT = ((tTime * cycleSpeed + i * 0.2) % 1);
+      const y = baseY - heightT * tornadoHeight;
       
-      // Band height based on mel
-      const melIdx = Math.floor(t * (mel?.length || 1));
-      const melValue = mel ? Math.max(0.1, (mel[melIdx] + 10) / 10) : 0.3;
-      const bandHeight = 8 + melValue * 15;
+      // Width at this height
+      const widthAtY = baseWidth * (1 - heightT * 0.85) + topWidth * heightT * 0.85;
       
-      const x1 = centerX + spiralOffset - widthAtY / 2 + layerOffset;
-      const x2 = centerX + spiralOffset + widthAtY / 2 + layerOffset;
+      // Spiral around
+      const spiralAngle = heightT * Math.PI * 8 + i * 0.5 + tTime * 2;
+      const radius = widthAtY * 0.6 + Math.sin(tTime * 3 + i) * 20;
       
-      // Gradient for depth
-      const gradient = ctx.createLinearGradient(x1, y, x2, y);
-      const alpha = (0.3 + chromaValue * 0.4) * (1 - layer * 0.2);
-      const lightness = 50 + chromaValue * 20 - layer * 10;
+      const x = centerX + Math.cos(spiralAngle) * radius;
+      const particleY = y + Math.sin(spiralAngle * 2) * 10;
       
-      gradient.addColorStop(0, `hsla(${hue}, 70%, ${lightness - 10}%, ${alpha * 0.3})`);
-      gradient.addColorStop(0.3, `hsla(${hue}, 80%, ${lightness}%, ${alpha})`);
-      gradient.addColorStop(0.7, `hsla(${hue}, 80%, ${lightness}%, ${alpha})`);
-      gradient.addColorStop(1, `hsla(${hue}, 70%, ${lightness - 10}%, ${alpha * 0.3})`);
+      const size = 2 + chromaValue * 4 + beatPulse * 2;
+      const alpha = 0.4 + chromaValue * 0.5;
+      
+      // Particle glow
+      const gradient = ctx.createRadialGradient(x, particleY, 0, x, particleY, size * 3);
+      gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${alpha})`);
+      gradient.addColorStop(0.5, `hsla(${hue}, 80%, 50%, ${alpha * 0.5})`);
+      gradient.addColorStop(1, 'transparent');
       
       ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.ellipse(centerX + spiralOffset + layerOffset, y, widthAtY / 2, bandHeight / 2, 0, 0, Math.PI * 2);
+      ctx.arc(x, particleY, size * 3, 0, Math.PI * 2);
       ctx.fill();
+      
+      // Motion trail
+      ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${alpha * 0.4})`;
+      ctx.lineWidth = size * 0.5;
+      ctx.beginPath();
+      for (let trail = 0; trail < 5; trail++) {
+        const trailT = heightT - trail * 0.02;
+        if (trailT < 0) continue;
+        const trailY = baseY - trailT * tornadoHeight;
+        const trailWidth = baseWidth * (1 - trailT * 0.85) + topWidth * trailT * 0.85;
+        const trailAngle = trailT * Math.PI * 8 + i * 0.5 + tTime * 2;
+        const trailRadius = trailWidth * 0.6;
+        const trailX = centerX + Math.cos(trailAngle) * trailRadius;
+        if (trail === 0) ctx.moveTo(trailX, trailY);
+        else ctx.lineTo(trailX, trailY);
+      }
+      ctx.stroke();
     }
-  }
-  
-  // Draw debris particles spiraling around
-  const numDebris = 40;
-  for (let i = 0; i < numDebris; i++) {
-    const chromaIdx = i % 12;
-    const chromaValue = chroma[chromaIdx] || 0.3;
-    const hue = CHROMA_HUES[chromaIdx];
     
-    // Particle height cycles
-    const cycleSpeed = 0.3 + (i % 5) * 0.1;
-    const heightT = ((time * cycleSpeed + i * 0.2) % 1);
-    const y = baseY - heightT * tornadoHeight;
-    
-    // Width at this height
-    const widthAtY = baseWidth * (1 - heightT * 0.85) + topWidth * heightT * 0.85;
-    
-    // Spiral around
-    const spiralAngle = heightT * Math.PI * 8 + i * 0.5 + time * 2;
-    const radius = widthAtY * 0.6 + Math.sin(time * 3 + i) * 20;
-    
-    const x = centerX + Math.cos(spiralAngle) * radius;
-    const particleY = y + Math.sin(spiralAngle * 2) * 10;
-    
-    const size = 2 + chromaValue * 4 + beatPulse * 2;
-    const alpha = 0.4 + chromaValue * 0.5;
-    
-    // Particle glow
-    const gradient = ctx.createRadialGradient(x, particleY, 0, x, particleY, size * 3);
-    gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${alpha})`);
-    gradient.addColorStop(0.5, `hsla(${hue}, 80%, 50%, ${alpha * 0.5})`);
-    gradient.addColorStop(1, 'transparent');
-    
-    ctx.fillStyle = gradient;
+    // Ground dust cloud
+    const dustGradient = ctx.createRadialGradient(centerX, baseY, 0, centerX, baseY, baseWidth * 1.5);
+    dustGradient.addColorStop(0, `rgba(100, 80, 60, ${0.4 * intensity})`);
+    dustGradient.addColorStop(0.5, `rgba(80, 60, 40, ${0.2 * intensity})`);
+    dustGradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = dustGradient;
     ctx.beginPath();
-    ctx.arc(x, particleY, size * 3, 0, Math.PI * 2);
+    ctx.ellipse(centerX, baseY, baseWidth * 1.5, 40 + beatPulse * 20, 0, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Motion trail
-    ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${alpha * 0.4})`;
-    ctx.lineWidth = size * 0.5;
-    ctx.beginPath();
-    for (let trail = 0; trail < 5; trail++) {
-      const trailT = heightT - trail * 0.02;
-      if (trailT < 0) continue;
-      const trailY = baseY - trailT * tornadoHeight;
-      const trailWidth = baseWidth * (1 - trailT * 0.85) + topWidth * trailT * 0.85;
-      const trailAngle = trailT * Math.PI * 8 + i * 0.5 + time * 2;
-      const trailRadius = trailWidth * 0.6;
-      const trailX = centerX + Math.cos(trailAngle) * trailRadius;
-      if (trail === 0) ctx.moveTo(trailX, trailY);
-      else ctx.lineTo(trailX, trailY);
-    }
-    ctx.stroke();
   }
-  
-  // Ground dust cloud
-  const dustGradient = ctx.createRadialGradient(centerX, baseY, 0, centerX, baseY, baseWidth * 1.5);
-  dustGradient.addColorStop(0, `rgba(100, 80, 60, ${0.4 * intensity})`);
-  dustGradient.addColorStop(0.5, `rgba(80, 60, 40, ${0.2 * intensity})`);
-  dustGradient.addColorStop(1, 'transparent');
-  ctx.fillStyle = dustGradient;
-  ctx.beginPath();
-  ctx.ellipse(centerX, baseY, baseWidth * 1.5, 40 + beatPulse * 20, 0, 0, Math.PI * 2);
-  ctx.fill();
   
   drawWaveLabels(ctx, width, height, chroma);
 }
+
+let geoMandalaState = {
+  sChroma: new Float32Array(12).fill(0),
+  sMel: null,
+  sBeat: 0,
+  rotation: 0
+};
 
 /**
  * Geometric Mandala 🔮 - Sacred geometry that rotates with music
@@ -2865,139 +3177,156 @@ function drawSoundTornadoWave(ctx, width, height, chroma, mel, beatPulse, time) 
 function drawGeoMandalaWave(ctx, width, height, chroma, mel, beatPulse, time) {
   const settings = getEffectiveWaveformSettings('geo_mandala');
   const centerX = width / 2;
-  // basePosition controls vertical center of the mandala
   const centerY = height * (settings.basePosition / 100);
-  // maxAmplitude controls the radius of the mandala
   const maxRadius = Math.min(width, height) * (settings.maxAmplitude / 100);
   
+  // Initialize state
+  if (!geoMandalaState.sMel || (mel && geoMandalaState.sMel.length !== mel.length)) {
+    geoMandalaState.sMel = new Float32Array(mel ? mel.length : 1).fill(0);
+  }
+
+  // Smooth values
+  const lerp = 0.08;
+  geoMandalaState.sBeat += (beatPulse - geoMandalaState.sBeat) * lerp;
+  for (let i = 0; i < 12; i++) {
+    geoMandalaState.sChroma[i] += (chroma[i] - geoMandalaState.sChroma[i]) * lerp;
+  }
+  if (mel) {
+    for (let i = 0; i < mel.length; i++) {
+      geoMandalaState.sMel[i] += (mel[i] - geoMandalaState.sMel[i]) * lerp;
+    }
+  }
+
+  const sChroma = geoMandalaState.sChroma;
+  const sBeat = geoMandalaState.sBeat;
+  const sMel = geoMandalaState.sMel;
+
   ctx.save();
   ctx.translate(centerX, centerY);
+  ctx.globalCompositeOperation = 'lighter';
   
-  // Calculate overall rotation based on cumulative chroma
-  const totalChroma = chroma.reduce((a, b) => a + b, 0);
-  const baseRotation = time * 0.2 + totalChroma * 0.1;
-  
-  // Draw layers from back to front
-  const numLayers = 6;
+  // Update rotation with momentum
+  geoMandalaState.rotation += 0.005 + sBeat * 0.015;
+
+  const numLayers = 8;
   for (let layer = numLayers - 1; layer >= 0; layer--) {
     const layerT = layer / numLayers;
-    const layerRadius = maxRadius * (0.3 + layerT * 0.7) * (1 + beatPulse * 0.15);
+    const cIdx = (layer * 2) % 12;
+    const hue = CHROMA_HUES[cIdx];
+    const cVal = sChroma[cIdx];
+    const mVal = (sMel[layer % sMel.length] + 15) / 15;
     
-    const chromaIdx = layer * 2 % 12;
-    const chromaValue = chroma[chromaIdx] || 0.3;
-    const hue = CHROMA_HUES[chromaIdx];
-    
-    // Get mel for this layer
-    const melIdx = Math.floor(layerT * (mel?.length || 1));
-    const melValue = mel ? Math.max(0.3, (mel[melIdx] + 10) / 10) : 0.5;
-    
-    // Rotation speed varies by layer
-    const rotation = baseRotation * (1 + layer * 0.3) * (layer % 2 === 0 ? 1 : -1);
+    // Smooth radius pulsing
+    const baseR = maxRadius * (0.2 + layerT * 0.8);
+    const layerRadius = baseR * (1 + sBeat * 0.15);
     
     ctx.save();
-    ctx.rotate(rotation);
+    const layerRot = geoMandalaState.rotation * (1 + layer * 0.2) * (layer % 2 === 0 ? 1 : -1);
+    ctx.rotate(layerRot);
     
-    // Different geometric shapes per layer
-    const shapeType = layer % 3;
-    const numSides = 3 + layer; // Triangle, square, pentagon, hexagon, etc.
-    const numRepeats = 6 + layer * 2;
-    
-    for (let repeat = 0; repeat < numRepeats; repeat++) {
-      const repeatAngle = (repeat / numRepeats) * Math.PI * 2;
-      ctx.save();
-      ctx.rotate(repeatAngle);
-      
-      const alpha = (0.3 + chromaValue * 0.4) * melValue;
-      const lightness = 50 + chromaValue * 25;
-      
-      if (shapeType === 0) {
-        // Petals
-        const petalLength = layerRadius * 0.4 * melValue;
-        const petalWidth = petalLength * 0.3;
-        
-        ctx.beginPath();
-        ctx.moveTo(layerRadius - petalLength, 0);
-        ctx.quadraticCurveTo(layerRadius - petalLength / 2, -petalWidth, layerRadius, 0);
-        ctx.quadraticCurveTo(layerRadius - petalLength / 2, petalWidth, layerRadius - petalLength, 0);
-        ctx.closePath();
-        
-        const gradient = ctx.createLinearGradient(layerRadius - petalLength, 0, layerRadius, 0);
-        gradient.addColorStop(0, `hsla(${hue}, 70%, ${lightness}%, ${alpha * 0.5})`);
-        gradient.addColorStop(1, `hsla(${hue}, 80%, ${lightness + 10}%, ${alpha})`);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-        
-        ctx.strokeStyle = `hsla(${hue}, 90%, ${lightness + 20}%, ${alpha * 0.8})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        
-      } else if (shapeType === 1) {
-        // Polygons
-        const polyRadius = layerRadius * 0.15 * melValue;
-        const polyX = layerRadius * 0.7;
-        
-        ctx.beginPath();
-        for (let side = 0; side <= numSides; side++) {
-          const sideAngle = (side / numSides) * Math.PI * 2 + time * 0.5;
-          const px = polyX + Math.cos(sideAngle) * polyRadius;
-          const py = Math.sin(sideAngle) * polyRadius;
-          if (side === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        
-        ctx.fillStyle = `hsla(${hue}, 75%, ${lightness}%, ${alpha * 0.6})`;
-        ctx.fill();
-        ctx.strokeStyle = `hsla(${hue}, 85%, ${lightness + 15}%, ${alpha})`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        
-      } else {
-        // Lines radiating outward
-        const innerR = layerRadius * 0.4;
-        const outerR = layerRadius * 0.9;
-        
-        ctx.beginPath();
-        ctx.moveTo(innerR, 0);
-        ctx.lineTo(outerR, 0);
-        
-        ctx.strokeStyle = `hsla(${hue}, 80%, ${lightness}%, ${alpha * 0.8})`;
-        ctx.lineWidth = 2 * melValue;
-        ctx.stroke();
-        
-        // Diamond at end
-        const diamondSize = 5 * melValue;
+    ctx.shadowBlur = 10 + cVal * 20;
+    ctx.shadowColor = `hsla(${hue}, 100%, 65%, ${0.2 + cVal * 0.4})`;
+
+    const numPoints = 6 + (layer * 2);
+    const angleStep = (Math.PI * 2) / numPoints;
+
+    if (layer >= 6) {
+      // OUTER: Spirograph Curves
+      ctx.beginPath();
+      const curvePoints = 120;
+      for (let i = 0; i <= curvePoints; i++) {
+        const theta = (i / curvePoints) * Math.PI * 2;
+        const r1 = layerRadius * 0.7;
+        const r2 = layerRadius * 0.3 * mVal;
+        const x = (r1 + r2) * Math.cos(theta) - r2 * Math.cos(((r1 + r2) / r2) * theta);
+        const y = (r1 + r2) * Math.sin(theta) - r2 * Math.sin(((r1 + r2) / r2) * theta);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = `hsla(${hue}, 80%, 70%, ${0.1 + cVal * 0.5})`;
+      ctx.lineWidth = 1 + cVal * 2;
+      ctx.stroke();
+    } 
+    else if (layer >= 3) {
+      // MID: Blooming Petals/Clovers
+      for (let p = 0; p < numPoints; p++) {
+        const angle = p * angleStep;
         ctx.save();
-        ctx.translate(outerR, 0);
-        ctx.rotate(Math.PI / 4);
-        ctx.fillStyle = `hsla(${hue}, 85%, ${lightness + 10}%, ${alpha})`;
-        ctx.fillRect(-diamondSize / 2, -diamondSize / 2, diamondSize, diamondSize);
+        ctx.rotate(angle);
+        
+        const pLen = layerRadius * 0.4 * mVal;
+        const pWid = pLen * 0.5;
+        
+        ctx.beginPath();
+        ctx.moveTo(layerRadius - pLen, 0);
+        ctx.bezierCurveTo(
+          layerRadius - pLen / 2, -pWid,
+          layerRadius + pWid / 2, -pWid / 2,
+          layerRadius, 0
+        );
+        ctx.bezierCurveTo(
+          layerRadius + pWid / 2, pWid / 2,
+          layerRadius - pLen / 2, pWid,
+          layerRadius - pLen, 0
+        );
+        
+        const grad = ctx.createLinearGradient(layerRadius - pLen, 0, layerRadius, 0);
+        grad.addColorStop(0, `hsla(${hue}, 100%, 60%, 0)`);
+        grad.addColorStop(0.5, `hsla(${(hue + 30) % 360}, 100%, 75%, ${0.2 + cVal * 0.5})`);
+        grad.addColorStop(1, `hsla(${hue}, 100%, 90%, 0)`);
+        
+        ctx.fillStyle = grad;
+        ctx.fill();
+        
+        // Glowing veins
+        ctx.strokeStyle = `hsla(${hue}, 100%, 95%, ${0.1 + cVal * 0.2})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(layerRadius - pLen, 0);
+        ctx.lineTo(layerRadius, 0);
+        ctx.stroke();
+        
         ctx.restore();
       }
+    } 
+    else {
+      // INNER: Pulsing Crystalline Stars
+      ctx.beginPath();
+      for (let p = 0; p < numPoints * 2; p++) {
+        const r = (p % 2 === 0) ? layerRadius : (layerRadius * 0.3 * mVal);
+        const a = p * (angleStep / 2);
+        ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
+      ctx.closePath();
       
-      ctx.restore();
+      const starAlpha = 0.1 + cVal * 0.4;
+      const starGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, layerRadius);
+      starGrad.addColorStop(0, `hsla(${hue}, 100%, 90%, ${starAlpha})`);
+      starGrad.addColorStop(1, `hsla(${(hue + 40) % 360}, 100%, 50%, 0)`);
+      
+      ctx.fillStyle = starGrad;
+      ctx.fill();
+      ctx.strokeStyle = `hsla(${hue}, 100%, 95%, ${0.5 + cVal * 0.5})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
-    
-    // Center ring for this layer
-    ctx.strokeStyle = `hsla(${hue}, 70%, ${50 + chromaValue * 20}%, ${0.2 + chromaValue * 0.3})`;
-    ctx.lineWidth = 1 + chromaValue * 2;
-    ctx.beginPath();
-    ctx.arc(0, 0, layerRadius * 0.4, 0, Math.PI * 2);
-    ctx.stroke();
     
     ctx.restore();
   }
+
+  // Divine Core
+  const coreRad = 40 + sBeat * 50;
+  const coreGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, coreRad);
+  coreGrad.addColorStop(0, '#fff');
+  coreGrad.addColorStop(0.2, `hsla(${time * 40 % 360}, 100%, 85%, 0.9)`);
+  coreGrad.addColorStop(0.5, `hsla(${time * 40 % 360}, 100%, 60%, 0.3)`);
+  coreGrad.addColorStop(1, 'transparent');
   
-  // Central focal point
-  const centerGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 50 + beatPulse * 20);
-  centerGlow.addColorStop(0, `rgba(255, 255, 255, ${0.6 + beatPulse * 0.3})`);
-  centerGlow.addColorStop(0.3, `hsla(${CHROMA_HUES[Math.floor(time * 2) % 12]}, 80%, 70%, 0.4)`);
-  centerGlow.addColorStop(1, 'transparent');
-  ctx.fillStyle = centerGlow;
+  ctx.fillStyle = coreGrad;
   ctx.beginPath();
-  ctx.arc(0, 0, 50 + beatPulse * 20, 0, Math.PI * 2);
+  ctx.arc(0, 0, coreRad, 0, Math.PI * 2);
   ctx.fill();
-  
+
   ctx.restore();
   
   drawWaveLabels(ctx, width, height, chroma);
@@ -3129,6 +3458,135 @@ function drawGlitchArtWave(ctx, width, height, chroma, mel, beatPulse, time) {
     }
   }
   
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+/**
+ * Glitched Art 2 🖥️ - The Cyber-Sequel. Deep data corruption, pixel shards, and temporal jitter.
+ * Improved motion state, multi-axial displacement, and hue-cycle malfunctions.
+ */
+function drawGlitchArt2Wave(ctx, width, height, chroma, mel, beatPulse, time) {
+  if (!chroma || chroma.length !== 12) return;
+  
+  const settings = getEffectiveWaveformSettings('glitch_art_2');
+  const intensity = (settings.maxAmplitude / 80) * (0.5 + beatPulse);
+  
+  // Update State
+  const lerp = 0.15;
+  glitch2State.sBeat += (beatPulse - glitch2State.sBeat) * lerp;
+  for (let i = 0; i < 12; i++) {
+    glitch2State.sChroma[i] += (chroma[i] - glitch2State.sChroma[i]) * lerp;
+  }
+  
+  // Dominant Mood
+  let dominantIdx = 0;
+  let maxV = 0;
+  for (let i = 0; i < 12; i++) {
+    if (glitch2State.sChroma[i] > maxV) {
+      maxV = glitch2State.sChroma[i];
+      dominantIdx = i;
+    }
+  }
+  const baseHue = CHROMA_HUES[dominantIdx];
+
+  ctx.save();
+  
+  // 1. Screen Shake / Temporal Jitter
+  if (glitch2State.sBeat > 0.6) {
+    const shakeX = (Math.random() - 0.5) * 40 * glitch2State.sBeat;
+    const shakeY = (Math.random() - 0.5) * 20 * glitch2State.sBeat;
+    ctx.translate(shakeX, shakeY);
+    
+    // RGB Split Overlay (Flash)
+    if (Math.random() > 0.8) {
+      ctx.fillStyle = `rgba(255, 0, 0, 0.1)`;
+      ctx.fillRect(0, 0, width, height);
+    }
+  }
+
+  // 2. Data Corruption Blocks (Background Layer)
+  const numBlocks = 10 + Math.floor(glitch2State.sBeat * 20);
+  for (let i = 0; i < numBlocks; i++) {
+    const t = (time * 15 + i * 7) % 100;
+    if (t < 5) { // Only manifest briefly
+      const blockX = Math.random() * width;
+      const blockY = Math.random() * height;
+      const blockW = 20 + Math.random() * 200 * intensity;
+      const blockH = 2 + Math.random() * 50 * intensity;
+      
+      const hue = (baseHue + Math.random() * 60 - 30 + 360) % 360;
+      ctx.fillStyle = `hsla(${hue}, 90%, 50%, ${0.2 + Math.random() * 0.3})`;
+      ctx.fillRect(blockX, blockY, blockW, blockH);
+      
+      // Horizontal "Scanline" spill from block
+      if (Math.random() > 0.5) {
+        ctx.fillStyle = `rgba(255, 255, 255, 0.1)`;
+        ctx.fillRect(0, blockY + blockH/2, width, 1);
+      }
+    }
+  }
+
+  // 3. Pixel Shards (Procedural Waveform)
+  const numShards = 40;
+  const shardWidth = width / numShards;
+  
+  for (let i = 0; i < numShards; i++) {
+    const mIdx = Math.floor((i / numShards) * (mel?.length || 1));
+    const mVal = mel ? (mel[mIdx] + 10) / 10 : 0.5;
+    const cIdx = i % 12;
+    const cVal = glitch2State.sChroma[cIdx];
+    
+    const x = i * shardWidth;
+    const baseY = height * (settings.basePosition / 100);
+    const h = (mVal * 150 + cVal * 100) * intensity;
+    
+    // Jitter shard X position
+    const jitterX = Math.sin(time * 20 + i) * 10 * glitch2State.sBeat;
+    
+    // Draw Shard
+    const hue = (CHROMA_HUES[cIdx] + time * 20) % 360;
+    const grad = ctx.createLinearGradient(x, baseY - h, x, baseY + h);
+    grad.addColorStop(0, `hsla(${hue}, 100%, 60%, 0)`);
+    grad.addColorStop(0.5, `hsla(${hue}, 100%, 70%, ${0.6 + cVal * 0.4})`);
+    grad.addColorStop(1, `hsla(${hue}, 100%, 60%, 0)`);
+    
+    ctx.fillStyle = grad;
+    ctx.fillRect(x + jitterX, baseY - h, shardWidth - 2, h * 2);
+
+    // Occasional "dead pixel" vertical line
+    if (i % 7 === 0 && Math.random() > 0.95) {
+        ctx.fillStyle = `hsla(${hue}, 100%, 80%, 0.4)`;
+        ctx.fillRect(x + jitterX, 0, 1, height);
+    }
+  }
+
+  // 4. Ghosting / Afterimage (Simple Simulated)
+  if (glitch2State.sBeat > 0.7 && Math.random() > 0.5) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.3;
+    const ghostOffset = 15;
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(ghostOffset, 0, 2, height);
+    ctx.fillStyle = '#00ffff';
+    ctx.fillRect(-ghostOffset, 0, 2, height);
+    ctx.restore();
+  }
+
+  // 5. Binary / Hex Static (Occasional Overlay)
+  if (time % 2 > 1.8) {
+    ctx.font = '9px monospace';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    const hexChars = '0123456789ABCDEF';
+    for(let j=0; j<10; j++) {
+        const hx = Math.random() * width;
+        const hy = Math.random() * height;
+        const char = hexChars[Math.floor(Math.random()*hexChars.length)];
+        ctx.fillText(char, hx, hy);
+    }
+  }
+
+  ctx.restore();
   drawWaveLabels(ctx, width, height, chroma);
 }
 
@@ -3413,154 +3871,175 @@ function drawFireworksWave(ctx, width, height, chroma, mel, beatPulse, time) {
   drawWaveLabels(ctx, width, height, chroma);
 }
 
+
 /**
- * Ocean Waves 🌊 - Rolling ocean waves with foam and spray
- * Wave height and intensity based on mel, colors from chroma
+ * Ocean Waves 🌊 - Atmospheric sea with reactive sun/moon and multi-layer parallax waves
+ * Uses state-based smoothing for fluid swells and persistent foam.
  */
 function drawOceanWavesWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
   
   const settings = getEffectiveWaveformSettings('ocean_waves');
   // basePosition controls where the ocean sits
-  const oceanBaseY = height * (settings.basePosition / 100);
+  const baseY = height * (settings.basePosition / 100);
   // maxAmplitude controls wave height
-  const waveHeight = height * (settings.maxAmplitude / 100);
-  
-  // Find dominant color for water
-  let dominantIdx = 0;
-  let maxVal = 0;
+  const maxAmp = height * (settings.maxAmplitude / 100);
+
+  // Initialize/Update state
+  if (!oceanState.sMel || (mel && oceanState.sMel.length !== mel.length)) {
+    oceanState.sMel = new Float32Array(mel ? mel.length : 1).fill(0);
+  }
+  const lerp = 0.08;
+  oceanState.sBeat += (beatPulse - oceanState.sBeat) * lerp;
   for (let i = 0; i < 12; i++) {
-    if ((chroma[i] || 0) > maxVal) {
-      maxVal = chroma[i];
-      dominantIdx = i;
+    oceanState.sChroma[i] += (chroma[i] - oceanState.sChroma[i]) * lerp;
+  }
+  if (mel) {
+    for (let i = 0; i < mel.length; i++) {
+      oceanState.sMel[i] += (mel[i] - oceanState.sMel[i]) * lerp;
     }
   }
-  const waterHue = CHROMA_HUES[dominantIdx];
+
+  // Determine dominant mood (Warm/Sunset vs Cool/Moonlight)
+  let energySum = 0;
+  let warmEnergy = 0; // Hues 0-60 (Red-Yellow)
+  let coolEnergy = 0; // Hues 180-240 (Blue-Cyan)
   
-  // Draw multiple wave layers from back to front
-  const numWaveLayers = 6;
+  for (let i = 0; i < 12; i++) {
+    const val = oceanState.sChroma[i];
+    energySum += val;
+    const hue = CHROMA_HUES[i];
+    if (hue <= 60 || hue >= 330) warmEnergy += val;
+    if (hue >= 180 && hue <= 270) coolEnergy += val;
+  }
   
-  for (let layer = 0; layer < numWaveLayers; layer++) {
-    const layerT = layer / numWaveLayers;
-    // Position waves between oceanBaseY - waveHeight and oceanBaseY
-    const baseY = (oceanBaseY - waveHeight) + layerT * waveHeight;
+  const isNight = coolEnergy > warmEnergy;
+  const avgEnergy = energySum / 12;
+
+  // 1. Draw Atmospheric Backdrop (Gradient Sky)
+  ctx.save();
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, baseY);
+  if (isNight) {
+    skyGrad.addColorStop(0, '#000814');
+    skyGrad.addColorStop(0.7, '#001d3d');
+    skyGrad.addColorStop(1, '#003566');
+  } else {
+    skyGrad.addColorStop(0, '#ff9e00');
+    skyGrad.addColorStop(0.5, '#ff6700');
+    skyGrad.addColorStop(1, '#ff0054');
+  }
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, width, baseY + 20);
+
+  // 2. Draw Celestial Body (Sun/Moon)
+  const celX = width * 0.75;
+  const celY = baseY * 0.4;
+  const celSize = 40 + oceanState.sBeat * 20;
+  
+  ctx.beginPath();
+  const celGrad = ctx.createRadialGradient(celX, celY, celSize * 0.2, celX, celY, celSize);
+  if (isNight) {
+    celGrad.addColorStop(0, '#fdfcf0');
+    celGrad.addColorStop(0.5, '#e2e2e2');
+    celGrad.addColorStop(1, 'rgba(226, 226, 226, 0)');
+  } else {
+    celGrad.addColorStop(0, '#ffffff');
+    celGrad.addColorStop(0.4, '#fff9c4');
+    celGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  }
+  ctx.fillStyle = celGrad;
+  ctx.arc(celX, celY, celSize, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3. Draw Water Layers (Parallax)
+  const layers = 5;
+  for (let l = 0; l < layers; l++) {
+    const layerDepth = (l + 1) / layers;
+    const layerY = baseY + (l * (height - baseY) / layers);
+    const layerFreq = 0.002 + l * 0.001;
+    const layerSpeed = time * (0.5 + l * 0.2);
     
-    const chromaIdx = (layer * 2) % 12;
-    const chromaValue = chroma[chromaIdx] || 0.3;
-    const layerHue = CHROMA_HUES[chromaIdx];
-    
-    // Get mel for wave height
-    const melIdx = Math.floor(layerT * (mel?.length || 1));
-    const melValue = mel ? Math.max(0.2, (mel[melIdx] + 10) / 10) : 0.4;
-    
-    // Wave amplitude increases for closer layers
-    const amplitude = 20 + layerT * 40 + melValue * 30 + beatPulse * 20;
-    const frequency = 2 + layer * 0.5;
-    const speed = 1.5 - layerT * 0.5; // Back layers move slower
-    
-    // Draw wave
+    // Wave height based on mel for specific frequency bands
+    const mIdx = Math.floor(l * (oceanState.sMel.length / layers));
+    const melBounce = (oceanState.sMel[mIdx] || 0) * 15;
+    const amplitude = (15 + l * 10) * (0.5 + oceanState.sBeat) + melBounce;
+
     ctx.beginPath();
     ctx.moveTo(0, height);
     
-    const numPoints = 60;
-    for (let i = 0; i <= numPoints; i++) {
-      const t = i / numPoints;
-      const x = t * width;
+    for (let x = 0; x <= width; x += 15) {
+      // Composition of 3 octaves
+      const noise1 = Math.sin(x * layerFreq + layerSpeed);
+      const noise2 = Math.sin(x * layerFreq * 2.5 - layerSpeed * 1.3) * 0.5;
+      const noise3 = Math.sin(x * layerFreq * 0.5 + layerSpeed * 0.7) * 1.5;
       
-      // Composite wave
-      const wave1 = Math.sin(t * Math.PI * frequency + time * speed) * amplitude;
-      const wave2 = Math.sin(t * Math.PI * frequency * 2.3 + time * speed * 1.4) * amplitude * 0.3;
-      const wave3 = Math.sin(t * Math.PI * frequency * 0.7 + time * speed * 0.8) * amplitude * 0.4;
-      
-      const y = baseY + wave1 + wave2 + wave3;
-      
-      if (i === 0) {
-        ctx.lineTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
+      const waveY = layerY + (noise1 + noise2 + noise3) * amplitude;
+      ctx.lineTo(x, waveY);
     }
     
     ctx.lineTo(width, height);
     ctx.closePath();
+
+    // Water Gradient
+    const waterGrad = ctx.createLinearGradient(0, layerY - amplitude, 0, height);
+    const h = isNight ? 210 : 200;
+    const s = isNight ? 80 : 70;
+    const l_val = isNight ? (20 + l * 5) : (30 + l * 8);
     
-    // Gradient for depth
-    const gradient = ctx.createLinearGradient(0, baseY - amplitude, 0, height);
-    const lightness = 35 + chromaValue * 20 + (1 - layerT) * 15;
-    const saturation = 60 + chromaValue * 30;
-    const alpha = 0.4 + layerT * 0.4;
-    
-    gradient.addColorStop(0, `hsla(${layerHue}, ${saturation}%, ${lightness + 20}%, ${alpha})`);
-    gradient.addColorStop(0.3, `hsla(${layerHue}, ${saturation}%, ${lightness}%, ${alpha})`);
-    gradient.addColorStop(1, `hsla(${layerHue}, ${saturation - 20}%, ${lightness - 15}%, ${alpha})`);
-    
-    ctx.fillStyle = gradient;
+    waterGrad.addColorStop(0, `hsla(${h}, ${s}%, ${l_val}%, 0.9)`);
+    waterGrad.addColorStop(1, `hsla(${h}, ${s + 10}%, ${l_val - 10}%, 1.0)`);
+    ctx.fillStyle = waterGrad;
     ctx.fill();
-    
-    // Wave crest foam
-    ctx.beginPath();
-    for (let i = 0; i <= numPoints; i++) {
-      const t = i / numPoints;
-      const x = t * width;
-      
-      const wave1 = Math.sin(t * Math.PI * frequency + time * speed) * amplitude;
-      const wave2 = Math.sin(t * Math.PI * frequency * 2.3 + time * speed * 1.4) * amplitude * 0.3;
-      const wave3 = Math.sin(t * Math.PI * frequency * 0.7 + time * speed * 0.8) * amplitude * 0.4;
-      
-      const y = baseY + wave1 + wave2 + wave3;
-      
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    
-    ctx.strokeStyle = `rgba(255, 255, 255, ${0.2 + chromaValue * 0.4})`;
-    ctx.lineWidth = 2 + chromaValue * 3;
+
+    // Specular Highlight on crests
+    ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + l * 0.1})`;
+    ctx.lineWidth = 1;
     ctx.stroke();
+
+    // Celestial Reflection on this layer
+    const reflectX = celX;
+    const reflectWidth = 60 + l * 40 + oceanState.sBeat * 30;
+    const reflectGrad = ctx.createRadialGradient(reflectX, layerY, 5, reflectX, layerY, reflectWidth);
+    const refColor = isNight ? '255, 255, 255' : '255, 240, 200';
+    reflectGrad.addColorStop(0, `rgba(${refColor}, ${0.3 + l * 0.1})`);
+    reflectGrad.addColorStop(1, `rgba(${refColor}, 0)`);
     
-    // Foam spray on wave peaks for front layers
-    if (layer >= numWaveLayers - 2 && chromaValue > 0.4) {
-      const numFoamParticles = 20;
-      for (let fp = 0; fp < numFoamParticles; fp++) {
-        const foamT = fp / numFoamParticles;
-        const foamX = foamT * width;
-        
-        const wave1 = Math.sin(foamT * Math.PI * frequency + time * speed) * amplitude;
-        const foamY = baseY + wave1 - 10;
-        
-        // Only add foam at wave peaks
-        const waveSlope = Math.cos(foamT * Math.PI * frequency + time * speed);
-        if (waveSlope > 0.6) {
-          // Use deterministic pseudo-random based on position and time
-          const seed = Math.sin(fp * 12.9898 + layer * 78.233 + Math.floor(time * 2));
-          const seed2 = Math.cos(fp * 43.758 + layer * 23.421 + Math.floor(time * 2));
-          
-          const foamSize = 2 + (seed * 0.5 + 0.5) * 3 * chromaValue;
-          const foamAlpha = 0.3 + (seed2 * 0.5 + 0.5) * 0.4;
-          const offsetX = seed * 15;
-          const offsetY = seed2 * 8;
-          
-          ctx.fillStyle = `rgba(255, 255, 255, ${foamAlpha})`;
-          ctx.beginPath();
-          ctx.arc(foamX + offsetX, foamY + offsetY, foamSize, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
+    ctx.fillStyle = reflectGrad;
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillRect(reflectX - reflectWidth / 2, layerY - 10, reflectWidth, 20);
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  // 4. Foam Particles
+  if (oceanState.foamParticles.length < 50 && oceanState.sBeat > 0.5) {
+    for (let i = 0; i < 3; i++) {
+      oceanState.foamParticles.push({
+        x: Math.random() * width,
+        y: baseY + Math.random() * (height - baseY),
+        vx: (Math.random() - 0.5) * 2,
+        vy: -0.5 - Math.random() * 1.5,
+        life: 1.0,
+        size: 1 + Math.random() * 3
+      });
     }
   }
-  
-  // Sun reflection on water
-  const sunX = width * 0.5;
-  const sunReflectionY = height * 0.4;
-  
-  for (let i = 0; i < 8; i++) {
-    const reflectY = sunReflectionY + i * 15 + Math.sin(time * 2 + i) * 5;
-    const reflectWidth = 40 - i * 4 + beatPulse * 10;
-    const reflectAlpha = 0.4 - i * 0.04;
-    
-    ctx.fillStyle = `hsla(${waterHue}, 40%, 90%, ${reflectAlpha})`;
-    ctx.fillRect(sunX - reflectWidth / 2, reflectY, reflectWidth, 3);
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  for (let i = oceanState.foamParticles.length - 1; i >= 0; i--) {
+    const p = oceanState.foamParticles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= 0.015;
+    if (p.life <= 0) {
+      oceanState.foamParticles.splice(i, 1);
+      continue;
+    }
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
   }
-  
+
+  ctx.restore();
   drawWaveLabels(ctx, width, height, chroma);
 }
 
@@ -3568,113 +4047,112 @@ function drawOceanWavesWave(ctx, width, height, chroma, mel, beatPulse, time) {
  * Galaxy Spiral 🌀 - Spinning galaxy with stars and cosmic dust
  * Arms spiral based on time, stars pulse with chroma
  */
+
+/**
+ * Galaxy Spiral 🌀 - Spinning galaxy with cosmic dust and rhythmic pulses
+ * Uses state-based smoothing for fluid rotation and organic "melodic" thickness
+ */
 function drawGalaxySpiralWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
   
   const settings = getEffectiveWaveformSettings('galaxy_spiral');
   const centerX = width / 2;
-  // basePosition controls vertical center of the galaxy
   const centerY = height * (settings.basePosition / 100);
-  // maxAmplitude controls the radius of the galaxy
   const maxRadius = Math.min(width, height) * (settings.maxAmplitude / 100);
-  
-  // Rotation speed based on total energy
-  const totalEnergy = chroma.reduce((a, b) => a + b, 0) / 12;
-  const rotationSpeed = 0.15 + totalEnergy * 0.1;
+
+  // Initialize and smooth state
+  if (!galaxyState.sMel || (mel && galaxyState.sMel.length !== mel.length)) {
+    galaxyState.sMel = new Float32Array(mel ? mel.length : 1).fill(0);
+  }
+  const lerp = 0.1;
+  galaxyState.sBeat += (beatPulse - galaxyState.sBeat) * lerp;
+  for (let i = 0; i < 12; i++) {
+    galaxyState.sChroma[i] += (chroma[i] - galaxyState.sChroma[i]) * lerp;
+  }
+  if (mel) {
+    for (let i = 0; i < mel.length; i++) {
+        galaxyState.sMel[i] += (mel[i] - galaxyState.sMel[i]) * lerp;
+    }
+  }
+
+  // Update persistent rotation
+  const totalEnergy = galaxyState.sChroma.reduce((a, b) => a + b, 0) / 12;
+  galaxyState.rotation += (0.01 + totalEnergy * 0.05);
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
   
   // Draw spiral arms
-  const numArms = 3;
-  const armPointsPerArm = 200;
+  const numArms = 2; // Precise, high-impact arms
+  const pointsPerArm = 120;
   
   for (let arm = 0; arm < numArms; arm++) {
     const armOffset = (arm / numArms) * Math.PI * 2;
-    const chromaIdx = arm * 4 % 12;
-    const chromaValue = chroma[chromaIdx] || 0.3;
+    const chromaIdx = (arm * 6) % 12;
+    const chromaValue = galaxyState.sChroma[chromaIdx];
     const armHue = CHROMA_HUES[chromaIdx];
     
-    // Draw arm as series of points
-    for (let p = 0; p < armPointsPerArm; p++) {
-      const t = p / armPointsPerArm;
+    for (let p = 0; p < pointsPerArm; p++) {
+      const t = p / pointsPerArm;
       const radius = t * maxRadius;
       
-      // Logarithmic spiral
-      const spiralAngle = armOffset + t * Math.PI * 4 + time * rotationSpeed;
+      // Logarithmic spiral with organic wobble
+      const spiralAngle = armOffset + t * Math.PI * 5 + galaxyState.rotation + Math.sin(time * 0.5 + t * 4) * 0.2;
       
-      // Get mel for arm thickness
-      const melIdx = Math.floor(t * (mel?.length || 1));
-      const melValue = mel ? Math.max(0.2, (mel[melIdx] + 10) / 10) : 0.4;
+      const mIdx = Math.floor(t * (galaxyState.sMel.length - 1));
+      const mVal = (galaxyState.sMel[mIdx] + 15) / 15;
       
+      // Perspective transform
       const x = centerX + Math.cos(spiralAngle) * radius;
-      const y = centerY + Math.sin(spiralAngle) * radius * 0.6; // Squash for perspective
+      const y = centerY + Math.sin(spiralAngle) * radius * 0.5;
       
-      // Star/dust size based on position and chroma
-      const size = (2 + melValue * 4 + beatPulse * 2) * (1 - t * 0.5);
-      const alpha = (0.3 + chromaValue * 0.5) * (1 - t * 0.3);
+      const size = (1.5 + mVal * 3 + galaxyState.sBeat * 2) * (1 - t * 0.4);
+      const alpha = (0.2 + chromaValue * 0.6) * (1 - t * 0.5);
       
-      // Dust cloud
-      if (p % 3 === 0) {
-        const dustGradient = ctx.createRadialGradient(x, y, 0, x, y, size * 3);
-        dustGradient.addColorStop(0, `hsla(${armHue}, 70%, 60%, ${alpha * 0.6})`);
-        dustGradient.addColorStop(0.5, `hsla(${armHue}, 60%, 50%, ${alpha * 0.3})`);
-        dustGradient.addColorStop(1, 'transparent');
-        ctx.fillStyle = dustGradient;
+      // Cosmic Ether (Gas)
+      if (p % 4 === 0) {
+        ctx.fillStyle = `hsla(${armHue}, 80%, 60%, ${alpha * 0.15})`;
         ctx.beginPath();
-        ctx.arc(x, y, size * 3, 0, Math.PI * 2);
+        ctx.arc(x, y, size * 6, 0, Math.PI * 2);
         ctx.fill();
       }
       
-      // Bright stars
-      if (p % 8 === 0) {
-        const starTwinkle = Math.sin(time * 4 + p) * 0.3 + 0.7;
-        ctx.fillStyle = `hsla(${armHue}, 40%, 95%, ${alpha * starTwinkle})`;
+      // Individual Stars & Twinkle
+      if (p % 2 === 0) {
+        const twinkle = 0.8 + Math.sin(time * 5 + p) * 0.2;
+        ctx.fillStyle = `hsla(${armHue}, 30%, 95%, ${alpha * twinkle})`;
         ctx.beginPath();
-        ctx.arc(x, y, size * 0.8, 0, Math.PI * 2);
+        ctx.arc(x, y, size * 0.7, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Dynamic streaks
+        if (p % 10 === 0 && chromaValue > 0.5) {
+          ctx.strokeStyle = `hsla(${armHue}, 100%, 80%, ${alpha * 0.3})`;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + Math.cos(spiralAngle + Math.PI/2) * 10, y + Math.sin(spiralAngle + Math.PI/2) * 5);
+          ctx.stroke();
+        }
       }
     }
   }
   
-  // Central core glow
-  const coreSize = 30 + beatPulse * 20 + totalEnergy * 20;
+  // Central core
+  const coreRadius = (25 + galaxyState.sBeat * 20 + totalEnergy * 30);
+  const coreHue = CHROMA_HUES[Math.floor(time) % 12];
   
-  for (let layer = 3; layer >= 0; layer--) {
-    const layerSize = coreSize * (1 + layer * 0.5);
-    const coreGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, layerSize);
-    
-    const coreHue = CHROMA_HUES[Math.floor(time) % 12];
-    const coreAlpha = 0.4 - layer * 0.08;
-    
-    coreGradient.addColorStop(0, `hsla(${coreHue}, 50%, 95%, ${coreAlpha})`);
-    coreGradient.addColorStop(0.3, `hsla(${coreHue}, 70%, 70%, ${coreAlpha * 0.7})`);
-    coreGradient.addColorStop(0.6, `hsla(${coreHue}, 80%, 50%, ${coreAlpha * 0.4})`);
-    coreGradient.addColorStop(1, 'transparent');
-    
-    ctx.fillStyle = coreGradient;
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY, layerSize, layerSize * 0.6, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  const coreGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, coreRadius * 1.5);
+  coreGrad.addColorStop(0, `hsla(${coreHue}, 60%, 90%, 0.8)`);
+  coreGrad.addColorStop(0.4, `hsla(${coreHue}, 80%, 60%, 0.3)`);
+  coreGrad.addColorStop(1, 'transparent');
   
-  // Background stars
-  const numBgStars = 80;
-  for (let i = 0; i < numBgStars; i++) {
-    const starX = ((Math.sin(i * 12345.6) + 1) / 2) * width;
-    const starY = ((Math.cos(i * 67890.1) + 1) / 2) * height;
-    
-    const chromaIdx = i % 12;
-    const chromaValue = chroma[chromaIdx] || 0.2;
-    const twinkle = Math.sin(time * 3 + i * 0.7) * 0.4 + 0.6;
-    
-    if (chromaValue > 0.15) {
-      const hue = CHROMA_HUES[chromaIdx];
-      const size = 0.5 + chromaValue * 2 * twinkle;
-      ctx.fillStyle = `hsla(${hue}, 50%, 90%, ${twinkle * chromaValue * 0.7})`;
-      ctx.beginPath();
-      ctx.arc(starX, starY, size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  
+  ctx.fillStyle = coreGrad;
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY, coreRadius * 1.5, coreRadius * 0.7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
   drawWaveLabels(ctx, width, height, chroma);
 }
 
@@ -3839,160 +4317,135 @@ function drawNeonCityWave(ctx, width, height, chroma, mel, beatPulse, time) {
  * Particle Explosion 💥 - Bursting particles from center that react to music
  * Particles spread based on mel, colors from chroma
  */
+let particleExplosionState = {
+  activeExplosions: [], // Array of {x, y, startTime, hue, intensity, particles}
+  lastBeatPulse: 0,
+  sChroma: new Float32Array(12).fill(0)
+};
+
+/**
+ * Particle Explosion 🎆 - Dynamic, physics-based bursts that react to beats
+ * High-energy core with gravity-affected embers and shockwaves
+ */
 function drawParticleExplosionWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
   
   const settings = getEffectiveWaveformSettings('particle_explosion');
   const centerX = width / 2;
-  // basePosition controls vertical center of the explosion
   const centerY = height * (settings.basePosition / 100);
-  // maxAmplitude controls how far particles spread
-  const spreadMultiplier = settings.maxAmplitude / 50; // normalize to 1.0 at 50%
-  
-  // Calculate explosion intensity
+  const spreadMultiplier = settings.maxAmplitude / 50;
+
+  // Smooth chroma
+  for (let i = 0; i < 12; i++) {
+    particleExplosionState.sChroma[i] += (chroma[i] - particleExplosionState.sChroma[i]) * 0.15;
+  }
+
+  // Trigger new explosion on beat or significant surge
+  if (beatPulse > 0.6 && particleExplosionState.lastBeatPulse <= 0.6) {
+    const avgMel = mel ? mel.reduce((a, b) => a + b, 0) / mel.length : 0;
+    const intensity = Math.max(0.5, (avgMel + 15) / 15);
+    
+    // Choose strongest chroma for color
+    let maxIdx = 0;
+    for(let i=1; i<12; i++) if(chroma[i] > chroma[maxIdx]) maxIdx = i;
+
+    // Create particles for this specific burst
+    const count = Math.floor(60 + intensity * 80);
+    const particles = [];
+    for(let i=0; i<count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = (2 + Math.random() * 8) * spreadMultiplier * intensity;
+      particles.push({
+        x: 0, y: 0, // Relative to explosion center
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1.0,
+        decay: 0.01 + Math.random() * 0.03,
+        size: 1 + Math.random() * 3
+      });
+    }
+
+    particleExplosionState.activeExplosions.push({
+      x: centerX + (Math.random() - 0.5) * width * 0.4,
+      y: centerY + (Math.random() - 0.5) * height * 0.2,
+      startTime: time,
+      hue: CHROMA_HUES[maxIdx],
+      intensity,
+      particles
+    });
+  }
+  particleExplosionState.lastBeatPulse = beatPulse;
+
+  // Constant "ambient" center ember (reacts to mel)
   const avgMel = mel ? mel.reduce((a, b) => a + b, 0) / mel.length : 0;
-  const intensity = Math.max(0.3, (avgMel + 10) / 10) + beatPulse * 0.5;
+  const ambientScale = Math.max(0.2, (avgMel + 10) / 10);
   
-  // Multiple explosion layers
-  const numLayers = 5;
-  
-  for (let layer = 0; layer < numLayers; layer++) {
-    const layerT = layer / numLayers;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+
+  // Update and draw explosions
+  particleExplosionState.activeExplosions = particleExplosionState.activeExplosions.filter(exp => {
+    const age = time - exp.startTime;
+    if (age > 2.0) return false;
+
+    const fade = Math.max(0, 1 - age / 2.0);
     
-    // Each layer has different timing
-    const layerTime = (time * (1 + layer * 0.2)) % 3;
-    const expansionPhase = layerTime / 3;
-    // Scale max radius by spreadMultiplier
-    const maxRadius = (200 + layer * 50) * spreadMultiplier;
-    const currentRadius = expansionPhase * maxRadius * intensity;
-    const fadeOut = 1 - expansionPhase;
-    
-    const chromaIdx = layer * 2 % 12;
-    const chromaValue = chroma[chromaIdx] || 0.3;
-    const hue = CHROMA_HUES[chromaIdx];
-    
-    // Get mel for particle count
-    const melIdx = Math.floor(layerT * (mel?.length || 1));
-    const melValue = mel ? Math.max(0.3, (mel[melIdx] + 10) / 10) : 0.5;
-    
-    const numParticles = Math.floor(30 + melValue * 40);
-    
-    for (let p = 0; p < numParticles; p++) {
-      const particleT = p / numParticles;
-      const angle = particleT * Math.PI * 2;
-      
-      // Particle speed variation
-      const speedVar = 0.6 + Math.sin(p * 123.456) * 0.4;
-      const radius = currentRadius * speedVar;
-      
-      // Spiral motion
-      const spiralOffset = Math.sin(expansionPhase * Math.PI * 2 + p * 0.2) * 20;
-      
-      const x = centerX + Math.cos(angle + expansionPhase * 0.5) * (radius + spiralOffset);
-      const y = centerY + Math.sin(angle + expansionPhase * 0.5) * (radius + spiralOffset);
-      
-      // Particle size decreases as it travels
-      const size = (3 + chromaValue * 4) * fadeOut * speedVar;
-      const alpha = fadeOut * chromaValue * 0.8;
-      
-      if (alpha > 0.05 && size > 0.5) {
-        // Particle glow
-        const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, size * 4);
-        glowGradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${alpha})`);
-        glowGradient.addColorStop(0.4, `hsla(${hue}, 80%, 55%, ${alpha * 0.5})`);
-        glowGradient.addColorStop(1, 'transparent');
-        
-        ctx.fillStyle = glowGradient;
+    // Shockwave
+    if (age < 0.5) {
+      const swRadius = age * 800 * exp.intensity;
+      const swAlpha = (1 - age / 0.5) * 0.5;
+      ctx.strokeStyle = `hsla(${exp.hue}, 90%, 70%, ${swAlpha})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(exp.x, exp.y, swRadius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Draw Particles
+    exp.particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.15; // Gravity
+      p.vx *= 0.98; // Air resistance
+      p.life -= p.decay;
+
+      if (p.life > 0) {
+        const x = exp.x + p.x;
+        const y = exp.y + p.y;
+        const alpha = p.life * fade;
+        const size = p.size * (0.5 + p.life * 0.5) * exp.intensity;
+
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, size * 5);
+        grad.addColorStop(0, `hsla(${exp.hue}, 100%, 80%, ${alpha})`);
+        grad.addColorStop(0.3, `hsla(${exp.hue}, 80%, 60%, ${alpha * 0.4})`);
+        grad.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(x, y, size * 4, 0, Math.PI * 2);
+        ctx.arc(x, y, size * 5, 0, Math.PI * 2);
         ctx.fill();
-        
-        // Bright core
-        ctx.fillStyle = `hsla(${hue}, 60%, 90%, ${alpha * 1.2})`;
+
+        ctx.fillStyle = `white`;
         ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
         ctx.fill();
-        
-        // Motion trail
-        if (radius > 20) {
-          const trailLength = 4;
-          for (let t = 1; t <= trailLength; t++) {
-            const trailRadius = radius - t * 8;
-            if (trailRadius > 0) {
-              const trailX = centerX + Math.cos(angle + expansionPhase * 0.5) * trailRadius;
-              const trailY = centerY + Math.sin(angle + expansionPhase * 0.5) * trailRadius;
-              const trailAlpha = alpha * (1 - t / trailLength) * 0.5;
-              const trailSize = size * (1 - t / trailLength * 0.5);
-              
-              ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${trailAlpha})`;
-              ctx.beginPath();
-              ctx.arc(trailX, trailY, trailSize, 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-        }
       }
-    }
-    
-    // Shockwave ring
-    if (expansionPhase > 0.1 && expansionPhase < 0.8) {
-      const ringRadius = currentRadius * 1.1;
-      const ringAlpha = fadeOut * chromaValue * 0.4;
-      
-      ctx.strokeStyle = `hsla(${hue}, 80%, 70%, ${ringAlpha})`;
-      ctx.lineWidth = 2 + chromaValue * 3;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  }
-  
-  // Central energy core
-  const coreSize = 20 + beatPulse * 30 + intensity * 20;
-  
-  const coreGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, coreSize * 2);
-  const coreHue = CHROMA_HUES[Math.floor(time * 3) % 12];
-  coreGradient.addColorStop(0, `hsla(${coreHue}, 60%, 95%, 0.9)`);
-  coreGradient.addColorStop(0.3, `hsla(${coreHue}, 80%, 70%, 0.6)`);
-  coreGradient.addColorStop(0.6, `hsla(${coreHue}, 90%, 50%, 0.3)`);
-  coreGradient.addColorStop(1, 'transparent');
-  
-  ctx.fillStyle = coreGradient;
+    });
+
+    return true;
+  });
+
+  // Center Glow
+  const glowRadius = (50 + beatPulse * 100) * ambientScale;
+  const centerGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
+  centerGrad.addColorStop(0, `hsla(${time * 50 % 360}, 80%, 70%, 0.4)`);
+  centerGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = centerGrad;
   ctx.beginPath();
-  ctx.arc(centerX, centerY, coreSize * 2, 0, Math.PI * 2);
+  ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
   ctx.fill();
-  
-  // Energy tendrils from center
-  const numTendrils = 12;
-  for (let t = 0; t < numTendrils; t++) {
-    const chromaIdx = t;
-    const chromaValue = chroma[chromaIdx] || 0.2;
-    const hue = CHROMA_HUES[chromaIdx];
-    
-    if (chromaValue > 0.2) {
-      const angle = (t / numTendrils) * Math.PI * 2 + time * 0.5;
-      const tendrilLength = 30 + chromaValue * 60 + beatPulse * 20;
-      
-      const endX = centerX + Math.cos(angle) * tendrilLength;
-      const endY = centerY + Math.sin(angle) * tendrilLength;
-      
-      const tendrilGradient = ctx.createLinearGradient(centerX, centerY, endX, endY);
-      tendrilGradient.addColorStop(0, `hsla(${hue}, 80%, 70%, ${chromaValue * 0.8})`);
-      tendrilGradient.addColorStop(1, 'transparent');
-      
-      ctx.strokeStyle = tendrilGradient;
-      ctx.lineWidth = 2 + chromaValue * 4;
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY);
-      
-      // Wavy tendril
-      const midX = centerX + Math.cos(angle) * tendrilLength * 0.5 + Math.sin(time * 4 + t) * 10;
-      const midY = centerY + Math.sin(angle) * tendrilLength * 0.5 + Math.cos(time * 4 + t) * 10;
-      ctx.quadraticCurveTo(midX, midY, endX, endY);
-      ctx.stroke();
-    }
-  }
-  
+
+  ctx.restore();
   drawWaveLabels(ctx, width, height, chroma);
 }
 
@@ -4023,12 +4476,12 @@ function drawWaveLabels(ctx, width, height, chroma) {
 
 // --- PACMAN STATE ---
 let pacmanState = {
-  pacman: { x: 0.5, y: 0.5, dir: 0, mouthTimer: 0 },
+  pacman: { x: 0.5, y: 0.5, dir: 0, vx: 0.01, vy: 0, lastTurn: 0 },
   ghosts: [
-    { x: 0.2, y: 0.2, color: 0, type: 'blinky' },    // Red
-    { x: 0.8, y: 0.2, color: 330, type: 'pinky' },   // Pink
-    { x: 0.2, y: 0.8, color: 180, type: 'inky' },    // Cyan
-    { x: 0.8, y: 0.8, color: 40, type: 'clyde' }     // Orange
+    { x: 0.2, y: 0.2, color: 0, type: 'blinky', vx: 0, vy: 0.01, dir: Math.PI/2 },    // Red
+    { x: 0.8, y: 0.2, color: 330, type: 'pinky', vx: 0, vy: -0.01, dir: -Math.PI/2 }, // Pink
+    { x: 0.2, y: 0.8, color: 180, type: 'inky', vx: 0.01, vy: 0, dir: 0 },         // Cyan
+    { x: 0.8, y: 0.8, color: 40, type: 'clyde', vx: -0.01, vy: 0, dir: Math.PI }    // Orange
   ],
   dots: [],
   blueMode: false,
@@ -4067,56 +4520,95 @@ function drawPacmanWave(ctx, width, height, chroma, mel, beatPulse, time) {
       pacmanState.blueMode = false;
   }
 
-  const speed = 0.005 * (1 + beatPulse);
+  const baseSpeed = 0.005 * (1 + beatPulse);
   const size = Math.min(width, height) * 0.04;
 
-  // Moves Pacman
-  if (pacmanState.blueMode) {
-      // PACMAN CHASES: Move towards nearest ghost
-      let nearestDist = 999;
-      let targetG = null;
-      for(let g of pacmanState.ghosts) {
-          if (g.isDead) continue; // Ignore eaten ghosts
-          const dx = g.x - pacmanState.pacman.x;
-          const dy = g.y - pacmanState.pacman.y;
-          const d = Math.sqrt(dx*dx + dy*dy);
-          if(d < nearestDist) { nearestDist = d; targetG = g; }
+  // Helper for wrap-around distance
+  const getWrapDist = (a, b) => {
+    let d = b - a;
+    if (Math.abs(d) > 0.5) d = d - Math.sign(d) * 1.0;
+    return d;
+  };
+
+  // Find nearest ghost for speed scaling
+  let nearestGhostDist = 1.0;
+  let targetG = null;
+  let activeGhosts = 0;
+  for(let g of pacmanState.ghosts) {
+      if (g.isDead) continue;
+      activeGhosts++;
+      const dx = getWrapDist(pacmanState.pacman.x, g.x);
+      const dy = getWrapDist(pacmanState.pacman.y, g.y);
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if(d < nearestGhostDist) { nearestGhostDist = d; targetG = g; }
+  }
+
+  // Pacman Speed: Faster the closer he is to a ghost (Aggressor scaling)
+  let pSpeed = baseSpeed * (1.0 + (1.0 - Math.min(1.0, nearestGhostDist * 5)) * 0.6);
+
+  // If all ghosts dead, find nearest dot to chase
+  let targetDot = null;
+  if (activeGhosts === 0) {
+    let nearestDotDist = 1.0;
+    for (let d of pacmanState.dots) {
+      if (!d.active) continue;
+      const dx = getWrapDist(pacmanState.pacman.x, d.x);
+      const dy = getWrapDist(pacmanState.pacman.y, d.y);
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < nearestDotDist) {
+        nearestDotDist = dist;
+        targetDot = d;
       }
-      
-      if(targetG) {
-          // Chase nearest ghost
-          const dx = targetG.x - pacmanState.pacman.x;
-          const dy = targetG.y - pacmanState.pacman.y;
-          const dist = Math.sqrt(dx*dx + dy*dy);
-          if(dist > 0.01) {
-             pacmanState.pacman.x += (dx/dist) * speed * 1.5; // Faster when chasing
-             pacmanState.pacman.y += (dy/dist) * speed * 1.5;
-             
-             // Update direction for mouth
-             pacmanState.pacman.dir = Math.atan2(dy, dx);
+    }
+    // Boost speed toward dots too
+    pSpeed = baseSpeed * 1.3;
+  }
+
+  // Moves Pacman - Cardinal Movement (Snake-like)
+  if (beatPulse > 0.7 || !pacmanState.pacman.vx || Math.random() > 0.95) {
+      if ((pacmanState.blueMode && targetG) || (activeGhosts === 0 && targetDot)) {
+          // CHASE MODE: Align to axis of nearest target (Ghost or Dot)
+          const target = targetG || targetDot;
+          const dx = getWrapDist(pacmanState.pacman.x, target.x);
+          const dy = getWrapDist(pacmanState.pacman.y, target.y);
+          
+          if (Math.abs(dx) > Math.abs(dy)) {
+              pacmanState.pacman.vx = dx > 0 ? pSpeed : -pSpeed;
+              pacmanState.pacman.vy = 0;
+              pacmanState.pacman.dir = dx > 0 ? 0 : Math.PI;
+          } else {
+              pacmanState.pacman.vy = dy > 0 ? pSpeed : -pSpeed;
+              pacmanState.pacman.vx = 0;
+              pacmanState.pacman.dir = dy > 0 ? Math.PI/2 : -Math.PI/2;
+          }
+      } else {
+          // NORMAL MODE: Randomized Cardinal Turns
+          const decision = Math.random();
+          if (decision > 0.5 || !pacmanState.pacman.vx) {
+              if (pacmanState.pacman.vx !== 0) { // Currently horizontal, turn vertical
+                  pacmanState.pacman.vx = 0;
+                  pacmanState.pacman.vy = Math.random() > 0.5 ? pSpeed : -pSpeed;
+                  pacmanState.pacman.dir = pacmanState.pacman.vy > 0 ? Math.PI/2 : -Math.PI/2;
+              } else { // Currently vertical or stopped, turn horizontal
+                  pacmanState.pacman.vy = 0;
+                  pacmanState.pacman.vx = Math.random() > 0.5 ? pSpeed : -pSpeed;
+                  pacmanState.pacman.dir = pacmanState.pacman.vx > 0 ? 0 : Math.PI;
+              }
+          } else {
+              // Maintain current axis but update speed
+              if (pacmanState.pacman.vx !== 0) pacmanState.pacman.vx = Math.sign(pacmanState.pacman.vx) * pSpeed;
+              if (pacmanState.pacman.vy !== 0) pacmanState.pacman.vy = Math.sign(pacmanState.pacman.vy) * pSpeed;
           }
       }
   } else {
-      // NORMAL MODE: PACMAN CIRCLES
-      // Large circular path
-      const radius = 0.35;
-      const omega = 0.8; // Rotation speed
-      
-      const targetX = 0.5 + Math.cos(time * omega) * radius;
-      const targetY = 0.5 + Math.sin(time * omega) * radius;
-      
-      // Smoothly move towards target point on circle (prevents snapping)
-      pacmanState.pacman.x += (targetX - pacmanState.pacman.x) * 0.1;
-      pacmanState.pacman.y += (targetY - pacmanState.pacman.y) * 0.1;
-      
-      // Face direction of movement (tangent to circle)
-      // Tangent of circle at angle theta is theta + PI/2
-      pacmanState.pacman.dir = (time * omega) + Math.PI/2;
+      // Just update speed magnitude for current velocity
+      if (pacmanState.pacman.vx !== 0) pacmanState.pacman.vx = Math.sign(pacmanState.pacman.vx) * pSpeed;
+      if (pacmanState.pacman.vy !== 0) pacmanState.pacman.vy = Math.sign(pacmanState.pacman.vy) * pSpeed;
   }
   
-  // Constrain to screen
-  pacmanState.pacman.x = Math.max(0.05, Math.min(0.95, pacmanState.pacman.x));
-  pacmanState.pacman.y = Math.max(0.05, Math.min(0.95, pacmanState.pacman.y));
+  // Apply velocity and Wrap Around (Snake-like)
+  pacmanState.pacman.x = (pacmanState.pacman.x + (pacmanState.pacman.vx || 0) + 1) % 1;
+  pacmanState.pacman.y = (pacmanState.pacman.y + (pacmanState.pacman.vy || 0) + 1) % 1;
 
   // Draw and Eat Dots
   ctx.fillStyle = '#ffb8ae';
@@ -4180,13 +4672,17 @@ function drawPacmanWave(ctx, width, height, chroma, mel, beatPulse, time) {
     let color = `hsl(${g.color}, 100%, 50%)`;
     if (pacmanState.blueMode) color = '#0000FF';
 
-    // Move Ghosts
-    const dx = pacmanState.pacman.x - g.x;
-    const dy = pacmanState.pacman.y - g.y;
+    // Move Ghosts - Cardinal Movement
+    const dx = getWrapDist(g.x, pacmanState.pacman.x);
+    const dy = getWrapDist(g.y, pacmanState.pacman.y);
     const dist = Math.sqrt(dx*dx + dy*dy);
     
+    // Ghost Speed: Generally slower (baseSpeed * 0.7) and slows down as it approaches Pacman
+    // This creates the "scared/hesitant" or "easy to kite" arcade feel requested.
+    const ghostBaseSpeed = baseSpeed * (pacmanState.blueMode ? 0.5 : 0.6);
+    const gSpeed = ghostBaseSpeed * (0.4 + Math.min(1.0, dist * 3) * 0.6);
+    
     // Collision Detect (Eat Ghost)
-    // 0.04 is approx size in normalized coords relative to screen min dim, but let's use a safe threshold
     if (pacmanState.blueMode && dist < 0.04) {
         g.isDead = true;
         g.respawnTime = time + 5; // Respawn after 5s
@@ -4194,22 +4690,37 @@ function drawPacmanWave(ctx, width, height, chroma, mel, beatPulse, time) {
         continue;
     }
 
-    // If Blue, run away. Else chase.
-    // Make ghosts slightly slower than likely Pacman speed (speed * 0.9)
-    let vx = (dx/dist) * speed * 0.85; 
-    let vy = (dy/dist) * speed * 0.85;
-
-    if (pacmanState.blueMode) {
-        vx = -vx;
-        vy = -vy;
+    // Periodically change direction or on beat
+    if (Math.random() > 0.95 || (beatPulse > 0.8 && Math.random() > 0.8) || !g.vx) {
+        // Ghost AI: Choose axis to align with/flee from Pacman
+        let moveOnX = Math.abs(dx) > Math.abs(dy);
+        if (Math.random() > 0.85) moveOnX = !moveOnX; // Add some variety/uncertainty
+        
+        if (moveOnX) {
+            g.vx = dx > 0 ? gSpeed : -gSpeed;
+            g.vy = 0;
+            g.dir = dx > 0 ? 0 : Math.PI;
+        } else {
+            g.vy = dy > 0 ? gSpeed : -gSpeed;
+            g.vx = 0;
+            g.dir = dy > 0 ? Math.PI/2 : -Math.PI/2;
+        }
+        
+        // Flee if blue mode
+        if (pacmanState.blueMode) {
+            g.vx = -g.vx;
+            g.vy = -g.vy;
+            g.dir += Math.PI;
+        }
+    } else {
+        // Just update speed magnitude for current velocity
+        if (g.vx !== 0) g.vx = Math.sign(g.vx) * gSpeed;
+        if (g.vy !== 0) g.vy = Math.sign(g.vy) * gSpeed;
     }
 
-    g.x += vx;
-    g.y += vy;
-    
-    // Constrain ghosts
-    g.x = Math.max(0, Math.min(1, g.x));
-    g.y = Math.max(0, Math.min(1, g.y));
+    // Apply velocity and Wrap Around (Snake-like)
+    g.x = (g.x + (g.vx || 0) + 1) % 1;
+    g.y = (g.y + (g.vy || 0) + 1) % 1;
     
     // Draw Ghost
     const gx = g.x * width;
@@ -4233,75 +4744,100 @@ function drawPacmanWave(ctx, width, height, chroma, mel, beatPulse, time) {
     ctx.arc(gx - size*0.15, gy - size*0.2, size*0.15, 0, Math.PI*2);
     ctx.arc(gx + size*0.15, gy - size*0.2, size*0.15, 0, Math.PI*2);
     ctx.fill();
-    ctx.fillStyle = pacmanState.blueMode ? 'white' : 'blue'; // Typo protection: pacmanState
+    ctx.fillStyle = pacmanState.blueMode ? 'white' : 'blue'; 
     ctx.beginPath();
-    ctx.arc(gx - size*0.15 + (dx>0?2:-2), gy - size*0.2 + (dy>0?2:-2), size*0.07, 0, Math.PI*2);
-    ctx.arc(gx + size*0.15 + (dx>0?2:-2), gy - size*0.2 + (dy>0?2:-2), size*0.07, 0, Math.PI*2);
+    const lookX = (g.vx > 0 ? 2 : (g.vx < 0 ? -2 : 0));
+    const lookY = (g.vy > 0 ? 2 : (g.vy < 0 ? -2 : 0));
+    ctx.arc(gx - size*0.15 + lookX, gy - size*0.2 + lookY, size*0.07, 0, Math.PI*2);
+    ctx.arc(gx + size*0.15 + lookX, gy - size*0.2 + lookY, size*0.07, 0, Math.PI*2);
     ctx.fill();
   }
 }
-// Correcting possible typo above in variable usage if I manually type it...
-// Use pacmanState exactly.
 
 // --- SNAKE STATE ---
 let snakeState = {
     snake: [],
     dir: {x:1, y:0},
+    nextDir: {x:1, y:0},
     lastBeat: 0
 };
 // Grid size
 const SNAKE_GRID = 30; 
 
+export function resetSnakeState() {
+    snakeState.snake = [];
+    snakeState.dir = {x:1, y:0};
+    snakeState.nextDir = {x:1, y:0};
+    snakeState.lastBeat = 0;
+}
+
 function drawSnakeWave(ctx, width, height, chroma, mel, beatPulse, time) {
     const cellSize = width / SNAKE_GRID;
+    const gridH = Math.floor(height / cellSize);
     
     // Initialize Snake
     if(snakeState.snake.length === 0) {
-        snakeState.snake = [{x: 10, y: 10}, {x:9, y:10}, {x:8, y:10}, {x:7, y:10}];
+        snakeState.snake = [{x: 15, y: 15}, {x:14, y:15}, {x:13, y:15}, {x:12, y:15}];
     }
     
     // Direction change based on dominant chroma (giving "control" to the music)
     let maxChroma = 0; let maxVal = 0;
     chroma.forEach((v, i) => { if(v > maxVal) { maxVal = v; maxChroma = i; } });
     
-    // Map 12 notes to 4 directions
-    // ADDED: Random turns on beat for more chaos
-    if (beatPulse > 0.7 && Math.random() < 0.3) {
-         // Force a 90-degree turn
-         if (snakeState.dir.x !== 0) {
-             snakeState.dir = Math.random() > 0.5 ? {x: 0, y: 1} : {x: 0, y: -1};
+    // Buffer the next direction, preventing 180-degree turns from current direction
+    const currentDir = snakeState.dir;
+    
+    if (beatPulse > 0.7 && Math.random() < 0.2) {
+         // Random rhythmic pivot
+         if (currentDir.x !== 0) {
+             snakeState.nextDir = Math.random() > 0.5 ? {x: 0, y: 1} : {x: 0, y: -1};
          } else {
-             snakeState.dir = Math.random() > 0.5 ? {x: 1, y: 0} : {x: -1, y: 0};
+             snakeState.nextDir = Math.random() > 0.5 ? {x: 1, y: 0} : {x: -1, y: 0};
          }
     } 
-    else if (maxVal > 0.5) { // Lowered threshold slightly for more responsiveness
-        if (maxChroma <= 2 && snakeState.dir.y !== 1) snakeState.dir = {x:0, y:-1}; // Up
-        else if (maxChroma <= 5 && snakeState.dir.x !== -1) snakeState.dir = {x:1, y:0}; // Right
-        else if (maxChroma <= 8 && snakeState.dir.y !== -1) snakeState.dir = {x:0, y:1}; // Down
-        else if (maxChroma >= 9 && snakeState.dir.x !== 1) snakeState.dir = {x:-1, y:0}; // Left
+    else if (maxVal > 0.5) {
+        if (maxChroma <= 2 && currentDir.y !== 1) snakeState.nextDir = {x:0, y:-1}; // Up
+        else if (maxChroma <= 5 && currentDir.x !== -1) snakeState.nextDir = {x:1, y:0}; // Right
+        else if (maxChroma <= 8 && currentDir.y !== -1) snakeState.nextDir = {x:0, y:1}; // Down
+        else if (maxChroma >= 9 && currentDir.x !== 1) snakeState.nextDir = {x:-1, y:0}; // Left
     }
 
-    // Move Update - synced to beat or fixed interval
-    // We update approximately every 0.1s or faster on beat
-    if (time - snakeState.lastBeat > 0.08) {
+    // Move Update - Fixed interval (Grid-aligned movement)
+    if (time - snakeState.lastBeat > 0.1) {
         snakeState.lastBeat = time;
+        snakeState.dir = snakeState.nextDir;
         
         let head = snakeState.snake[0];
-        let newHead = { x: head.x + snakeState.dir.x, y: head.y + snakeState.dir.y };
+        let nx = (head.x + snakeState.dir.x + SNAKE_GRID) % SNAKE_GRID;
+        let ny = (head.y + snakeState.dir.y + gridH) % gridH;
         
-        // Wrap around screen
-        if(newHead.x < 0) newHead.x = SNAKE_GRID-1;
-        if(newHead.x >= SNAKE_GRID) newHead.x = 0;
-        if(newHead.y < 0) newHead.y = Math.floor(height/cellSize)-1;
-        if(newHead.y >= Math.floor(height/cellSize)) newHead.y = 0;
+        // Anti-Overlap Logic: If next move hits body, try to pivot automatically (like a smart player)
+        const isBody = (x, y) => snakeState.snake.some(seg => seg.x === x && seg.y === y);
         
+        if (isBody(nx, ny)) {
+            // Collision detected! Try to find an empty neighbor
+            const possibilities = [{x:0,y:1}, {x:0,y:-1}, {x:1,y:0}, {x:-1,y:0}];
+            for (let p of possibilities) {
+                // Don't go back 180
+                if (p.x === -snakeState.dir.x && p.y === -snakeState.dir.y) continue;
+                
+                let tx = (head.x + p.x + SNAKE_GRID) % SNAKE_GRID;
+                let ty = (head.y + p.y + gridH) % gridH;
+                if (!isBody(tx, ty)) {
+                    nx = tx; ny = ty;
+                    snakeState.dir = p;
+                    snakeState.nextDir = p;
+                    break;
+                }
+            }
+        }
+
+        const newHead = { x: nx, y: ny };
         snakeState.snake.unshift(newHead);
         
-        // Growth Logic
-        // Grow if beatPulse is high, else maintain length (slide)
-        // Default length constraint
-        const targetLen = 10 + beatPulse * 20;
-        if (snakeState.snake.length > targetLen) {
+        // Growth Logic based on music energy
+        const targetLen = 8 + Math.floor(beatPulse * 20);
+        while (snakeState.snake.length > targetLen) {
              snakeState.snake.pop();
         }
     }
@@ -4492,26 +5028,6 @@ function drawRainTetrisWave(ctx, width, height, chroma, mel, beatPulse, time) {
     
     // Update last waveform
     rainTetrisState.lastWaveform = 'rain_tetris';
-    
-    // Draw grid
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    ctx.lineWidth = 1;
-    
-    // Vertical lines
-    for (let i = 0; i <= cols; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * blockSize, 0);
-        ctx.lineTo(i * blockSize, height);
-        ctx.stroke();
-    }
-    
-    // Horizontal lines
-    for (let i = 0; i <= rows; i++) {
-        ctx.beginPath();
-        ctx.moveTo(0, i * blockSize);
-        ctx.lineTo(cols * blockSize, i * blockSize);
-        ctx.stroke();
-    }
     
     // Draw settled blocks first
     Object.keys(rainTetrisState.settledGrid).forEach(key => {
@@ -4861,70 +5377,278 @@ function drawDVDBouncerWave(ctx, width, height, chroma, mel, beatPulse, time) {
     }
 }
 
-// --- SACRED GEOMETRY ---
-function drawSacredGeometryWave(ctx, width, height, chroma, mel, beatPulse, time) {
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const baseRadius = Math.min(width, height) * 0.15;
-    
-    // Calculate average energy
-    let energy = 0;
-    if (mel && mel.length) energy = mel.reduce((a,b)=>a+b,0) / mel.length;
+// --- GUMMY STATE ---
+let gummyState = {
+    hexagons: [],
+    initialized: false
+};
 
-    const layers = 3 + Math.floor(beatPulse * 3); // Dynamic complexity
-    const rotation = time * 0.2;
+function drawGummyWave(ctx, width, height, chroma, mel, beatPulse, time) {
+    // Dark background
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(0, 0, width, height);
     
-    ctx.lineWidth = 2;
-    
-    for (let l = 0; l < layers; l++) {
-        const r = baseRadius * (l + 1) * 0.6; 
-        const circleCount = 6 * (l + 1);
+    // Initialize honeycomb grid structure (store relative positions only)
+    if (!gummyState.initialized) {
+        gummyState.hexagons = [];
         
-        ctx.strokeStyle = `hsla(${(time * 20 + l * 30) % 360}, 70%, 60%, ${0.3 + energy*0.5 + beatPulse*0.2})`;
+        // Create honeycomb grid with relative positions
+        for (let row = -7; row <= 7; row++) {
+            for (let col = -7; col <= 7; col++) {
+                gummyState.hexagons.push({ row, col });
+            }
+        }
+        gummyState.initialized = true;
+    }
+    
+    // Check window dimensions to determine number of hexagons
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const isLandscape = windowWidth > windowHeight;
+    const numHexagons = isLandscape ? 3 : 2;
+    
+    // Calculate spacing and size for multiple hexagons
+    const mainRadius = Math.min(width / numHexagons, height) * 0.35 * (1 + beatPulse * 0.05);
+    const spacing = width / numHexagons;
+    
+    // Draw each main hexagon
+    for (let hexIndex = 0; hexIndex < numHexagons; hexIndex++) {
+        const centerX = spacing * (hexIndex + 0.5);
+        const centerY = height / 2;
+        
+        const hexSize = mainRadius / 6;
+        const hexHeight = hexSize * Math.sqrt(3);
+        const hexWidth = hexSize * 2;
+        
+        // Draw all honeycomb hexagons with rainbow gradient
+        gummyState.hexagons.forEach((hex, index) => {
+            // Calculate absolute position based on current dimensions
+            const x = centerX + hex.col * hexWidth * 0.75;
+            const y = centerY + hex.row * hexHeight + (hex.col % 2) * hexHeight * 0.5;
+            
+            // Check if hexagon is inside the main hexagon boundary
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist >= mainRadius * 0.9) return; // Skip hexagons outside boundary
+            
+            // Calculate position-based hue for rainbow effect
+            const angle = Math.atan2(dy, dx);
+            
+            // Rainbow hue based on angle and distance, offset by hexagon index
+            const baseHue = ((angle + Math.PI) / (Math.PI * 2)) * 360 + time * 20 + hexIndex * 120;
+            const distFactor = (dist / mainRadius);
+            const hue = (baseHue + distFactor * 120) % 360;
+            
+            // Get chroma value for this hue
+            const chromaIndex = Math.floor((hue / 360) * 12) % 12;
+            const chromaValue = chroma[chromaIndex] || 0;
+            
+            // Get mel value based on position and hexagon index
+            const melIndex = Math.floor((distFactor + hexIndex / numHexagons) * (mel?.length - 1 || 0)) % mel?.length;
+            const melValue = mel && mel[melIndex] ? mel[melIndex] : 0;
+            
+            // Color intensity reacts to music
+            const saturation = 75 + chromaValue * 25;
+            const lightness = 60 + melValue * 15 + beatPulse * 10;
+            const scale = 1 + melValue * 0.1 + beatPulse * 0.08;
+            
+            // Draw hexagon
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+            
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const hexAngle = (Math.PI / 3) * i;
+                const px = Math.cos(hexAngle) * hexSize;
+                const py = Math.sin(hexAngle) * hexSize;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            
+            // Gradient fill
+            const gradient = ctx.createRadialGradient(
+                -hexSize * 0.3, -hexSize * 0.3, 0,
+                0, 0, hexSize
+            );
+            gradient.addColorStop(0, `hsl(${hue}, ${saturation}%, ${lightness + 15}%)`);
+            gradient.addColorStop(0.7, `hsl(${hue}, ${saturation}%, ${lightness}%)`);
+            gradient.addColorStop(1, `hsl(${hue}, ${saturation}%, ${lightness - 10}%)`);
+            
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Black outline
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Glossy highlight
+            const highlightGrad = ctx.createRadialGradient(
+                -hexSize * 0.35, -hexSize * 0.35, 0,
+                -hexSize * 0.35, -hexSize * 0.35, hexSize * 0.5
+            );
+            highlightGrad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+            highlightGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = highlightGrad;
+            ctx.beginPath();
+            ctx.arc(-hexSize * 0.25, -hexSize * 0.25, hexSize * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        });
+        
+        // Draw large hexagon border (tan/beige outline)
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI / 3) * i - Math.PI / 6;
+            const x = Math.cos(angle) * mainRadius;
+            const y = Math.sin(angle) * mainRadius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        
+        // Tan border with gradient
+        const borderGradient = ctx.createLinearGradient(-mainRadius, -mainRadius, mainRadius, mainRadius);
+        borderGradient.addColorStop(0, '#a08060');
+        borderGradient.addColorStop(0.5, '#c0a080');
+        borderGradient.addColorStop(1, '#806040');
+        
+        ctx.strokeStyle = borderGradient;
+        ctx.lineWidth = 25 + beatPulse * 5;
+        ctx.stroke();
+        
+        // Inner shadow on border
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.lineWidth = 8;
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+}
+
+// --- SACRED GEOMETRY ---
+// --- SACRED GEOMETRY STATE ---
+let sacredGeometryState = {
+    smoothedBeat: 0,
+    rotation: 0,
+    lastTime: 0
+};
+
+function drawSacredGeometryWave(ctx, width, height, chroma, mel, beatPulse, time) {
+    if (!sacredGeometryState.lastTime) sacredGeometryState.lastTime = time;
+    const deltaTime = time - sacredGeometryState.lastTime;
+    sacredGeometryState.lastTime = time;
+
+    const settings = getEffectiveWaveformSettings('sacred_geometry');
+    const centerX = width / 2;
+    const centerY = height * (settings.basePosition / 100);
+    const scale = settings.maxAmplitude / 100;
+    
+    // Smooth beat pulse for visual transitions
+    sacredGeometryState.smoothedBeat += (beatPulse - sacredGeometryState.smoothedBeat) * 0.1;
+    // Rotation speed tied to beat
+    sacredGeometryState.rotation += deltaTime * (0.25 + sacredGeometryState.smoothedBeat * 0.6);
+
+    // Calculate energy with proper normalization
+    let energy = 0;
+    if (mel && mel.length) {
+        const rawEnergy = mel.reduce((a, b) => a + b, 0) / mel.length;
+        energy = Math.max(0, Math.min(1, (rawEnergy + 10) / 10)); // Normalize dB
+    }
+
+    // Mathematical Sacred Geometry scaling
+    // In a perfect Flower of Life, circle radius = distance between centers
+    const R = Math.min(width, height) * 0.12 * scale;
+    const circleSize = R * (0.9 + sacredGeometryState.smoothedBeat * 0.2);
+    
+    const maxLayers = 10; 
+    const activeLayers = 1 + sacredGeometryState.smoothedBeat * 4;
+    
+    ctx.lineWidth = 1.2 + energy * 2;
+    
+    // Draw from center outwards
+    for (let l = 0; l <= maxLayers; l++) {
+        const layerActive = Math.max(0, Math.min(1, activeLayers - l));
+        if (layerActive <= 0 && l > 0) continue; // Always draw center
+
+        const r = l * R; 
+        // n-1 less rings logic: strictly avoid any angular overlap by ensuring n is correct
+        const circleCount = l === 0 ? 1 : 6 * l;
+        const layerAlpha = layerActive * (0.2 + energy * 0.4 + sacredGeometryState.smoothedBeat * 0.3);
+        
+        ctx.strokeStyle = `hsla(${(time * 15 + l * 40) % 360}, 75%, 65%, ${layerAlpha})`;
         
         for (let i = 0; i < circleCount; i++) {
-            // Complex rotation pattern
-            const angle = (i / circleCount) * Math.PI * 2 + rotation * (l % 2 === 0 ? 1 : -1);
+            // Keep all layers rotating together to maintain sacred geometry alignment
+            // Using i / circleCount strictly ensures N unique positions without overlap at 2PI
+            const angle = (i / circleCount) * Math.PI * 2 + sacredGeometryState.rotation;
             
             const cx = centerX + Math.cos(angle) * r;
             const cy = centerY + Math.sin(angle) * r;
             
-            // Draw Circle
-            const circleSize = baseRadius * (0.8 + beatPulse * 0.3);
             ctx.beginPath();
             ctx.arc(cx, cy, circleSize, 0, Math.PI * 2);
             ctx.stroke();
             
-            // Connect to center if beat is strong
-            if (beatPulse > 0.6) {
+            // Connect to center with synchronized lines
+            if (l > 0 && sacredGeometryState.smoothedBeat > 0.3) {
+                const connectionAlpha = (sacredGeometryState.smoothedBeat - 0.3) * 1.5 * layerActive;
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.lineTo(cx, cy);
-                ctx.strokeStyle = `rgba(255,255,255,${0.1 * beatPulse})`;
+                ctx.strokeStyle = `hsla(${(time * 15 + l * 40) % 360}, 75%, 65%, ${0.08 * connectionAlpha})`;
                 ctx.stroke();
             }
         }
     }
     
-    // Central Geometric Figure (Hexagon/Cube)
-    ctx.beginPath();
+    // Central Geometric Figure - Strictly locked to the 2nd layer radius
     const vertices = 6;
-    const polyR = baseRadius * 1.5 * (1+beatPulse*0.1);
-    ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 + beatPulse*0.5})`;
-    ctx.lineWidth = 3;
+    const polyR = R * 2; 
+    const polyAlpha = 0.3 + sacredGeometryState.smoothedBeat * 0.6;
     
-    for (let i = 0; i <= vertices; i++) {
-        const angle = (i / vertices) * Math.PI * 2 + rotation;
-        const x = centerX + Math.cos(angle) * polyR;
-        const y = centerY + Math.sin(angle) * polyR;
-        if (i===0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+    if (polyAlpha > 0.01) {
+        ctx.strokeStyle = `hsla(${(time * 15) % 360}, 100%, 90%, ${polyAlpha})`;
+        ctx.lineWidth = 2.0;
         
-        // Inner connections
-        ctx.lineTo(centerX, centerY);
-        ctx.moveTo(x, y);
+        // Use a single path for the hexagon to prevent cumulative brightness
+        ctx.beginPath();
+        for (let i = 0; i <= vertices; i++) {
+            const angle = (i / vertices) * Math.PI * 2 + sacredGeometryState.rotation; 
+            const x = centerX + Math.cos(angle) * polyR;
+            const y = centerY + Math.sin(angle) * polyR;
+            
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Inner connections drawn once per vertex
+        if (sacredGeometryState.smoothedBeat > 0.1) {
+            ctx.save();
+            ctx.globalAlpha = 0.2 * sacredGeometryState.smoothedBeat;
+            for (let i = 0; i < vertices; i++) {
+                const angle = (i / vertices) * Math.PI * 2 + sacredGeometryState.rotation; 
+                const x = centerX + Math.cos(angle) * polyR;
+                const y = centerY + Math.sin(angle) * polyR;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(centerX, centerY);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
     }
-    ctx.stroke();
+    
+    drawWaveLabels(ctx, width, height, chroma);
 }
 
 // --- FRACTAL VOID STATE ---
@@ -5052,4 +5776,396 @@ function drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time) {
         ctx.closePath();
         ctx.stroke();
     }
+}
+/**
+ * Quantum Flux 🌊⚛️ - Advanced 3D morphing waveform with quantum particle effects
+ * Combines terrain-style 3D rendering with morphing geometry, particle trails, and energy fields
+ * Features: Dynamic mesh deformation, chromatic aberration, depth-of-field blur, holographic shimmer
+ */
+// --- QUANTUM FLUX STATE ---
+let quantumFluxState = {
+    smoothedBeat: 0,
+    smoothedMel: [],
+    smoothedChroma: new Array(12).fill(0),
+    lastTime: 0
+};
+
+function drawQuantumFluxWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  if (!chroma || chroma.length !== 12) return;
+  
+  if (!quantumFluxState.lastTime) quantumFluxState.lastTime = time;
+  quantumFluxState.lastTime = time;
+
+  // Smoothing
+  quantumFluxState.smoothedBeat += (beatPulse - quantumFluxState.smoothedBeat) * 0.15;
+  for (let i = 0; i < 12; i++) {
+    quantumFluxState.smoothedChroma[i] += ((chroma[i] || 0) - quantumFluxState.smoothedChroma[i]) * 0.1;
+  }
+  
+  // Initialize or update smoothed mel
+  if (mel && mel.length > 0) {
+    if (quantumFluxState.smoothedMel.length !== mel.length) {
+      quantumFluxState.smoothedMel = [...mel];
+    } else {
+      for (let i = 0; i < mel.length; i++) {
+        quantumFluxState.smoothedMel[i] += (mel[i] - quantumFluxState.smoothedMel[i]) * 0.15;
+      }
+    }
+  }
+
+  const settings = getEffectiveWaveformSettings('quantum_flux');
+  const centerY = height * (settings.basePosition / 100);
+  const fluxIntensity = settings.maxAmplitude / 100;
+  
+  // Use smoothed values for calculations
+  const sChroma = quantumFluxState.smoothedChroma;
+  const sMel = quantumFluxState.smoothedMel;
+  const sBeat = quantumFluxState.smoothedBeat;
+
+  // Find dominant and secondary chroma for color scheme
+  let dominantIdx = 0, secondaryIdx = 0;
+  let maxChroma = 0, secondMax = 0;
+  for (let i = 0; i < 12; i++) {
+    const val = sChroma[i];
+    if (val > maxChroma) {
+      secondMax = maxChroma;
+      secondaryIdx = dominantIdx;
+      maxChroma = val;
+      dominantIdx = i;
+    } else if (val > secondMax) {
+      secondMax = val;
+      secondaryIdx = i;
+    }
+  }
+  const primaryHue = CHROMA_HUES[dominantIdx];
+  const secondaryHue = CHROMA_HUES[secondaryIdx];
+  
+  // Multi-layered background with quantum field effect
+  const bgGradient = ctx.createRadialGradient(width/2, centerY, 0, width/2, centerY, Math.max(width, height) * 0.8);
+  bgGradient.addColorStop(0, `hsla(${primaryHue}, 50%, 5%, 0.9)`);
+  bgGradient.addColorStop(0.4, `hsla(${secondaryHue}, 40%, 8%, 0.7)`);
+  bgGradient.addColorStop(1, `hsla(${primaryHue}, 30%, 3%, 0.5)`);
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, width, height);
+  
+  // Energy field rings that pulse outward
+  const numRings = 6;
+  for (let r = 0; r < numRings; r++) {
+    const ringPhase = (time * 0.3 + r * 0.5) % 2;
+    const ringRadius = (ringPhase / 2) * Math.max(width, height) * 1.2;
+    const ringAlpha = (1 - ringPhase / 2) * 0.15 * (0.5 + sBeat * 0.5);
+    
+    if (ringAlpha > 0.01) {
+      ctx.strokeStyle = `hsla(${primaryHue + r * 15}, 70%, 60%, ${ringAlpha})`;
+      ctx.lineWidth = 1.5 + sBeat * 2.5;
+      ctx.beginPath();
+      ctx.arc(width/2, centerY, ringRadius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  
+  // 3D Mesh Grid with quantum deformation
+  const gridRows = 30; // Reduced slightly for performance
+  const gridCols = 40;
+  const gridPoints = [];
+  
+  const horizonY = centerY - height * fluxIntensity * 0.6;
+  const groundY = centerY + height * fluxIntensity * 0.4;
+  
+  for (let row = 0; row < gridRows; row++) {
+    const rowPoints = [];
+    const rowT = row / (gridRows - 1);
+    const baseY = horizonY + (groundY - horizonY) * rowT;
+    
+    const perspectiveScale = 0.15 + rowT * 0.85;
+    const rowWidth = width * perspectiveScale * 1.2;
+    const startX = (width - rowWidth) / 2;
+    
+    for (let col = 0; col < gridCols; col++) {
+      const colT = col / (gridCols - 1);
+      const x = startX + colT * rowWidth;
+      
+      const wave1 = Math.sin(colT * Math.PI * 4 + time * 2 + rowT * 2.5) * 0.4;
+      const wave2 = Math.cos(colT * Math.PI * 6 - time * 1.6 + rowT * 1.8) * 0.3;
+      const wave3 = Math.sin((colT + rowT) * Math.PI * 8 + time * 2.8) * 0.2;
+      
+      const dx = colT - 0.5;
+      const dy = rowT - 0.5;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const ripple = Math.sin(dist * Math.PI * 8 - time * 3.5) * 0.3 * Math.exp(-dist * 2);
+      
+      const melIdx = sMel ? Math.floor(colT * sMel.length) : 0;
+      const melValue = sMel && sMel[melIdx] !== undefined ? Math.max(0, (sMel[melIdx] + 10) / 10) : 0.4;
+      
+      const chromaIdx = Math.floor(colT * 11.99);
+      const chromaValue = sChroma[chromaIdx] || 0.3;
+      
+      const beatWave = Math.sin(colT * Math.PI * 3 + time * 1.5) * sBeat * 0.4;
+      
+      const totalDeformation = (wave1 + wave2 + wave3 + ripple + beatWave) * melValue;
+      const heightMultiplier = height * fluxIntensity * 0.5 * perspectiveScale;
+      const heightOffset = totalDeformation * heightMultiplier;
+      
+      rowPoints.push({
+        x,
+        y: baseY - heightOffset,
+        baseY,
+        melValue,
+        chromaIdx,
+        chromaValue,
+        perspectiveScale,
+        deformation: totalDeformation
+      });
+    }
+    gridPoints.push(rowPoints);
+  }
+  
+  ctx.globalCompositeOperation = 'lighter';
+  
+  for (let row = 0; row < gridRows - 1; row++) {
+    const rowT = row / gridRows;
+    for (let col = 0; col < gridCols - 1; col++) {
+      const p1 = gridPoints[row][col];
+      const p2 = gridPoints[row][col + 1];
+      const p3 = gridPoints[row + 1][col + 1];
+      const p4 = gridPoints[row + 1][col];
+      
+      const avgDeformation = Math.abs((p1.deformation + p2.deformation + p3.deformation + p4.deformation) / 4);
+      const avgChromaValue = (p1.chromaValue + p2.chromaValue + p3.chromaValue + p4.chromaValue) / 4;
+      const avgMel = (p1.melValue + p2.melValue + p3.melValue + p4.melValue) / 4;
+      
+      const hueShift = avgDeformation * 60 + rowT * 30 + time * 20;
+      const hue = (primaryHue + hueShift) % 360;
+      const depthAlpha = 0.25 + rowT * 0.45 + avgChromaValue * 0.2;
+      
+      const lightness = 25 + avgMel * 30 + avgDeformation * 20 + sBeat * 15;
+      const saturation = 50 + avgChromaValue * 30 + sBeat * 20;
+      
+      const quadGradient = ctx.createLinearGradient(p1.x, p1.y, p3.x, p3.y);
+      quadGradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness}%, ${depthAlpha * 0.35})`);
+      quadGradient.addColorStop(1, `hsla(${(hue + 20) % 360}, ${saturation}%, ${lightness + 5}%, ${depthAlpha * 0.55})`);
+      
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.lineTo(p3.x, p3.y);
+      ctx.lineTo(p4.x, p4.y);
+      ctx.closePath();
+      ctx.fillStyle = quadGradient;
+      ctx.fill();
+      
+      if (avgChromaValue > 0.55 || avgDeformation > 0.35) {
+        ctx.strokeStyle = `hsla(${hue}, ${saturation + 20}%, ${lightness + 25}%, ${depthAlpha * 0.6})`;
+        ctx.lineWidth = 0.4 + avgChromaValue * 1.2;
+        ctx.stroke();
+      }
+    }
+  }
+  
+  ctx.globalCompositeOperation = 'source-over';
+  
+  // Holographic shimmer particles
+  const numParticles = Math.floor(25 + sBeat * 15);
+  for (let i = 0; i < numParticles; i++) {
+    const seed1 = Math.sin(i * 123.456 + time * 0.4);
+    const seed2 = Math.cos(i * 789.012 + time * 0.6);
+    const px = width * 0.2 + ((seed1 + 1) / 2) * width * 0.6;
+    const py = horizonY + ((seed2 + 1) / 2) * (groundY - horizonY) * 0.5;
+    const driftY = py - ((time + i * 0.1) % 3) * 30;
+    
+    if (driftY < horizonY - 50) continue;
+    const particleAge = ((time + i * 0.1) % 3) / 3;
+    const particleAlpha = (1 - particleAge) * 0.5;
+    const chromaIdx = i % 12;
+    const hue = CHROMA_HUES[chromaIdx];
+    const particleSize = 1.5 + sChroma[chromaIdx] * 4 + sBeat * 2.5;
+    
+    const glowGradient = ctx.createRadialGradient(px, driftY, 0, px, driftY, particleSize * 3);
+    glowGradient.addColorStop(0, `hsla(${hue}, 100%, 75%, ${particleAlpha})`);
+    glowGradient.addColorStop(0.5, `hsla(${hue}, 90%, 65%, ${particleAlpha * 0.4})`);
+    glowGradient.addColorStop(1, `hsla(${hue}, 80%, 55%, 0)`);
+    
+    ctx.fillStyle = glowGradient;
+    ctx.beginPath();
+    ctx.arc(px, driftY, particleSize * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Central Beam
+  const beamHeight = height * fluxIntensity * 0.8 * (0.6 + sBeat * 0.4);
+  const beamGradient = ctx.createLinearGradient(width/2, centerY - beamHeight, width/2, centerY + beamHeight);
+  beamGradient.addColorStop(0, 'transparent');
+  beamGradient.addColorStop(0.3, `hsla(${primaryHue}, 80%, 60%, 0.12)`);
+  beamGradient.addColorStop(0.5, `hsla(${secondaryHue}, 90%, 70%, 0.2)`);
+  beamGradient.addColorStop(0.7, `hsla(${primaryHue}, 80%, 60%, 0.12)`);
+  beamGradient.addColorStop(1, 'transparent');
+  
+  ctx.fillStyle = beamGradient;
+  ctx.fillRect(width/2 - 30, centerY - beamHeight, 60, beamHeight * 2);
+  
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+/**
+ * Water Ripple 💧🌊 - Realistic 3D water droplet ripples with depth and highlights
+ * Based on the asymptotic solution to linearized water wave equations
+ * Features: Realistic shading, highlights, shadows, and 3D depth appearance
+ * Optimized: Uses efficient circle rendering with gradient effects
+ */
+function drawWaterRippleWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  if (!chroma || chroma.length !== 12) return;
+  
+  const settings = getEffectiveWaveformSettings('water_ripple');
+  const centerY = height * (settings.basePosition / 100);
+  const scale = settings.maxAmplitude / 100;
+  
+  // Constants for ripple effect
+  const estimatedBPM = 120;
+  const dropletInterval = (60 / estimatedBPM) * 1.5; // New droplet every ~0.75s
+  const waveSpeed = 200; // Pixels per second expansion
+  
+  // Find dominant chroma for background
+  let dominantIdx = 0;
+  let maxChroma = 0;
+  for (let i = 0; i < 12; i++) {
+    if (chroma[i] > maxChroma) {
+      maxChroma = chroma[i];
+      dominantIdx = i;
+    }
+  }
+  const dominantHue = CHROMA_HUES[dominantIdx];
+  
+  // Deep water background
+  const bgGradient = ctx.createRadialGradient(width/2, centerY, 0, width/2, centerY, Math.max(width, height) * 0.8);
+  bgGradient.addColorStop(0, `hsla(${dominantHue}, 50%, 15%, 1)`);
+  bgGradient.addColorStop(0.5, `hsla(${dominantHue}, 60%, 8%, 1)`);
+  bgGradient.addColorStop(1, `hsla(${dominantHue}, 60%, 4%, 1)`);
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, width, height);
+  
+  // Calculate active droplets based on time
+  const numDroplets = Math.floor(time / dropletInterval) + 1;
+  const historyCount = 15; // How many past droplets to keep tracking
+  const startIdx = Math.max(0, numDroplets - historyCount);
+  
+  // Draw ripples for each active droplet
+  for (let i = startIdx; i < numDroplets; i++) {
+    const dropTimeStart = i * dropletInterval;
+    const age = time - dropTimeStart;
+    
+    if (age < 0) continue;
+    
+    // Position logic: Circular pattern around center
+    const chromaIdx = i % 12;
+    const hue = CHROMA_HUES[chromaIdx];
+    // Use current chroma value if available, otherwise default fallback
+    const noteIntensity = chroma[chromaIdx] !== undefined ? chroma[chromaIdx] : 0.5;
+    
+    // Spiral position - calculate based on SPAWN time to keep position fixed for a given droplet
+    // We use a pseudo-random but deterministic radius based on the index to vary position without jittering
+    const angle = (chromaIdx / 12) * Math.PI * 2 + (dropTimeStart * 0.2); 
+    
+    // Use a deterministic "random" value derived from index for radius variation
+    // Math.sin(i * 123) gives a stable value between -1 and 1 for this droplet
+    const deterministicRandom = Math.sin(i * 123.45); 
+    const radiusVariation = 0.8 + 0.3 * (0.5 + 0.5 * deterministicRandom); // Range 0.8 to 1.1
+    
+    const radiusPos = (Math.min(width, height) * 0.35) * scale * radiusVariation;
+    
+    const dropX = width/2 + Math.cos(angle) * radiusPos;
+    const dropY = centerY + Math.sin(angle) * radiusPos; // respecting basePosition
+    
+    // Dynamic ripple properties based on music data
+    const ripplesPerDrop = 2 + Math.floor(noteIntensity * 4); // 2 to 6 rings based on intensity
+    const rippleDelay = 0.25; // seconds between rings
+    const thicknessScale = 1 + beatPulse * 1.5; // Pulse thickness with beat
+    
+    for (let r = 0; r < ripplesPerDrop; r++) {
+      const ringAge = age - (r * rippleDelay);
+      if (ringAge < 0) continue;
+      
+      const radius = ringAge * waveSpeed;
+      const maxRadius = Math.min(width, height) * 0.8;
+      
+      if (radius > maxRadius) continue;
+      
+      // Calculate opacity/visibility
+      const progress = radius / maxRadius;
+      const baseAlpha = 1 - progress;
+      // Fade out over time and distance
+      const alpha = baseAlpha * Math.exp(-ringAge * 0.5) * (noteIntensity + 0.4);
+      
+      if (alpha < 0.02) continue;
+      
+      // Draw 3D-ish Ripple Ring (Shadow, Main, Highlight)
+      
+      // Shadow (outer/darker)
+      ctx.beginPath();
+      ctx.arc(dropX, dropY, radius + 2, 0, Math.PI * 2);
+      ctx.lineWidth = 4 * thicknessScale;
+      ctx.strokeStyle = `hsla(${hue}, 60%, 10%, ${alpha * 0.6})`;
+      ctx.stroke();
+      
+      // Main body
+      ctx.beginPath();
+      ctx.arc(dropX, dropY, radius, 0, Math.PI * 2);
+      ctx.lineWidth = 3 * thicknessScale;
+      ctx.strokeStyle = `hsla(${hue}, 80%, 50%, ${alpha})`;
+      ctx.stroke();
+      
+      // Highlight (inner/lighter)
+      ctx.beginPath();
+      // Ensure non-negative radius
+      ctx.arc(dropX, dropY, Math.max(0, radius - 2), 0, Math.PI * 2);
+      ctx.lineWidth = 1.5 * thicknessScale;
+      ctx.strokeStyle = `hsla(${hue}, 90%, 85%, ${alpha * 0.9})`;
+      ctx.stroke();
+    }
+    
+    // Impact splash (only when very fresh)
+    if (age < 0.3) {
+      const splashProgress = age / 0.3;
+      const splashRadius = 5 + (splashProgress * 40 * (1 + beatPulse));
+      const splashAlpha = 1 - splashProgress;
+      
+      // Glow
+      const grad = ctx.createRadialGradient(dropX, dropY, 0, dropX, dropY, splashRadius);
+      grad.addColorStop(0, `rgba(255, 255, 255, ${splashAlpha})`);
+      grad.addColorStop(0.5, `hsla(${hue}, 100%, 70%, ${splashAlpha * 0.8})`);
+      grad.addColorStop(1, `hsla(${hue}, 100%, 50%, 0)`);
+      
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(dropX, dropY, splashRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+// Helper function to convert HSL to RGB
+function hslToRgb(h, s, l) {
+  let r, g, b;
+  
+  if (s === 0) {
+    r = g = b = l; // achromatic
+  } else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }

@@ -51,13 +51,29 @@ https://youtu.be/AYoBXHKe2Ow
   - YouTube URLs cached in localStorage (7-day TTL)
   - Fuzzy file matching handles special characters in song names
   - Track change debouncing (800ms) to prevent rapid API calls
-- **32 Waveform Visualization Styles**:
-  - **Classic**: Layered Waves, Oscilloscope, Spectrum Bars, Flowing Ribbons, Mirrored Wave, Particle Dots
-  - **Retro/Tech**: Pixelated, 3D Mesh, Gradient Bars, Sine Layers, Circular Dots, Neon Lines
-  - **Organic**: DNA Helix, Plasma Fire, Aurora Borealis, Fractal Tree, Liquid Mercury
-  - **Digital**: Matrix Rain, Glitch Art, Heartbeat ECG, Lightning Storm
-  - **Cosmic**: Shockwave Rings, Kaleidoscope, Cosmic Nebula, Galaxy Spiral, Particle Explosion
-  - **Scenic**: Sound Tornado, Geometric Mandala, Soundwave Terrain, Neon City, Ocean Waves, Fireworks Show
+- **39 Waveform Visualization Styles**:
+  - **Featured Styles**:
+    - Liquid Mercury - Fluid metallic waves
+    - Cosmic Nebula - Space-themed with chroma wheel and pitch orb
+    - Soundwave Terrain - 3D landscape visualization
+    - Gradient Bars - Colorful gradient spectrum bars
+    - Matrix Rain - Digital rain effect
+    - Plasma Fire - Fire-like plasma effect
+    - DNA Helix - Double helix structure
+    - 8-Bit Chase - Retro Pac-Man style
+    - Rhythm Snake - Musical snake game
+    - Rain Tetris - Falling Tetris pieces synced to BPM
+    - DVD Bouncer - Classic DVD logo bouncing with corner celebrations
+    - Sacred Geometry - Mystical geometric patterns
+    - Fractal Void - Infinite fractal zoom
+  - **Classic Styles**:
+    - Layered Waves, Oscilloscope, Spectrum Bars, Flowing Ribbons
+    - Mirrored Wave, Particle Dots, Pixelated, 3D Mesh
+    - Sine Layers, Circular Dots, Neon Lines, Aurora Borealis
+    - Shockwave Rings, Kaleidoscope, Lightning Storm, Heartbeat ECG
+    - Fractal Tree, Sound Tornado, Geometric Mandala, Glitch Art
+    - Fireworks Show, Ocean Waves, Galaxy Spiral, Neon City
+    - Particle Explosion
   - Auto-rotate mode (changes every 30 seconds) or manual selection
   - Custom settings toggle with adjustable max height and start position
   - Hardcoded optimal defaults per waveform style
