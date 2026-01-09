@@ -77,7 +77,7 @@ const extractDominantColors = (imgUrl, callback) => {
 
 const NUM_PARTICLES = 30;
 
-const TrackInfo = ({ track, progress, duration }) => {
+const TrackInfo = ({ track, progress, duration, isExpanded }) => {
   const [albumColors, setAlbumColors] = useState(['#1DB954', '#1ed760', '#ff6b6b', '#4ecdc4', '#a855f7']);
   const [particleColors, setParticleColors] = useState(Array(NUM_PARTICLES).fill('#1DB954'));
   const particleContainerRef = useRef(null);
@@ -125,7 +125,7 @@ const TrackInfo = ({ track, progress, duration }) => {
   })), []); // Empty deps = stable across renders
 
   return (
-    <div className="track-info">
+    <div className={`track-info ${isExpanded ? 'is-expanded' : ''}`}>
       {/* Floating Particles */}
       <div className="particle-container" ref={particleContainerRef}>
         {particles.map(p => (

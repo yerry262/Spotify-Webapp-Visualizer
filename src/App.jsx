@@ -3,6 +3,7 @@ import { SpotifyAuth, SpotifyAPI } from './spotifyService';
 import AudioVisualizer from './components/AudioVisualizer';
 import TrackInfo from './components/TrackInfo';
 import PlaybackControls from './components/PlaybackControls';
+import VolumeControl from './components/VolumeControl';
 import UserProfile from './components/UserProfile';
 import SideMenu from './components/SideMenu';
 import { analyzeAudio, getCachedAnalysis, cancelAnalysis } from './audioAnalysisService';
@@ -575,21 +576,28 @@ function App() {
             </div>
             
             {/* Bottom Half - Track Info */}
-            <div className={`track-section ${isVisualizerExpanded ? 'collapsed' : ''}`}>
-              <TrackInfo 
-                track={playbackState?.item}
-                progress={playbackState?.progress_ms}
-                duration={playbackState?.item?.duration_ms}
-              />
-              <PlaybackControls 
-                isPlaying={playbackState?.is_playing}
-                onRefresh={fetchPlaybackState}
-                device={playbackState?.device}
-                shuffleState={playbackState?.shuffle_state}
-                repeatState={playbackState?.repeat_state || 'off'}
-                smartShuffle={playbackState?.smart_shuffle}
-              />
-            </div>
+            
+            <TrackInfo 
+              track={playbackState?.item}
+              progress={playbackState?.progress_ms}
+              duration={playbackState?.item?.duration_ms}
+              isExpanded={isVisualizerExpanded}
+            />
+            
+            <PlaybackControls 
+              isPlaying={playbackState?.is_playing}
+              onRefresh={fetchPlaybackState}
+              device={playbackState?.device}
+              shuffleState={playbackState?.shuffle_state}
+              repeatState={playbackState?.repeat_state || 'off'}
+              smartShuffle={playbackState?.smart_shuffle}
+              isExpanded={isVisualizerExpanded}
+            />
+
+            <VolumeControl 
+              initialVolume={playbackState?.device?.volume_percent}
+              isExpanded={isVisualizerExpanded}
+            />
           </>
         ) : (
           <>
@@ -606,15 +614,22 @@ function App() {
             
             {/* Idle Controls */}
             <div className="track-section idle-controls">
-              <PlaybackControls 
-                isPlaying={false}
-                onRefresh={fetchPlaybackState}
-                device={playbackState?.device}
-                shuffleState={playbackState?.shuffle_state}
-                repeatState={playbackState?.repeat_state || 'off'}
-                smartShuffle={playbackState?.smart_shuffle}
-              />
             </div>
+            
+            <PlaybackControls 
+              isPlaying={false}
+              onRefresh={fetchPlaybackState}
+              device={playbackState?.device}
+              shuffleState={playbackState?.shuffle_state}
+              repeatState={playbackState?.repeat_state || 'off'}
+              smartShuffle={playbackState?.smart_shuffle}
+              isExpanded={isVisualizerExpanded}
+            />
+
+            <VolumeControl 
+              initialVolume={playbackState?.device?.volume_percent}
+              isExpanded={isVisualizerExpanded}
+            />
           </>
         )}
       </div>

@@ -1,6 +1,7 @@
 .track-info {
   position: absolute;
-  top: 0;
+  top: auto;
+  height: 50%;
   left: 0;
   right: 0;
   bottom: 0;
@@ -521,4 +522,67 @@
   .album-name {
     font-size: 13px;
   }
+}
+/* Expanded state for cinematic view */
+.track-info.is-expanded {
+  position: fixed;
+  top: auto;
+  bottom: 30px;
+  left: 20%;
+  transform: translateX(-50%);
+  width: auto;
+  max-width: fit-content;
+  height: 64px;
+  padding: 0 24px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hide extra elements in floating mode */
+.track-info.is-expanded .particle-container,
+.track-info.is-expanded .album-art-background,
+.track-info.is-expanded .gradient-overlay,
+.track-info.is-expanded .track-decorations,
+.track-info.is-expanded .album-art-container,
+.track-info.is-expanded .album-name,
+.track-info.is-expanded .progress-container {
+  display: none !important;
+}
+
+.track-info.is-expanded .track-content {
+  position: static;
+  padding: 0;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  text-align: center;
+}
+
+.track-info.is-expanded .track-details {
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+.track-info.is-expanded .track-name {
+  font-size: 14px;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.track-info.is-expanded .artist-name {
+  font-size: 10px;
+  opacity: 0.7;
+  margin: 0;
+  letter-spacing: 0.5px;
 }

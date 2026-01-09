@@ -51,8 +51,10 @@ https://youtu.be/AYoBXHKe2Ow
   - YouTube URLs cached in localStorage (7-day TTL)
   - Fuzzy file matching handles special characters in song names
   - Track change debouncing (800ms) to prevent rapid API calls
-- **39 Waveform Visualization Styles**:
+- **45 Waveform Visualization Styles**:
   - **Featured Styles**:
+    - Synthwave Horizon - Retrowave grid with pulsing sun and mountain silhouette
+    - Volcanic Magma - Advanced environmental scene with background volcano, eruptions, and cinematic effects
     - Liquid Mercury - Fluid metallic waves
     - Cosmic Nebula - Space-themed with chroma wheel and pitch orb
     - Soundwave Terrain - 3D landscape visualization

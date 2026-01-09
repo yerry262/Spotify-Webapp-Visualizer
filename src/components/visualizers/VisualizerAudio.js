@@ -22,6 +22,7 @@ let isAutoWaveformMode = true; // Auto-switch mode
 // and center elements (chromaWheel, circularMel, pitchOrb, beatFlash)
 export const WAVEFORM_DEFAULTS = {
   // Featured styles (user favorites)
+  synthwave_horizon: { basePosition: 60,  maxAmplitude: 70, basePositionFullScreen: 60,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   liquid_mercury:   { basePosition: 50,  maxAmplitude: 46, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   cosmic_nebula:    { basePosition: 54,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: false } },
   terrain_3d:       { basePosition: 95,  maxAmplitude: 60, basePositionFullScreen: 87,  maxAmplitudeFullScreen: 75, particles: { enabled: false, count: 20, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
@@ -67,6 +68,8 @@ export const WAVEFORM_DEFAULTS = {
   galaxy_spiral:    { basePosition: 50,  maxAmplitude: 45, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: true, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   neon_city:        { basePosition: 85,  maxAmplitude: 60, basePositionFullScreen: 85,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 2, size: 0.7, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   particle_explosion: { basePosition: 50, maxAmplitude: 50, basePositionFullScreen: 50, maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  lava_lamp:        { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  volcanic_magma:   { basePosition: 85,  maxAmplitude: 55, basePositionFullScreen: 85,  maxAmplitudeFullScreen: 65, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
 };
 
 // Waveform settings state
@@ -80,7 +83,7 @@ let waveformSettings = {
 let isVisualizerFullScreen = false;
 let vizAnimationState = {
   basePosition: 60,
-  maxAmplitude: 45,
+  maxAmplitude: 70,
   lastStyleId: null
 };
 
@@ -88,6 +91,9 @@ let vizAnimationState = {
 let oceanState = { sChroma: new Float32Array(12).fill(0), sMel: null, sBeat: 0, timeOffset: 0, foamParticles: [] };
 let galaxyState = { sChroma: new Float32Array(12).fill(0), sMel: null, sBeat: 0, rotation: 0 };
 let glitch2State = { sChroma: new Float32Array(12).fill(0), sBeat: 0, blocks: [], glitchActive: 0, lastScanlineShift: 0 };
+let lavaLampState = { blobs: [], sChroma: new Float32Array(12).fill(0), sBeat: 0, initialized: false };
+let synthwaveState = { sChroma: new Float32Array(12).fill(0), sBeat: 0, gridOffset: 0, sunPulse: 0, glitchFrame: 0, scanY: 0 };
+let volcanicState = { sChroma: new Float32Array(12).fill(0), sBeat: 0, sBass: 0, lavaOffset: 0, ashParticles: [], bubbles: [], bombs: [], initialised: false };
 
 export function setVisualizerFullScreen(isFull) {
   isVisualizerFullScreen = isFull;
@@ -119,7 +125,7 @@ export function updateWaveformAnimationState(styleId) {
     targetAmp = waveformSettings.maxAmplitude;
   } else {
     // Determine defaults based on current style and fullscreen mode
-    const defaults = WAVEFORM_DEFAULTS[styleId] || WAVEFORM_DEFAULTS.layered;
+    const defaults = WAVEFORM_DEFAULTS[styleId] || WAVEFORM_DEFAULTS.synthwave_horizon;
     
     // Check if style changed
     if (vizAnimationState.lastStyleId !== styleId) {
@@ -158,7 +164,7 @@ export function getEffectiveWaveformSettings(styleId) {
       maxAmplitude: waveformSettings.maxAmplitude
     };
   }
-  const defaults = WAVEFORM_DEFAULTS[styleId] || WAVEFORM_DEFAULTS.layered;
+  const defaults = WAVEFORM_DEFAULTS[styleId] || WAVEFORM_DEFAULTS.synthwave_horizon;
   // Make sure to return the correct target based on fullscreen even if not animated yet
   return {
       basePosition: isVisualizerFullScreen ? (defaults.basePositionFullScreen ?? defaults.basePosition) : defaults.basePosition,
@@ -255,6 +261,7 @@ export function getAnalysisInterval(type) {
 // Export waveform styles for menu
 export const WAVEFORM_STYLES = [
   // Featured styles (user favorites)
+  { id: 'synthwave_horizon', name: 'Synthwave Horizon' },
   { id: 'liquid_mercury', name: 'Liquid Mercury' },
   { id: 'cosmic_nebula', name: 'Cosmic Nebula' },
   { id: 'terrain_3d', name: 'Soundwave Terrain' },
@@ -295,14 +302,16 @@ export const WAVEFORM_STYLES = [
   { id: 'glitch_art_2', name: 'Glitch Art 2' },
   { id: 'fireworks', name: 'Fireworks Show' },
   { id: 'ocean_waves', name: 'Ocean Waves' },
+  { id: 'volcanic_magma', name: 'Volcanic Magma' },
   { id: 'galaxy_spiral', name: 'Galaxy Spiral' },
   { id: 'neon_city', name: 'Neon City' },
-  { id: 'particle_explosion', name: 'Particle Explosion' }
+  { id: 'particle_explosion', name: 'Particle Explosion' },
+  { id: 'lava_lamp', name: 'Lava Lamp' }
 ];
 
 // Get current waveform style
 export function getWaveformStyle() {
-  return WAVEFORM_STYLES[currentWaveformStyle]?.id || 'layered';
+  return WAVEFORM_STYLES[currentWaveformStyle]?.id || 'synthwave_horizon';
 }
 
 // Get all waveform styles
@@ -896,6 +905,15 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
       break;
     case 'particle_explosion':
       drawParticleExplosionWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'lava_lamp':
+      drawLavaLampWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'synthwave_horizon':
+      drawSynthwaveHorizonWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'volcanic_magma':
+      drawVolcanicMagmaWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
     case 'pacman':
       drawPacmanWave(ctx, width, height, chroma, mel, beatPulse, time);
@@ -4157,6 +4175,798 @@ function drawGalaxySpiralWave(ctx, width, height, chroma, mel, beatPulse, time) 
 }
 
 /**
+ * Lava Lamp 🫧 - Hypnotic floating blobs that rise, merge, and pulse with the beat
+ * Organic, chill aesthetic with warm gradients and soft glow
+ */
+function drawLavaLampWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  if (!chroma || chroma.length !== 12) return;
+  
+  const minDim = Math.min(width, height);
+  
+  // Smooth state updates
+  const lerp = 0.08;
+  lavaLampState.sBeat += (beatPulse - lavaLampState.sBeat) * lerp;
+  for (let i = 0; i < 12; i++) {
+    lavaLampState.sChroma[i] += (chroma[i] - lavaLampState.sChroma[i]) * lerp;
+  }
+  
+  // Initialize blobs on first run
+  if (!lavaLampState.initialized || lavaLampState.blobs.length === 0) {
+    lavaLampState.blobs = [];
+    const numBlobs = 6;
+    for (let i = 0; i < numBlobs; i++) {
+      lavaLampState.blobs.push({
+        x: 0.2 + Math.random() * 0.6,
+        y: Math.random(),
+        vx: (Math.random() - 0.5) * 0.001,
+        vy: -0.001 - Math.random() * 0.002,
+        baseSize: 0.08 + Math.random() * 0.1,
+        size: 0.1,
+        hue: Math.random() * 60, // Warm hues: 0-60 (red to yellow)
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+    lavaLampState.initialized = true;
+  }
+  
+  // Find dominant chroma for color influence
+  let dominantIdx = 0;
+  let maxVal = 0;
+  for (let i = 0; i < 12; i++) {
+    if (lavaLampState.sChroma[i] > maxVal) {
+      maxVal = lavaLampState.sChroma[i];
+      dominantIdx = i;
+    }
+  }
+  const dominantHue = CHROMA_HUES[dominantIdx];
+  
+  ctx.save();
+  
+  // Draw lamp container background (dark with subtle gradient)
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+  bgGrad.addColorStop(0, '#1a0a1a');
+  bgGrad.addColorStop(0.5, '#0d0510');
+  bgGrad.addColorStop(1, '#1a0a1a');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+  
+  // Draw subtle "heat convection" lines
+  ctx.strokeStyle = 'rgba(255, 100, 50, 0.03)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 8; i++) {
+    const x = width * (0.2 + i * 0.08);
+    ctx.beginPath();
+    ctx.moveTo(x, height);
+    for (let y = height; y > 0; y -= 20) {
+      const wave = Math.sin(y * 0.01 + time * 0.5 + i) * 10;
+      ctx.lineTo(x + wave, y);
+    }
+    ctx.stroke();
+  }
+  
+  // Update and draw blobs
+  ctx.globalCompositeOperation = 'lighter';
+  
+  for (let blob of lavaLampState.blobs) {
+    // Wobble movement
+    blob.phase += 0.02;
+    const wobbleX = Math.sin(blob.phase) * 0.002;
+    const wobbleY = Math.sin(blob.phase * 0.7) * 0.0005;
+    
+    // Beat reaction
+    const beatBoost = lavaLampState.sBeat * 0.003;
+    
+    // Update position
+    blob.x += blob.vx + wobbleX;
+    blob.y += blob.vy + wobbleY - beatBoost;
+    
+    // Bounce off walls (with damping)
+    if (blob.x < 0.15) { blob.x = 0.15; blob.vx = Math.abs(blob.vx) * 0.8; }
+    if (blob.x > 0.85) { blob.x = 0.85; blob.vx = -Math.abs(blob.vx) * 0.8; }
+    
+    // Wrap vertically (respawn at bottom when reaching top)
+    if (blob.y < -0.1) {
+      blob.y = 1.1;
+      blob.x = 0.3 + Math.random() * 0.4;
+      blob.vx = (Math.random() - 0.5) * 0.001;
+    }
+    if (blob.y > 1.1) {
+      blob.y = 1.1;
+      blob.vy = -Math.abs(blob.vy);
+    }
+    
+    // Size pulsing with beat and chroma
+    const chromaBoost = lavaLampState.sChroma[dominantIdx] * 0.03;
+    const beatSize = lavaLampState.sBeat * 0.04;
+    blob.size += (blob.baseSize + chromaBoost + beatSize - blob.size) * 0.1;
+    
+    // Draw blob with layered gradients for soft glow
+    const bx = blob.x * width;
+    const by = blob.y * height;
+    const br = blob.size * minDim;
+    
+    // Calculate hue (blend between blob's base hue and dominant music hue)
+    const hue = (blob.hue + dominantHue * 0.3) % 360;
+    
+    // Outer glow (largest, most transparent)
+    const glowGrad = ctx.createRadialGradient(bx, by, 0, bx, by, br * 2);
+    glowGrad.addColorStop(0, `hsla(${hue}, 100%, 60%, 0.3)`);
+    glowGrad.addColorStop(0.5, `hsla(${hue}, 100%, 50%, 0.1)`);
+    glowGrad.addColorStop(1, `hsla(${hue}, 100%, 40%, 0)`);
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath();
+    ctx.arc(bx, by, br * 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Main blob body
+    const blobGrad = ctx.createRadialGradient(bx - br * 0.3, by - br * 0.3, 0, bx, by, br);
+    blobGrad.addColorStop(0, `hsla(${hue + 20}, 100%, 80%, 0.9)`);
+    blobGrad.addColorStop(0.4, `hsla(${hue}, 100%, 60%, 0.8)`);
+    blobGrad.addColorStop(0.8, `hsla(${hue - 10}, 100%, 45%, 0.7)`);
+    blobGrad.addColorStop(1, `hsla(${hue - 20}, 100%, 30%, 0.5)`);
+    ctx.fillStyle = blobGrad;
+    ctx.beginPath();
+    ctx.arc(bx, by, br, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Specular highlight (small bright spot)
+    const specGrad = ctx.createRadialGradient(bx - br * 0.4, by - br * 0.4, 0, bx - br * 0.3, by - br * 0.3, br * 0.4);
+    specGrad.addColorStop(0, `rgba(255, 255, 255, 0.6)`);
+    specGrad.addColorStop(0.5, `rgba(255, 255, 255, 0.2)`);
+    specGrad.addColorStop(1, `rgba(255, 255, 255, 0)`);
+    ctx.fillStyle = specGrad;
+    ctx.beginPath();
+    ctx.arc(bx - br * 0.3, by - br * 0.3, br * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Draw "merge" effect where blobs overlap (simplified metaball look)
+  ctx.globalCompositeOperation = 'source-over';
+  for (let i = 0; i < lavaLampState.blobs.length; i++) {
+    for (let j = i + 1; j < lavaLampState.blobs.length; j++) {
+      const b1 = lavaLampState.blobs[i];
+      const b2 = lavaLampState.blobs[j];
+      const dx = (b1.x - b2.x) * width;
+      const dy = (b1.y - b2.y) * height;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const r1 = b1.size * minDim;
+      const r2 = b2.size * minDim;
+      const overlap = (r1 + r2) - dist;
+      
+      if (overlap > 0 && dist > 0) {
+        // Draw a glowing bridge between overlapping blobs
+        const mx = ((b1.x + b2.x) / 2) * width;
+        const my = ((b1.y + b2.y) / 2) * height;
+        const bridgeSize = Math.min(overlap * 0.5, r1 * 0.5, r2 * 0.5);
+        const hue = (b1.hue + b2.hue + dominantHue) / 3;
+        
+        const bridgeGrad = ctx.createRadialGradient(mx, my, 0, mx, my, bridgeSize);
+        bridgeGrad.addColorStop(0, `hsla(${hue}, 100%, 70%, 0.6)`);
+        bridgeGrad.addColorStop(1, `hsla(${hue}, 100%, 50%, 0)`);
+        ctx.fillStyle = bridgeGrad;
+        ctx.beginPath();
+        ctx.arc(mx, my, bridgeSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+  
+  // Subtle vignette for lamp container feel
+  const vignetteGrad = ctx.createRadialGradient(width / 2, height / 2, minDim * 0.3, width / 2, height / 2, minDim * 0.8);
+  vignetteGrad.addColorStop(0, 'transparent');
+  vignetteGrad.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+  ctx.fillStyle = vignetteGrad;
+  ctx.fillRect(0, 0, width, height);
+  
+  // Glass reflection overlay (subtle)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+  ctx.beginPath();
+  ctx.ellipse(width * 0.3, height * 0.3, width * 0.15, height * 0.25, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.restore();
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+/**
+ * Synthwave Horizon 🌅🛤️ - Outrun/Retrowave infinite grid racing toward you
+ * Features: Neon sun, perspective grid floor, VHS scanlines, beat-reactive glitches
+ * Inspired by Glitch Art 2's smooth state, randomness that syncs with music
+ */
+function drawSynthwaveHorizonWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  if (!chroma || chroma.length !== 12) return;
+  
+  const settings = getEffectiveWaveformSettings('synthwave_horizon');
+  const intensity = (settings.maxAmplitude / 70) * (0.6 + beatPulse * 0.4);
+  
+  // Smooth state updates (like Glitch Art 2)
+  const lerp = 0.12;
+  synthwaveState.sBeat += (beatPulse - synthwaveState.sBeat) * lerp;
+  for (let i = 0; i < 12; i++) {
+    synthwaveState.sChroma[i] += (chroma[i] - synthwaveState.sChroma[i]) * lerp;
+  }
+  
+  // Find dominant chroma
+  let dominantIdx = 0;
+  let maxVal = 0;
+  for (let i = 0; i < 12; i++) {
+    if (synthwaveState.sChroma[i] > maxVal) {
+      maxVal = synthwaveState.sChroma[i];
+      dominantIdx = i;
+    }
+  }
+  const dominantHue = CHROMA_HUES[dominantIdx];
+  
+  // Secondary chroma for accent
+  let secondaryIdx = (dominantIdx + 6) % 12;
+  const secondaryHue = CHROMA_HUES[secondaryIdx];
+  
+  ctx.save();
+  
+  // === SCREEN SHAKE (Beat-reactive, like Glitch Art 2) ===
+  if (synthwaveState.sBeat > 0.7) {
+    const shakeX = (Math.sin(time * 50) * 3 + Math.cos(time * 37) * 2) * synthwaveState.sBeat;
+    const shakeY = (Math.cos(time * 43) * 2) * synthwaveState.sBeat;
+    ctx.translate(shakeX, shakeY);
+  }
+  
+  // === HORIZON POSITION ===
+  const horizonY = height * (settings.basePosition / 100);
+  
+  // === SKY GRADIENT (Sunset vibes) ===
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+  // Deep purple to hot pink/orange
+  skyGrad.addColorStop(0, `hsla(280, 60%, 8%, 1)`);
+  skyGrad.addColorStop(0.3, `hsla(300, 70%, 15%, 1)`);
+  skyGrad.addColorStop(0.6, `hsla(330, 80%, 25%, 1)`);
+  skyGrad.addColorStop(0.85, `hsla(${(dominantHue + 350) % 360}, 90%, 40%, 1)`);
+  skyGrad.addColorStop(1, `hsla(${(dominantHue + 30) % 360}, 100%, 55%, 1)`);
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, width, horizonY);
+  
+  // === NEON SUN (Striped, pulsing) ===
+  const sunX = width / 2;
+  const sunY = horizonY;
+  const baseSunRadius = Math.min(width, height) * 0.18;
+  const sunPulse = 1 + synthwaveState.sBeat * 0.15;
+  synthwaveState.sunPulse += (sunPulse - synthwaveState.sunPulse) * 0.2;
+  const sunRadius = baseSunRadius * synthwaveState.sunPulse;
+  
+  // Sun glow (outer halo)
+  ctx.globalCompositeOperation = 'lighter';
+  const sunGlow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunRadius * 2.5);
+  sunGlow.addColorStop(0, `hsla(${(dominantHue + 30) % 360}, 100%, 70%, 0.4)`);
+  sunGlow.addColorStop(0.4, `hsla(330, 100%, 60%, 0.2)`);
+  sunGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = sunGlow;
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunRadius * 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.globalCompositeOperation = 'source-over';
+  
+  // Sun body (solid gradient)
+  const sunBodyGrad = ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
+  sunBodyGrad.addColorStop(0, `hsla(50, 100%, 70%, 1)`);
+  sunBodyGrad.addColorStop(0.3, `hsla(40, 100%, 60%, 1)`);
+  sunBodyGrad.addColorStop(0.6, `hsla(${(dominantHue + 20) % 360}, 100%, 55%, 1)`);
+  sunBodyGrad.addColorStop(1, `hsla(330, 100%, 50%, 1)`);
+  ctx.fillStyle = sunBodyGrad;
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunRadius, Math.PI, 0); // Only upper half visible above horizon
+  ctx.fill();
+  
+  // Sun stripes (horizontal scanlines through sun - iconic synthwave look)
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunRadius, Math.PI, 0);
+  ctx.clip();
+  
+  ctx.fillStyle = `rgba(${10}, ${5}, ${20}, 0.95)`;
+  const stripeCount = 8;
+  for (let i = 0; i < stripeCount; i++) {
+    const stripeY = sunY - sunRadius + (i * 2 + 1) * (sunRadius / stripeCount);
+    const stripeHeight = (sunRadius / stripeCount) * (0.3 + i * 0.08);
+    ctx.fillRect(sunX - sunRadius, stripeY, sunRadius * 2, stripeHeight);
+  }
+  ctx.restore();
+  
+  // === GRID FLOOR (Perspective racing toward camera) ===
+  const gridHeight = height - horizonY;
+  
+  // Grid floor gradient (dark purple to near-black)
+  const floorGrad = ctx.createLinearGradient(0, horizonY, 0, height);
+  floorGrad.addColorStop(0, `hsla(280, 80%, 12%, 1)`);
+  floorGrad.addColorStop(0.5, `hsla(280, 70%, 6%, 1)`);
+  floorGrad.addColorStop(1, `hsla(280, 60%, 3%, 1)`);
+  ctx.fillStyle = floorGrad;
+  ctx.fillRect(0, horizonY, width, gridHeight);
+  
+  // Grid movement (racing toward camera)
+  const gridSpeed = 0.5 + synthwaveState.sBeat * 0.3 + maxVal * 0.2;
+  synthwaveState.gridOffset = (synthwaveState.gridOffset + gridSpeed) % 50;
+  
+  // === HORIZONTAL GRID LINES (Perspective spacing) ===
+  ctx.strokeStyle = `hsla(300, 100%, 60%, ${0.4 + synthwaveState.sBeat * 0.3})`;
+  ctx.lineWidth = 1.5;
+  
+  const numHorizLines = 20;
+  for (let i = 0; i < numHorizLines; i++) {
+    // Exponential spacing for perspective
+    const t = (i + synthwaveState.gridOffset / 50) / numHorizLines;
+    const perspectiveT = Math.pow(t, 2.5); // Exponential curve
+    const lineY = horizonY + perspectiveT * gridHeight;
+    
+    if (lineY > horizonY && lineY < height) {
+      // Line thickness increases as it gets closer
+      ctx.lineWidth = 0.5 + perspectiveT * 2;
+      
+      // Brightness increases for closer lines
+      const alpha = 0.15 + perspectiveT * 0.5;
+      const hue = (300 + synthwaveState.sChroma[i % 12] * 30) % 360;
+      ctx.strokeStyle = `hsla(${hue}, 100%, 65%, ${alpha})`;
+      
+      ctx.beginPath();
+      ctx.moveTo(0, lineY);
+      ctx.lineTo(width, lineY);
+      ctx.stroke();
+    }
+  }
+  
+  // === VERTICAL GRID LINES (Converge to vanishing point) ===
+  const vanishingX = width / 2;
+  const vanishingY = horizonY;
+  const numVertLines = 24;
+  
+  for (let i = 0; i < numVertLines; i++) {
+    const t = i / (numVertLines - 1);
+    const bottomX = t * width;
+    
+    // Thickness based on distance from center
+    const distFromCenter = Math.abs(t - 0.5);
+    ctx.lineWidth = 0.8 + (1 - distFromCenter) * 1.5;
+    
+    // Color influenced by chroma
+    const chromaIdx = i % 12;
+    const chromaVal = synthwaveState.sChroma[chromaIdx];
+    const hue = (280 + chromaVal * 40 + i * 3) % 360;
+    const alpha = 0.2 + chromaVal * 0.3 + (1 - distFromCenter) * 0.2;
+    
+    ctx.strokeStyle = `hsla(${hue}, 100%, 60%, ${alpha})`;
+    
+    ctx.beginPath();
+    ctx.moveTo(vanishingX, vanishingY);
+    ctx.lineTo(bottomX, height);
+    ctx.stroke();
+  }
+  
+  // === NEON GLOW ON GRID (Beat-reactive scanline) ===
+  synthwaveState.scanY = (synthwaveState.scanY + 2 + synthwaveState.sBeat * 3) % gridHeight;
+  const scanLineY = horizonY + synthwaveState.scanY;
+  
+  const scanGrad = ctx.createLinearGradient(0, scanLineY - 20, 0, scanLineY + 20);
+  scanGrad.addColorStop(0, 'transparent');
+  scanGrad.addColorStop(0.5, `hsla(${secondaryHue}, 100%, 70%, ${0.3 + synthwaveState.sBeat * 0.4})`);
+  scanGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = scanGrad;
+  ctx.fillRect(0, scanLineY - 20, width, 40);
+  
+  // === GLITCH EFFECTS (Like Glitch Art 2) ===
+  if (synthwaveState.sBeat > 0.6) {
+    synthwaveState.glitchFrame++;
+    
+    // RGB Split on high beats
+    if (synthwaveState.glitchFrame % 3 === 0) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = `rgba(255, 0, 100, 0.05)`;
+      ctx.fillRect(3, 0, width, height);
+      ctx.fillStyle = `rgba(0, 255, 255, 0.05)`;
+      ctx.fillRect(-3, 0, width, height);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    
+    // Random glitch blocks (deterministic randomness like Glitch Art 2)
+    const numBlocks = Math.floor(synthwaveState.sBeat * 8);
+    for (let i = 0; i < numBlocks; i++) {
+      const seed = Math.sin(i * 4567.89 + Math.floor(time * 15));
+      const seed2 = Math.cos(i * 2345.67 + Math.floor(time * 12));
+      
+      if (Math.abs(seed) > 0.7) {
+        const blockX = ((seed + 1) / 2) * width;
+        const blockY = horizonY + ((seed2 + 1) / 2) * gridHeight;
+        const blockW = 30 + Math.abs(seed) * 100;
+        const blockH = 2 + Math.abs(seed2) * 8;
+        
+        const glitchHue = (dominantHue + i * 30) % 360;
+        ctx.fillStyle = `hsla(${glitchHue}, 100%, 60%, ${0.2 + synthwaveState.sBeat * 0.3})`;
+        ctx.fillRect(blockX, blockY, blockW, blockH);
+      }
+    }
+  }
+  
+  // === VHS SCANLINES (Subtle CRT effect) ===
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+  for (let y = 0; y < height; y += 3) {
+    ctx.fillRect(0, y, width, 1);
+  }
+  
+  // === MEL SPECTRUM MOUNTAINS (Optional silhouette at horizon) ===
+  if (mel && mel.length > 0) {
+    ctx.beginPath();
+    ctx.moveTo(0, horizonY);
+    
+    const numPoints = Math.min(mel.length, 64);
+    for (let i = 0; i < numPoints; i++) {
+      const x = (i / (numPoints - 1)) * width;
+      const melVal = Math.max(0, (mel[i] + 10) / 10);
+      const mountainHeight = melVal * 40 * intensity;
+      ctx.lineTo(x, horizonY - mountainHeight);
+    }
+    
+    ctx.lineTo(width, horizonY);
+    ctx.closePath();
+    
+    const mountainGrad = ctx.createLinearGradient(0, horizonY - 40, 0, horizonY);
+    mountainGrad.addColorStop(0, `hsla(280, 60%, 15%, 0.8)`);
+    mountainGrad.addColorStop(1, `hsla(280, 60%, 8%, 0.9)`);
+    ctx.fillStyle = mountainGrad;
+    ctx.fill();
+  }
+  
+  // === PALM TREE SILHOUETTES (Optional sides) ===
+  const drawPalm = (px, py, scale, flip) => {
+    ctx.save();
+    ctx.translate(px, py);
+    if (flip) ctx.scale(-1, 1);
+    ctx.scale(scale, scale);
+    
+    // Trunk
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(5, -40, 8, -80);
+    ctx.lineTo(12, -80);
+    ctx.quadraticCurveTo(10, -40, 6, 0);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Leaves (simple triangular fronds)
+    const leafAngles = [-0.8, -0.4, 0, 0.4, 0.8, -1.2, 1.2];
+    for (const angle of leafAngles) {
+      ctx.save();
+      ctx.translate(10, -80);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(25, -10, 50, 5);
+      ctx.quadraticCurveTo(25, 5, 0, 0);
+      ctx.fill();
+      ctx.restore();
+    }
+    
+    ctx.restore();
+  };
+  
+  // Draw palms on sides (only if there's space)
+  if (width > 400) {
+    drawPalm(width * 0.08, horizonY + 10, 0.8 + synthwaveState.sBeat * 0.1, false);
+    drawPalm(width * 0.92, horizonY + 10, 0.7 + synthwaveState.sBeat * 0.1, true);
+  }
+  
+  // === CHROMATIC VIGNETTE ===
+  const vignetteGrad = ctx.createRadialGradient(width / 2, height / 2, Math.min(width, height) * 0.3, width / 2, height / 2, Math.max(width, height) * 0.8);
+  vignetteGrad.addColorStop(0, 'transparent');
+  vignetteGrad.addColorStop(0.7, 'transparent');
+  vignetteGrad.addColorStop(1, 'rgba(10, 0, 20, 0.5)');
+  ctx.fillStyle = vignetteGrad;
+  ctx.fillRect(0, 0, width, height);
+  
+  ctx.restore();
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+/**
+ * Volcanic Magma 🌋 - A dark, cracked obsidian floor with glowing lava beneath
+ * Lava brightens and flows faster during bass-heavy sections.
+ * Ash particles float upward and catch the light of the current dominant chroma hue.
+ */
+function drawVolcanicMagmaWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  if (!chroma || chroma.length !== 12) return;
+  
+  const settings = getEffectiveWaveformSettings('volcanic_magma');
+  const lerp = 0.12;
+  
+  // 1. Update State
+  volcanicState.sBeat += (beatPulse - volcanicState.sBeat) * lerp;
+  for (let i = 0; i < 12; i++) {
+    volcanicState.sChroma[i] += (chroma[i] - volcanicState.sChroma[i]) * lerp;
+  }
+  
+  // Bass detection for lava intensity
+  const avgBass = (mel && mel.length > 0) ? (mel.slice(0, 15).reduce((a, b) => a + b, 0) / 15 + 10) / 10 : 0;
+  volcanicState.sBass += (avgBass - volcanicState.sBass) * lerp;
+  
+  // Find dominant chroma for ash lighting
+  let dominantIdx = 0, maxVal = 0;
+  for (let i = 0; i < 12; i++) {
+    if (volcanicState.sChroma[i] > maxVal) { maxVal = volcanicState.sChroma[i]; dominantIdx = i; }
+  }
+  const dominantHue = CHROMA_HUES[dominantIdx];
+  
+  ctx.save();
+  
+  // Environment shake on heavy beats
+  if (volcanicState.sBeat > 0.8) {
+    ctx.translate((Math.random() - 0.5) * 6 * volcanicState.sBeat, (Math.random() - 0.5) * 6 * volcanicState.sBeat);
+  }
+
+  // Base dark background
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+  bgGrad.addColorStop(0, '#050308');
+  bgGrad.addColorStop(0.7, '#0c0812');
+  bgGrad.addColorStop(1, `hsla(15, 70%, ${5 + volcanicState.sBass * 15}%, 1)`);
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  const baseY = height * (settings.basePosition / 100);
+  const floorArea = height - baseY;
+
+  // --- BACKGROUND VOLCANO ---
+  const volcCenterX = width / 2;
+  const volcBaseY = baseY;
+  const volcWidth = width * 0.8;
+  const volcHeight = height * 0.4 * (1 + volcanicState.sBass * 0.2);
+
+  // Volcanic Glow (Atmospheric)
+  const skyGlow = ctx.createRadialGradient(volcCenterX, volcBaseY - volcHeight, 0, volcCenterX, volcBaseY - volcHeight, volcWidth);
+  skyGlow.addColorStop(0, `hsla(15, 100%, 50%, ${0.2 + volcanicState.sBeat * 0.3})`);
+  skyGlow.addColorStop(0.6, `hsla(${dominantHue}, 80%, 40%, 0.1)`);
+  skyGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = skyGlow;
+  ctx.fillRect(0, 0, width, baseY);
+
+  // Volcano Silhouette
+  ctx.fillStyle = '#0a080d';
+  ctx.beginPath();
+  ctx.moveTo(volcCenterX - volcWidth / 2, volcBaseY);
+  ctx.quadraticCurveTo(volcCenterX - volcWidth / 4, volcBaseY - volcHeight * 0.8, volcCenterX - width * 0.05, volcBaseY - volcHeight);
+  ctx.lineTo(volcCenterX + width * 0.05, volcBaseY - volcHeight);
+  ctx.quadraticCurveTo(volcCenterX + volcWidth / 4, volcBaseY - volcHeight * 0.8, volcCenterX + volcWidth / 2, volcBaseY);
+  ctx.fill();
+
+  // Lava "River" from the crater
+  if (volcanicState.sBass > 0.4) {
+    const lavaFlowWidth = width * 0.08 * (1 + volcanicState.sBeat * 0.5);
+    const flowIntensity = 0.5 + volcanicState.sBeat * 0.5;
+    const flowGrad = ctx.createLinearGradient(volcCenterX, volcBaseY - volcHeight, volcCenterX, volcBaseY);
+    flowGrad.addColorStop(0, `hsla(20, 100%, 60%, ${flowIntensity})`);
+    flowGrad.addColorStop(1, `hsla(10, 100%, 40%, ${flowIntensity * 0.5})`);
+    
+    ctx.strokeStyle = flowGrad;
+    ctx.lineWidth = lavaFlowWidth;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(volcCenterX, volcBaseY - volcHeight + 5);
+    ctx.bezierCurveTo(volcCenterX - 20, volcBaseY - volcHeight/2, volcCenterX + 20, volcBaseY - volcHeight/4, volcCenterX, volcBaseY);
+    ctx.stroke();
+  }
+
+  // 2. Erruptions, Ash, Sparks, and Bombs
+  // Trigger eruption on strong beats
+  if (beatPulse > 0.8 && volcanicState.bombs.length < 15) {
+    for (let i = 0; i < 3; i++) {
+        volcanicState.bombs.push({
+            x: volcCenterX + (Math.random() - 0.5) * 40,
+            y: volcBaseY - volcHeight,
+            vx: (Math.random() - 0.5) * 10,
+            vy: -8 - Math.random() * 12,
+            gv: 0.4,
+            sz: 2 + Math.random() * 4,
+            hue: 15 + Math.random() * 20,
+            trail: []
+        });
+    }
+  }
+
+  // Draw Lava Bombs
+  ctx.save();
+  for (let i = volcanicState.bombs.length - 1; i >= 0; i--) {
+    const b = volcanicState.bombs[i];
+    b.x += b.vx;
+    b.y += b.vy;
+    b.vy += b.gv;
+    
+    b.trail.push({x: b.x, y: b.y});
+    if (b.trail.length > 10) b.trail.shift();
+
+    ctx.beginPath();
+    ctx.strokeStyle = `hsla(${b.hue}, 100%, 50%, 0.4)`;
+    ctx.lineWidth = b.sz * 0.5;
+    b.trail.forEach((p, idx) => {
+        if (idx === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+
+    const bombGrad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.sz * 2);
+    bombGrad.addColorStop(0, `hsla(${b.hue}, 100%, 70%, 1)`);
+    bombGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = bombGrad;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.sz, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (b.y > height + 50) volcanicState.bombs.splice(i, 1);
+  }
+  ctx.restore();
+
+  // Spawn ash and sparks
+  if (volcanicState.ashParticles.length < 100 && Math.random() < (0.4 + volcanicState.sBeat * 0.4)) {
+    const isSpark = Math.random() < 0.3;
+    volcanicState.ashParticles.push({
+      x: Math.random() < 0.3 ? volcCenterX + (Math.random() - 0.5) * 60 : Math.random() * width,
+      y: Math.random() < 0.3 ? volcBaseY - volcHeight : baseY + Math.random() * floorArea,
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: isSpark ? -2 - Math.random() * 3 : -0.6 - Math.random() * 1.2,
+      sz: isSpark ? 1 + Math.random() : 1.5 + Math.random() * 3,
+      alpha: 0.4 + Math.random() * 0.5,
+      hue: isSpark ? 30 + Math.random() * 30 : dominantHue,
+      isSpark: isSpark,
+      life: 1.0,
+      decay: isSpark ? 0.01 + Math.random() * 0.02 : 0.002 + Math.random() * 0.005
+    });
+  }
+
+  // Update and draw ash/sparks
+  for (let i = volcanicState.ashParticles.length - 1; i >= 0; i--) {
+    const p = volcanicState.ashParticles[i];
+    p.y += p.vy * (1 + volcanicState.sBeat * 2);
+    p.x += p.vx + Math.sin(time * 2 + i) * 0.5;
+    p.life -= p.decay;
+    
+    if (p.life <= 0 || p.y < -50) {
+      volcanicState.ashParticles.splice(i, 1);
+      continue;
+    }
+
+    const currentAlpha = p.alpha * p.life;
+    
+    if (p.isSpark) {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `hsla(${p.hue}, 100%, 70%, ${currentAlpha})`;
+        ctx.shadowBlur = 4 * volcanicState.sBeat;
+        ctx.shadowColor = `hsla(${p.hue}, 100%, 50%, 0.8)`;
+        ctx.fillRect(p.x, p.y, p.sz, p.sz);
+        ctx.shadowBlur = 0;
+        ctx.globalCompositeOperation = 'source-over';
+    } else {
+        ctx.fillStyle = `hsla(${p.hue}, 20%, ${10 + volcanicState.sBeat * 40}%, ${currentAlpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.sz, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (volcanicState.sBeat > 0.5) {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = `hsla(${dominantHue}, 80%, 60%, ${currentAlpha * volcanicState.sBeat * 0.3})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.sz * 1.8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalCompositeOperation = 'source-over';
+        }
+    }
+  }
+
+  // 3. Cracked Obsidian Floor with Lava Bubbles
+  const rows = 10;
+  const cols = 15;
+  const rowH = floorArea / rows;
+  const colW = width / cols;
+
+  for (let r = 0; r < rows; r++) {
+    // Horizon fade
+    const rowAlpha = (r / rows);
+    for (let c = 0; c < cols; c++) {
+      const pScale = 0.4 + (r / rows) * 0.6;
+      const x = c * colW;
+      const y = baseY + r * rowH;
+      
+      const seed = Math.sin(r * 45.67 + c * 89.12);
+      const jitterX = seed * 15;
+      const jitterY = Math.cos(r * 32.1 + c * 76.5) * 8;
+
+      const crackIntensity = Math.max(0, (0.2 + volcanicState.sBeat * 0.8 + volcanicState.sBass * 0.6) * (0.5 + Math.abs(seed) * 0.5));
+      const crackHue = 10 + Math.sin(time + seed * 10) * 15;
+
+      // Lava glow beneath
+      if (crackIntensity > 0.2) {
+        ctx.globalCompositeOperation = 'screen';
+        const lavaGrad = ctx.createRadialGradient(x + colW/2 + jitterX, y + rowH/2 + jitterY, 0, x + colW/2 + jitterX, y + rowH/2 + jitterY, colW * pScale * 1.5);
+        lavaGrad.addColorStop(0, `hsla(${crackHue}, 100%, 50%, ${crackIntensity * 0.3 * rowAlpha})`);
+        lavaGrad.addColorStop(1, 'transparent');
+        ctx.fillStyle = lavaGrad;
+        ctx.fillRect(x + jitterX - colW/2, y + jitterY - rowH/2, colW * 2, rowH * 2);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      // Obsidian Plate
+      ctx.fillStyle = `rgba(5, 5, 8, ${0.9 - crackIntensity * 0.2})`;
+      ctx.beginPath();
+      ctx.moveTo(x + jitterX, y + jitterY);
+      ctx.lineTo(x + colW + jitterX, y + jitterY);
+      ctx.lineTo(x + colW + 10 + jitterX, y + rowH + jitterY);
+      ctx.lineTo(x - 10 + jitterX, y + rowH + jitterY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Glowing cracks
+      ctx.strokeStyle = `hsla(${crackHue}, 100%, ${50 + crackIntensity * 30}%, ${0.2 + crackIntensity * 0.8})`;
+      ctx.lineWidth = (0.5 + crackIntensity * 5) * pScale;
+      ctx.stroke();
+
+      // Lava Bubbles (rare, beat reactive)
+      if (crackIntensity > 0.7 && Math.random() < 0.02) {
+          volcanicState.bubbles.push({
+              x: x + colW/2 + jitterX,
+              y: y + rowH/2 + jitterY,
+              r: 2 + Math.random() * 5,
+              life: 1.0,
+              hue: crackHue
+          });
+      }
+    }
+  }
+
+  // Draw and update bubbles
+  for (let i = volcanicState.bubbles.length - 1; i >= 0; i--) {
+    const b = volcanicState.bubbles[i];
+    b.life -= 0.05;
+    if (b.life <= 0) {
+        volcanicState.bubbles.splice(i, 1);
+        continue;
+    }
+    ctx.beginPath();
+    ctx.strokeStyle = `hsla(${b.hue}, 100%, 60%, ${b.life})`;
+    ctx.lineWidth = 2;
+    ctx.arc(b.x, b.y, b.r * (2 - b.life), 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // 4. Heat Haze & CRT Effects
+  if (volcanicState.sBass > 0.6) {
+    ctx.save();
+    ctx.globalAlpha = 0.08 * volcanicState.sBass;
+    // RGB split effect
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.drawImage(ctx.canvas, 2, 0, width, height);
+    ctx.drawImage(ctx.canvas, -2, 0, width, height);
+    ctx.restore();
+  }
+
+  // Atmospheric Smoke (Top)
+  const smokeGrad = ctx.createLinearGradient(0, 0, 0, height * 0.3);
+  smokeGrad.addColorStop(0, `hsla(${dominantHue}, 30%, 5%, 0.8)`);
+  smokeGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = smokeGrad;
+  ctx.fillRect(0, 0, width, height * 0.3);
+
+  // Scanlines (VHS feel)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+  for (let y = 0; y < height; y += 4) {
+    ctx.fillRect(0, y, width, 1);
+  }
+
+  // Final vignette
+  const vignette = ctx.createRadialGradient(width/2, height/2, width*0.2, width/2, height/2, width*0.8);
+  vignette.addColorStop(0, 'transparent');
+  vignette.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.restore();
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+/**
  * Neon City 🌃 - Cyberpunk cityscape with neon lights pulsing to music
  * Buildings react to mel, neon signs use chroma colors
  */
@@ -4386,13 +5196,13 @@ function drawParticleExplosionWave(ctx, width, height, chroma, mel, beatPulse, t
   // Update and draw explosions
   particleExplosionState.activeExplosions = particleExplosionState.activeExplosions.filter(exp => {
     const age = time - exp.startTime;
-    if (age > 2.0) return false;
+    if (age > 2.0 || age < 0) return false;
 
     const fade = Math.max(0, 1 - age / 2.0);
     
     // Shockwave
     if (age < 0.5) {
-      const swRadius = age * 800 * exp.intensity;
+      const swRadius = Math.max(0, age * 800 * exp.intensity);
       const swAlpha = (1 - age / 0.5) * 0.5;
       ctx.strokeStyle = `hsla(${exp.hue}, 90%, 70%, ${swAlpha})`;
       ctx.lineWidth = 2;

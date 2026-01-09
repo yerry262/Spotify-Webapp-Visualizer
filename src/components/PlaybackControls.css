@@ -1,4 +1,4 @@
-.playback-controls {
+﻿.playback-controls {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,6 +202,7 @@
   .device-name {
     max-width: 60px;
     font-size: 11px;
+
   }
   
   .device-icon svg {
@@ -248,4 +249,55 @@
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
+}
+
+/* Expanded state styles - moves to bottom */
+.playback-controls.is-expanded {
+  position: fixed;
+  top: auto;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  max-width: fit-content;
+  height: 64px;
+  padding: 0 24px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.playback-controls.is-expanded .device-info {
+  display: none;
+}
+
+.playback-controls.is-expanded .controls-center {
+  gap: 15px;
+}
+
+.playback-controls.is-expanded .control-btn.primary {
+  width: 48px;
+  height: 48px;
+}
+
+.playback-controls.is-expanded .control-btn.primary svg {
+  width: 22px;
+  height: 22px;
+}
+
+.playback-controls.is-expanded .control-btn.secondary {
+  width: 36px;
+  height: 36px;
+}
+
+.playback-controls.is-expanded .control-btn.small {
+  width: 32px;
+  height: 32px;
 }

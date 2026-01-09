@@ -2,7 +2,7 @@ import React from 'react';
 import { SpotifyAPI } from '../spotifyService';
 import './PlaybackControls.css';
 
-const PlaybackControls = ({ isPlaying, onRefresh, device, shuffleState, repeatState, smartShuffle }) => {
+const PlaybackControls = ({ isPlaying, onRefresh, device, shuffleState, repeatState, smartShuffle, isExpanded }) => {
   const handlePrevious = async () => {
     await SpotifyAPI.previous();
     setTimeout(onRefresh, 300);
@@ -148,7 +148,7 @@ const PlaybackControls = ({ isPlaying, onRefresh, device, shuffleState, repeatSt
   };
 
   return (
-    <div className="playback-controls">
+    <div className={`playback-controls ${isExpanded ? 'is-expanded' : ''}`}>
       {/* Centered control buttons */}
       <div className="controls-center">
         <button 
