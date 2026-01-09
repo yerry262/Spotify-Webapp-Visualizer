@@ -31,6 +31,8 @@ export const WAVEFORM_DEFAULTS = {
   helix_dna:        { basePosition: 50,  maxAmplitude: 40, basePositionFullScreen: 100,  maxAmplitudeFullScreen: 70, particles: { enabled: true, count: 5, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: true, pitchOrb: false, beatFlash: false } },
   pacman:           { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   snake:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  rain_tetris:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  dvd_bouncer:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   sacred_geometry:  { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 30, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
   fractal_void:     { basePosition: 50,  maxAmplitude: 80, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 90, particles: { enabled: true, count: 50, size: 0.8, speed: 1.5 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: true, beatFlash: true } },
 
@@ -253,6 +255,8 @@ export const WAVEFORM_STYLES = [
   { id: 'helix_dna', name: 'DNA Helix' },
   { id: 'pacman', name: '8-Bit Chase' },
   { id: 'snake', name: 'Rhythm Snake' },
+  { id: 'rain_tetris', name: 'Rain Tetris' },
+  { id: 'dvd_bouncer', name: 'DVD Bouncer' },
   { id: 'sacred_geometry', name: 'Sacred Geometry' },
   { id: 'fractal_void', name: 'Fractal Void' },
   // Classic styles
@@ -310,6 +314,9 @@ export function setWaveformAutoMode(enabled) {
 export function resetWaveformTiming() {
   lastWaveformStyleChange = -9999; // Force immediate change
 
+  // Reset Rain Tetris state for new track
+  resetRainTetrisState();
+
   // Force a style change on next frame
   console.log('🔄 Waveform timing reset for new track');
 }
@@ -324,6 +331,8 @@ export function setWaveformStyle(styleId) {
     const index = WAVEFORM_STYLES.findIndex(s => s.id === styleId);
     if (index !== -1) {
       currentWaveformStyle = index;
+      // Reset Rain Tetris state when switching waveforms
+      resetRainTetrisState();
     }
   }
 }
@@ -417,6 +426,8 @@ export function drawAudioVisualization(ctx, width, height, vizState, frame, time
       } while (newStyle === currentWaveformStyle && WAVEFORM_STYLES.length > 1);
       currentWaveformStyle = newStyle;
       lastWaveformStyleChange = time;
+      // Reset Rain Tetris state when auto-switching waveforms
+      resetRainTetrisState();
     }
   }
 
@@ -839,6 +850,12 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
       break;
     case 'snake':
       drawSnakeWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'rain_tetris':
+      drawRainTetrisWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'dvd_bouncer':
+      drawDVDBouncerWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
     case 'sacred_geometry':
       drawSacredGeometryWave(ctx, width, height, chroma, mel, beatPulse, time);
@@ -4305,6 +4322,543 @@ function drawSnakeWave(ctx, width, height, chroma, mel, beatPulse, time) {
         ctx.fillRect(p.x * cellSize, p.y * cellSize, cellSize-1, cellSize-1);
     });
     ctx.shadowBlur = 0;
+}
+
+// --- RAIN TETRIS STATE ---
+// Define classic Tetris pieces (tetrominoes)
+const TETROMINO_SHAPES = {
+    I: [[1,1,1,1]], // Line
+    O: [[1,1],[1,1]], // Square
+    T: [[0,1,0],[1,1,1]], // T-shape
+    S: [[0,1,1],[1,1,0]], // S-shape
+    Z: [[1,1,0],[0,1,1]], // Z-shape
+    J: [[1,0,0],[1,1,1]], // J-shape
+    L: [[0,0,1],[1,1,1]]  // L-shape
+};
+
+const TETROMINO_COLORS = {
+    I: 180, // Cyan
+    O: 60,  // Yellow
+    T: 280, // Purple
+    S: 120, // Green
+    Z: 0,   // Red
+    J: 240, // Blue
+    L: 30   // Orange
+};
+
+let rainTetrisState = {
+    pieces: [],        // Active falling pieces
+    settledGrid: {},   // Grid of settled blocks: key = "x,y", value = {hue, glow}
+    lastBeat: 0,
+    bpmInterval: 0.5,
+    gridCols: 40,      // Doubled to make blocks half the size
+    gridRows: 40,
+    blockSize: 0,
+    pieceCount: 0,     // Track total pieces dropped
+    lastWaveform: 'rain_tetris'
+};
+
+// Helper function to reset Rain Tetris state
+function resetRainTetrisState() {
+    rainTetrisState.pieces = [];
+    rainTetrisState.settledGrid = {};
+    rainTetrisState.pieceCount = 0;
+    rainTetrisState.lastBeat = 0;
+}
+
+// Helper function to rotate tetromino shape
+function rotateTetromino(shape, rotations) {
+    let rotated = shape;
+    for (let i = 0; i < rotations; i++) {
+        const rows = rotated.length;
+        const cols = rotated[0].length;
+        const newShape = [];
+        
+        for (let c = 0; c < cols; c++) {
+            const newRow = [];
+            for (let r = rows - 1; r >= 0; r--) {
+                newRow.push(rotated[r][c]);
+            }
+            newShape.push(newRow);
+        }
+        rotated = newShape;
+    }
+    return rotated;
+}
+
+function drawRainTetrisWave(ctx, width, height, chroma, mel, beatPulse, time) {
+    // Calculate block size to fill entire canvas
+    const cols = rainTetrisState.gridCols;
+    const blockSize = width / cols; // Use full width
+    const rows = Math.floor(height / blockSize);
+    rainTetrisState.blockSize = blockSize;
+    rainTetrisState.gridRows = rows;
+    
+    // Check if we need to reset (60 pieces dropped or waveform changed)
+    if (rainTetrisState.pieceCount >= 60) {
+        rainTetrisState.pieces = [];
+        rainTetrisState.settledGrid = {};
+        rainTetrisState.pieceCount = 0;
+    }
+    
+    // Detect dominant chroma for color selection
+    let maxChroma = 0;
+    let maxVal = 0;
+    chroma.forEach((v, i) => { 
+        if(v > maxVal) { 
+            maxVal = v; 
+            maxChroma = i; 
+        } 
+    });
+    
+    // Spawn new tetromino on beat (only if under 60 pieces)
+    if (beatPulse > 0.7 && time - rainTetrisState.lastBeat > 0.4 && rainTetrisState.pieceCount < 60) {
+        rainTetrisState.lastBeat = time;
+        
+        // Choose random tetromino type
+        const types = Object.keys(TETROMINO_SHAPES);
+        const type = types[Math.floor(Math.random() * types.length)];
+        const baseShape = TETROMINO_SHAPES[type];
+        
+        // Random rotation: 0, 90, 180, or 270 degrees (0, 1, 2, or 3 rotations)
+        const rotations = Math.floor(Math.random() * 4);
+        const shape = rotateTetromino(baseShape, rotations);
+        
+        // Random spawn position across the X axis
+        const pieceWidth = shape[0].length;
+        const maxStartCol = cols - pieceWidth;
+        const startCol = Math.floor(Math.random() * (maxStartCol + 1));
+        
+        // Add chroma influence to color
+        const baseHue = TETROMINO_COLORS[type];
+        const hue = (baseHue + maxChroma * 15) % 360;
+        
+        rainTetrisState.pieces.push({
+            type: type,
+            shape: shape,
+            col: startCol,
+            row: -shape.length, // Start above screen
+            targetRow: -shape.length,
+            hue: hue,
+            glow: beatPulse,
+            spawnTime: time,
+            rotation: rotations
+        });
+        
+        rainTetrisState.pieceCount++;
+    }
+    
+    // Update pieces - slower fall speed
+    const moveInterval = 1.5; 
+    
+    rainTetrisState.pieces = rainTetrisState.pieces.filter(piece => {
+        const timeSinceSpawn = time - piece.spawnTime;
+        const expectedRow = Math.floor(timeSinceSpawn / moveInterval) + piece.row;
+        
+        // Check if piece can move down
+        if (canMovePiece(piece, piece.col, expectedRow + 1, cols, rows)) {
+            // Smooth interpolation
+            const moveFraction = (timeSinceSpawn % moveInterval) / moveInterval;
+            const eased = moveFraction < 0.5 ? 2 * moveFraction * moveFraction : 1 - Math.pow(-2 * moveFraction + 2, 2) / 2;
+            piece.row = expectedRow + eased;
+            piece.targetRow = expectedRow + 1;
+            
+            // Decay glow
+            piece.glow *= 0.95;
+            return true; // Keep piece
+        } else {
+            // Lock piece in place
+            lockPiece(piece, expectedRow, time);
+            return false; // Remove piece
+        }
+    });
+    
+    // Clear completed lines
+    clearCompletedLines(cols, rows);
+    
+    // Clean old settled blocks (fade out after 20 seconds)
+    Object.keys(rainTetrisState.settledGrid).forEach(key => {
+        const block = rainTetrisState.settledGrid[key];
+        const timeSinceSettled = time - block.settleTime;
+        
+        // Only start fading after 20 seconds
+        if (timeSinceSettled > 20) {
+            block.glow *= 0.98;
+            if (block.glow < 0.05) {
+                delete rainTetrisState.settledGrid[key];
+            }
+        }
+    });
+    
+    // Update last waveform
+    rainTetrisState.lastWaveform = 'rain_tetris';
+    
+    // Draw grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    
+    // Vertical lines
+    for (let i = 0; i <= cols; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * blockSize, 0);
+        ctx.lineTo(i * blockSize, height);
+        ctx.stroke();
+    }
+    
+    // Horizontal lines
+    for (let i = 0; i <= rows; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, i * blockSize);
+        ctx.lineTo(cols * blockSize, i * blockSize);
+        ctx.stroke();
+    }
+    
+    // Draw settled blocks first
+    Object.keys(rainTetrisState.settledGrid).forEach(key => {
+        const [x, y] = key.split(',').map(Number);
+        const block = rainTetrisState.settledGrid[key];
+        
+        const posX = x * blockSize;
+        const posY = y * blockSize;
+        
+        // Glow effect
+        const glowIntensity = Math.max(0.2, block.glow);
+        ctx.shadowBlur = 10 + glowIntensity * 15;
+        ctx.shadowColor = `hsl(${block.hue}, 100%, 50%)`;
+        
+        // Block color
+        const saturation = 90;
+        const lightness = 35 + block.glow * 25;
+        ctx.fillStyle = `hsl(${block.hue}, ${saturation}%, ${lightness}%)`;
+        
+        // Draw block with slight padding
+        const padding = 2;
+        ctx.fillRect(
+            posX + padding, 
+            posY + padding, 
+            blockSize - padding * 2, 
+            blockSize - padding * 2
+        );
+        
+        // Inner highlight
+        ctx.fillStyle = `hsla(${block.hue}, 100%, 70%, ${0.2 + block.glow * 0.3})`;
+        ctx.fillRect(
+            posX + blockSize * 0.25, 
+            posY + blockSize * 0.25, 
+            blockSize * 0.3, 
+            blockSize * 0.3
+        );
+    });
+    
+    // Draw active falling pieces
+    rainTetrisState.pieces.forEach(piece => {
+        const shape = piece.shape;
+        
+        // Glow effect (like Rhythm Snake)
+        const glowIntensity = Math.max(0.4, piece.glow);
+        ctx.shadowBlur = 20 + glowIntensity * 30;
+        ctx.shadowColor = `hsl(${piece.hue}, 100%, 50%)`;
+        
+        // Draw each block of the tetromino
+        for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[r].length; c++) {
+                if (shape[r][c]) {
+                    const x = (piece.col + c) * blockSize;
+                    const y = (piece.row + r) * blockSize;
+                    
+                    // Skip if off-screen top
+                    if (y < -blockSize) continue;
+                    
+                    // Block color
+                    const saturation = 95;
+                    const lightness = 45 + piece.glow * 35;
+                    ctx.fillStyle = `hsl(${piece.hue}, ${saturation}%, ${lightness}%)`;
+                    
+                    // Draw block with slight padding
+                    const padding = 2;
+                    ctx.fillRect(
+                        x + padding, 
+                        y + padding, 
+                        blockSize - padding * 2, 
+                        blockSize - padding * 2
+                    );
+                    
+                    // Inner highlight for depth
+                    ctx.fillStyle = `hsla(${piece.hue}, 100%, 75%, ${0.4 + piece.glow * 0.5})`;
+                    ctx.fillRect(
+                        x + blockSize * 0.25, 
+                        y + blockSize * 0.25, 
+                        blockSize * 0.3, 
+                        blockSize * 0.3
+                    );
+                }
+            }
+        }
+    });
+    
+    ctx.shadowBlur = 0;
+}
+
+// Helper function: Check if piece can move to new position
+function canMovePiece(piece, newCol, newRow, gridCols, gridRows) {
+    const shape = piece.shape;
+    const floorRow = Math.floor(newRow);
+    
+    for (let r = 0; r < shape.length; r++) {
+        for (let c = 0; c < shape[r].length; c++) {
+            if (shape[r][c]) {
+                const x = newCol + c;
+                const y = floorRow + r;
+                
+                // Check boundaries
+                if (x < 0 || x >= gridCols || y >= gridRows) {
+                    return false;
+                }
+                
+                // Check collision with settled blocks
+                const key = `${x},${y}`;
+                if (rainTetrisState.settledGrid[key]) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+// Helper function: Lock piece into settled grid
+function lockPiece(piece, row, time) {
+    const shape = piece.shape;
+    const floorRow = Math.floor(row);
+    
+    for (let r = 0; r < shape.length; r++) {
+        for (let c = 0; c < shape[r].length; c++) {
+            if (shape[r][c]) {
+                const x = piece.col + c;
+                const y = floorRow + r;
+                
+                // Add to settled grid
+                if (y >= 0) {
+                    const key = `${x},${y}`;
+                    rainTetrisState.settledGrid[key] = {
+                        hue: piece.hue,
+                        glow: Math.max(0.5, piece.glow),
+                        settleTime: time
+                    };
+                }
+            }
+        }
+    }
+}
+
+// Helper function: Clear completed lines
+function clearCompletedLines(gridCols, gridRows) {
+    const linesToClear = [];
+    
+    // Check each row
+    for (let y = 0; y < gridRows; y++) {
+        let isComplete = true;
+        for (let x = 0; x < gridCols; x++) {
+            const key = `${x},${y}`;
+            if (!rainTetrisState.settledGrid[key]) {
+                isComplete = false;
+                break;
+            }
+        }
+        if (isComplete) {
+            linesToClear.push(y);
+        }
+    }
+    
+    // Clear completed lines and shift blocks down
+    linesToClear.forEach(lineY => {
+        // Remove the line
+        for (let x = 0; x < gridCols; x++) {
+            const key = `${x},${lineY}`;
+            delete rainTetrisState.settledGrid[key];
+        }
+        
+        // Shift all blocks above down by one
+        const newGrid = {};
+        Object.keys(rainTetrisState.settledGrid).forEach(key => {
+            const [x, y] = key.split(',').map(Number);
+            if (y < lineY) {
+                // Move block down
+                const newKey = `${x},${y + 1}`;
+                newGrid[newKey] = rainTetrisState.settledGrid[key];
+            } else {
+                // Keep block where it is
+                newGrid[key] = rainTetrisState.settledGrid[key];
+            }
+        });
+        rainTetrisState.settledGrid = newGrid;
+    });
+}
+
+// --- DVD BOUNCER STATE ---
+let dvdBouncerState = {
+    x: 100,
+    y: 100,
+    vx: 2,
+    vy: 1.5,
+    hue: 0,
+    cornerHitTime: 0,
+    lastBounce: 0,
+    initialized: false
+};
+
+function drawDVDBouncerWave(ctx, width, height, chroma, mel, beatPulse, time) {
+    // Initialize position if first time
+    if (!dvdBouncerState.initialized) {
+        dvdBouncerState.x = width / 2;
+        dvdBouncerState.y = height / 2;
+        dvdBouncerState.initialized = true;
+    }
+    
+    // DVD logo size
+    const logoWidth = Math.min(width, height) * 0.2;
+    const logoHeight = logoWidth * 0.6;
+    
+    // Get dominant chroma for base color
+    let maxChroma = 0;
+    let maxVal = 0;
+    chroma.forEach((v, i) => { 
+        if(v > maxVal) { 
+            maxVal = v; 
+            maxChroma = i; 
+        } 
+    });
+    
+    // Calculate average energy for speed boost
+    let avgEnergy = 0;
+    if (mel && mel.length) {
+        avgEnergy = mel.reduce((a,b) => a+b, 0) / mel.length;
+    }
+    
+    // Speed multiplier based on energy and beat
+    const speedMultiplier = 1 + avgEnergy * 2 + beatPulse * 1.5;
+    
+    // Update position
+    dvdBouncerState.x += dvdBouncerState.vx * speedMultiplier;
+    dvdBouncerState.y += dvdBouncerState.vy * speedMultiplier;
+    
+    // Check for corner hit (within small threshold)
+    const cornerThreshold = 20;
+    let hitCorner = false;
+    
+    // Check boundaries and bounce
+    if (dvdBouncerState.x <= 0 || dvdBouncerState.x + logoWidth >= width) {
+        dvdBouncerState.vx *= -1;
+        dvdBouncerState.x = Math.max(0, Math.min(width - logoWidth, dvdBouncerState.x));
+        dvdBouncerState.hue = (dvdBouncerState.hue + 60) % 360;
+        dvdBouncerState.lastBounce = time;
+        
+        // Check if near top or bottom corner
+        if (dvdBouncerState.y <= cornerThreshold || dvdBouncerState.y + logoHeight >= height - cornerThreshold) {
+            hitCorner = true;
+        }
+    }
+    
+    if (dvdBouncerState.y <= 0 || dvdBouncerState.y + logoHeight >= height) {
+        dvdBouncerState.vy *= -1;
+        dvdBouncerState.y = Math.max(0, Math.min(height - logoHeight, dvdBouncerState.y));
+        dvdBouncerState.hue = (dvdBouncerState.hue + 60) % 360;
+        dvdBouncerState.lastBounce = time;
+        
+        // Check if near left or right corner
+        if (dvdBouncerState.x <= cornerThreshold || dvdBouncerState.x + logoWidth >= width - cornerThreshold) {
+            hitCorner = true;
+        }
+    }
+    
+    // Corner hit celebration!
+    if (hitCorner) {
+        dvdBouncerState.cornerHitTime = time;
+    }
+    
+    // Draw background trail
+    const trailLength = 10;
+    const timeSinceBounce = time - dvdBouncerState.lastBounce;
+    for (let i = trailLength; i > 0; i--) {
+        const alpha = (i / trailLength) * 0.1 * Math.max(0, 1 - timeSinceBounce);
+        ctx.fillStyle = `hsla(${dvdBouncerState.hue}, 100%, 50%, ${alpha})`;
+        const offsetX = -dvdBouncerState.vx * i * 3;
+        const offsetY = -dvdBouncerState.vy * i * 3;
+        ctx.fillRect(
+            dvdBouncerState.x + offsetX,
+            dvdBouncerState.y + offsetY,
+            logoWidth,
+            logoHeight
+        );
+    }
+    
+    // Corner hit celebration effect
+    const timeSinceCorner = time - dvdBouncerState.cornerHitTime;
+    if (timeSinceCorner < 2) {
+        // Explosion particles
+        const particleCount = 50;
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (i / particleCount) * Math.PI * 2;
+            const distance = timeSinceCorner * 200 * (1 - timeSinceCorner / 2);
+            const px = dvdBouncerState.x + logoWidth / 2 + Math.cos(angle) * distance;
+            const py = dvdBouncerState.y + logoHeight / 2 + Math.sin(angle) * distance;
+            const particleAlpha = Math.max(0, 1 - timeSinceCorner / 2);
+            
+            ctx.fillStyle = `hsla(${(dvdBouncerState.hue + i * 10) % 360}, 100%, 50%, ${particleAlpha})`;
+            ctx.beginPath();
+            ctx.arc(px, py, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Screen flash
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, 0.3 * (1 - timeSinceCorner / 2))})`;
+        ctx.fillRect(0, 0, width, height);
+    }
+    
+    // Draw the DVD logo
+    const glowIntensity = 20 + beatPulse * 30 + (timeSinceCorner < 2 ? 50 : 0);
+    ctx.shadowBlur = glowIntensity;
+    ctx.shadowColor = `hsl(${dvdBouncerState.hue}, 100%, 50%)`;
+    
+    // Logo background
+    ctx.fillStyle = `hsl(${dvdBouncerState.hue}, 100%, ${40 + beatPulse * 20}%)`;
+    ctx.fillRect(dvdBouncerState.x, dvdBouncerState.y, logoWidth, logoHeight);
+    
+    // DVD text
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = `bold ${logoHeight * 0.4}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DVD', dvdBouncerState.x + logoWidth / 2, dvdBouncerState.y + logoHeight / 2);
+    
+    // Inner glow effect
+    ctx.fillStyle = `hsla(${dvdBouncerState.hue}, 100%, 70%, 0.3)`;
+    ctx.fillRect(
+        dvdBouncerState.x + logoWidth * 0.1,
+        dvdBouncerState.y + logoHeight * 0.1,
+        logoWidth * 0.3,
+        logoHeight * 0.3
+    );
+    
+    ctx.shadowBlur = 0;
+    
+    // Draw audio visualization bars at edges
+    if (chroma && chroma.length) {
+        const barWidth = width / chroma.length;
+        ctx.globalAlpha = 0.3;
+        
+        chroma.forEach((value, i) => {
+            const hue = (i / chroma.length) * 360;
+            const barHeight = value * height * 0.2;
+            
+            // Bottom bars
+            ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+            ctx.fillRect(i * barWidth, height - barHeight, barWidth - 2, barHeight);
+        });
+        
+        ctx.globalAlpha = 1;
+    }
 }
 
 // --- SACRED GEOMETRY ---
