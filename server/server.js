@@ -67,6 +67,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'YouTube to MP3 server is running' });
 });
 
+
 // ==================== BROWSER-USE API PROXY ====================
 // Proxy YouTube search requests to avoid CORS issues
 const BROWSER_USE_API_URL = 'https://api.skills.browser-use.com/skill/f7092eae-84d5-49dd-ab94-bb247f781ab5/execute';

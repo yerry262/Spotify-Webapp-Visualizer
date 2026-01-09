@@ -14,8 +14,6 @@ npm install
 node server.js
 ```
 
-Server runs on `http://localhost:3001`
-
 ## 📋 Prerequisites
 
 - **Node.js** v16+
