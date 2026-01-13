@@ -171,7 +171,9 @@ const TrackInfo = ({ track, progress, duration, isExpanded }) => {
         
         {/* Track Details */}
         <div className="track-details">
-          <h1 className="track-name">{track.name}</h1>
+          <h1 className="track-name">
+            {track.name.length > 20 ? track.name.substring(0, 20) + '...' : track.name}
+          </h1>
           <h2 className="artist-name">{artistNames}</h2>
           <h3 className="album-name">{track.album.name}</h3>
           

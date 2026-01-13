@@ -3,7 +3,7 @@ import { SpotifyAuth, SpotifyAPI } from './spotifyService';
 import AudioVisualizer from './components/AudioVisualizer';
 import TrackInfo from './components/TrackInfo';
 import PlaybackControls from './components/PlaybackControls';
-import VolumeControl from './components/VolumeControl';
+import SongProgress from './components/SongProgress';
 import UserProfile from './components/UserProfile';
 import SideMenu from './components/SideMenu';
 import { analyzeAudio, getCachedAnalysis, cancelAnalysis } from './audioAnalysisService';
@@ -594,8 +594,9 @@ function App() {
               isExpanded={isVisualizerExpanded}
             />
 
-            <VolumeControl 
-              initialVolume={playbackState?.device?.volume_percent}
+            <SongProgress 
+              progress={playbackState?.progress_ms}
+              duration={playbackState?.item?.duration_ms}
               isExpanded={isVisualizerExpanded}
             />
           </>
@@ -626,8 +627,9 @@ function App() {
               isExpanded={isVisualizerExpanded}
             />
 
-            <VolumeControl 
-              initialVolume={playbackState?.device?.volume_percent}
+            <SongProgress 
+              progress={playbackState?.progress_ms}
+              duration={playbackState?.item?.duration_ms}
               isExpanded={isVisualizerExpanded}
             />
           </>

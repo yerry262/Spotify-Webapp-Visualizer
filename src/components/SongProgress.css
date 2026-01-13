@@ -1,0 +1,113 @@
+.song-progress {
+  display: none; /* Only shown when expanded */
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  color: white;
+}
+
+.progress-time {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 36px;
+}
+
+.progress-time.current {
+  text-align: right;
+}
+
+.progress-time.total {
+  text-align: left;
+}
+
+.progress-bar-container {
+  flex: 1;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1DB954, #1ed760);
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+/* Expanded/Collapsed state floating pill */
+.song-progress.is-expanded {
+  position: fixed;
+  top: auto;
+  bottom: 30px;
+  right: 20px;
+  left: auto;
+  transform: none;
+  width: auto;
+  min-width: 160px;
+  max-width: fit-content;
+  height: 64px;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex !important;
+  flex-direction: column;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  animation: slideToRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideToRight {
+  0% {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  100% {
+    right: 20px;
+    left: auto;
+    transform: translateX(0);
+  }
+}
+
+.song-progress.is-expanded .progress-bar-container {
+  width: 100%;
+  min-width: 120px;
+  order: 1;
+}
+
+.song-progress.is-expanded .progress-time {
+  order: 2;
+}
+
+.song-progress.is-expanded .progress-time.current {
+  position: absolute;
+  bottom: 8px;
+  left: 20px;
+}
+
+.song-progress.is-expanded .progress-time.total {
+  position: absolute;
+  bottom: 8px;
+  right: 20px;
+}
+
+.song-progress.is-expanded .progress-bar-container {
+  margin-bottom: 16px;
+}
