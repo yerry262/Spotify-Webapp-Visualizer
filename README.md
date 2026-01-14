@@ -45,12 +45,26 @@ https://youtu.be/AYoBXHKe2Ow
 - **Real Audio Analysis**: Uses Essentia.js (industry-standard audio analysis library) for accurate music feature extraction
 - **Spotify Integration**: Connects to your Spotify account to track what's currently playing
 - **YouTube MP3 Extraction**: Automatically finds and downloads audio for analysis
+- **Multi-Device Coordination**: 
+  - Smart device locking prevents duplicate downloads/analysis across multiple devices
+  - When multiple devices listen to the same song, only one performs the work
+  - Other devices wait and receive the cached results automatically
+  - Works seamlessly for N devices (supports multiple users with multiple browsers)
+  - Prefetch operations skip gracefully if another device is already working
+  - Server-side locking with automatic timeout handling (15s for downloads, 90s for analysis)
 - **Smart Caching System**:
   - MP3 files cached as `artist-song.mp3` on server (persists until manually cleared)
   - Analysis JSON files cached alongside MP3s for instant playback
   - YouTube URLs cached in localStorage (7-day TTL)
   - Fuzzy file matching handles special characters in song names
   - Track change debouncing (800ms) to prevent rapid API calls
+  - Automatic retry logic (5 attempts) for fetching cached analysis from other devices
+- **Loading State Visualizers**:
+  - **Idle Animation**: Floating orbs while waiting for music
+  - **Searching Animation**: Radar scanning effect while finding YouTube video
+  - **Downloading Animation**: Data stream particles during MP3 download
+  - **Analyzing Animation**: Spinning rings while processing audio with Essentia.js
+  - All themed consistently with Spotify green (#1DB954)
 - **45 Waveform Visualization Styles**:
   - **Featured Styles**:
     - Synthwave Horizon - Retrowave grid with pulsing sun and mountain silhouette

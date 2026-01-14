@@ -23,6 +23,148 @@ if (!fs.existsSync(ANALYSIS_DIR)) {
   fs.mkdirSync(ANALYSIS_DIR, { recursive: true });
 }
 
+// ==================== DOWNLOAD LOCK MANAGER ====================
+// Tracks songs currently being downloaded/analyzed to prevent race conditions
+// when multiple devices are connected
+
+const downloadLocks = new Map();  // key: "artist-song" → { status, startTime, deviceId }
+const analysisLocks = new Map();  // key: "artist-song" → { status, startTime, deviceId }
+
+// Lock timeouts - if a lock is older than this, consider it stale (device crashed/disconnected)
+const DOWNLOAD_LOCK_TIMEOUT_MS = 15 * 1000;  // 15 seconds - downloads should be quick
+const ANALYSIS_LOCK_TIMEOUT_MS = 90 * 1000;  // 90 seconds - analysis takes longer
+
+/**
+ * Generate lock key from artist and song (uses sanitizeFilename defined below)
+ */
+function getLockKey(artist, song) {
+  const sanitizedArtist = artist.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 50);
+  const sanitizedSong = song.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 50);
+  return `${sanitizedArtist}-${sanitizedSong}`;
+}
+
+/**
+ * Acquire a download lock for a song
+ * @returns {object} { acquired: boolean, status: string, existingLock?: object }
+ */
+function acquireDownloadLock(artist, song, deviceId) {
+  const key = getLockKey(artist, song);
+  const now = Date.now();
+
+  // Check for existing lock
+  const existing = downloadLocks.get(key);
+  if (existing) {
+    // Check if lock is stale (15s timeout for downloads)
+    if (now - existing.startTime > DOWNLOAD_LOCK_TIMEOUT_MS) {
+      console.log(`🔓 Download lock expired for ${key} (>${DOWNLOAD_LOCK_TIMEOUT_MS/1000}s), releasing...`);
+      downloadLocks.delete(key);
+    } else {
+      // Lock is still valid
+      return {
+        acquired: false,
+        status: 'downloading',
+        existingLock: existing
+      };
+    }
+  }
+
+  // Acquire the lock
+  downloadLocks.set(key, {
+    status: 'downloading',
+    startTime: now,
+    deviceId: deviceId
+  });
+
+  console.log(`🔒 Download lock acquired for ${key} by device ${deviceId}`);
+  return { acquired: true, status: 'downloading' };
+}
+
+/**
+ * Release a download lock
+ */
+function releaseDownloadLock(artist, song, success = true) {
+  const key = getLockKey(artist, song);
+  downloadLocks.delete(key);
+  console.log(`🔓 Download lock released for ${key} (${success ? 'success' : 'failed'})`);
+}
+
+/**
+ * Check download status without acquiring
+ */
+function getDownloadStatus(artist, song) {
+  const key = getLockKey(artist, song);
+  const existing = downloadLocks.get(key);
+
+  if (!existing) return null;
+
+  // Check if stale (15s timeout for downloads)
+  if (Date.now() - existing.startTime > DOWNLOAD_LOCK_TIMEOUT_MS) {
+    downloadLocks.delete(key);
+    return null;
+  }
+
+  return existing;
+}
+
+/**
+ * Acquire an analysis lock for a song
+ */
+function acquireAnalysisLock(artist, song, deviceId) {
+  const key = getLockKey(artist, song);
+  const now = Date.now();
+
+  const existing = analysisLocks.get(key);
+  if (existing) {
+    // Check if stale (90s timeout for analysis)
+    if (now - existing.startTime > ANALYSIS_LOCK_TIMEOUT_MS) {
+      console.log(`🔓 Analysis lock expired for ${key} (>${ANALYSIS_LOCK_TIMEOUT_MS/1000}s), releasing...`);
+      analysisLocks.delete(key);
+    } else {
+      return {
+        acquired: false,
+        status: 'analyzing',
+        existingLock: existing
+      };
+    }
+  }
+
+  analysisLocks.set(key, {
+    status: 'analyzing',
+    startTime: now,
+    deviceId: deviceId
+  });
+
+  console.log(`🔒 Analysis lock acquired for ${key} by device ${deviceId}`);
+  return { acquired: true, status: 'analyzing' };
+}
+
+/**
+ * Release an analysis lock
+ */
+function releaseAnalysisLock(artist, song, success = true) {
+  const key = getLockKey(artist, song);
+  analysisLocks.delete(key);
+  console.log(`🔓 Analysis lock released for ${key} (${success ? 'success' : 'failed'})`);
+}
+
+/**
+ * Check analysis status without acquiring
+ */
+function getAnalysisStatus(artist, song) {
+  const key = getLockKey(artist, song);
+  const existing = analysisLocks.get(key);
+
+  if (!existing) return null;
+
+  // Check if stale (90s timeout for analysis)
+  if (Date.now() - existing.startTime > ANALYSIS_LOCK_TIMEOUT_MS) {
+    analysisLocks.delete(key);
+    return null;
+  }
+
+  return existing;
+}
+
 // CORS configuration - allow GitHub Pages and localhost
 const allowedOrigins = [
   'http://localhost:3000',
@@ -319,7 +461,7 @@ function sanitizeYouTubeUrl(url) {
 
 // Main endpoint to extract MP3 from YouTube URL
 app.post('/get-mp3', async (req, res) => {
-  const { url: rawYoutubeUrl, artist, song, clearOld } = req.body;
+  const { url: rawYoutubeUrl, artist, song, clearOld, deviceId } = req.body;
 
   // Validate and sanitize YouTube URL
   const youtubeUrl = sanitizeYouTubeUrl(rawYoutubeUrl);
@@ -399,6 +541,41 @@ app.post('/get-mp3', async (req, res) => {
     }
   }
 
+  // ==================== DOWNLOAD LOCKING ====================
+  // Try to acquire lock BEFORE starting download to prevent race conditions
+  if (artist && song) {
+    const lockResult = acquireDownloadLock(artist, song, deviceId || 'unknown');
+
+    if (!lockResult.acquired) {
+      // Another device is downloading - tell client to poll
+      console.log(`⏳ Download lock denied for ${artist} - ${song}, another device is downloading`);
+      return res.status(202).json({
+        status: 'in_progress',
+        message: 'Another device is downloading this song',
+        waitTime: Date.now() - lockResult.existingLock.startTime,
+        retry: true
+      });
+    }
+
+    // Double-check cache after acquiring lock (another device may have just finished)
+    const cachePath = path.join(MP3_DIR, cacheFilename);
+    if (fs.existsSync(cachePath)) {
+      releaseDownloadLock(artist, song, true);
+      const stats = fs.statSync(cachePath);
+      const mp3Url = `/mp3files/${encodeURIComponent(cacheFilename)}`;
+      console.log(`📦 Using cached MP3 (post-lock check): ${cacheFilename}`);
+      return res.json({
+        mp3Url: mp3Url,
+        filename: cacheFilename,
+        title: `${artist} - ${song}`,
+        artist: artist,
+        song: song,
+        size: stats.size,
+        cached: true
+      });
+    }
+  }
+
   console.log(`📥 Processing: ${youtubeUrl}`);
   console.log(`   Artist: ${artist || 'unknown'}, Song: ${song || 'unknown'}`);
 
@@ -454,9 +631,13 @@ app.post('/get-mp3', async (req, res) => {
     if (error) {
       console.error('❌ yt-dlp error:', error.message);
       console.error('stderr:', stderr);
-      return res.status(500).json({ 
+      // Release lock on failure
+      if (artist && song) {
+        releaseDownloadLock(artist, song, false);
+      }
+      return res.status(500).json({
         error: 'Failed to download MP3',
-        details: error.message 
+        details: error.message
       });
     }
 
@@ -484,6 +665,9 @@ app.post('/get-mp3', async (req, res) => {
 
     if (!mp3Filename) {
       console.error('❌ Could not determine MP3 filename');
+      if (artist && song) {
+        releaseDownloadLock(artist, song, false);
+      }
       return res.status(500).json({ error: 'Could not determine MP3 filename' });
     }
 
@@ -492,6 +676,9 @@ app.post('/get-mp3', async (req, res) => {
     // Verify file exists
     if (!fs.existsSync(mp3Path)) {
       console.error('❌ MP3 file not found:', mp3Path);
+      if (artist && song) {
+        releaseDownloadLock(artist, song, false);
+      }
       return res.status(500).json({ error: 'MP3 file not found after download' });
     }
 
@@ -500,6 +687,11 @@ app.post('/get-mp3', async (req, res) => {
 
     console.log(`✅ MP3 ready: ${mp3Filename}`);
     console.log(`📁 Size: ${(fileStats.size / 1024 / 1024).toFixed(2)} MB`);
+
+    // Release lock on success
+    if (artist && song) {
+      releaseDownloadLock(artist, song, true);
+    }
 
     res.json({
       mp3Url: mp3Url,
@@ -575,6 +767,125 @@ function getAnalysisFilename(artist, song) {
   const sanitizedSong = sanitizeFilename(song);
   return `${sanitizedArtist}-${sanitizedSong}.json`;
 }
+
+// ==================== UNIFIED STATUS CHECK ENDPOINT ====================
+// Single atomic check for multi-device coordination
+app.get('/check-status', (req, res) => {
+  const { artist, song, deviceId } = req.query;
+
+  if (!artist || !song) {
+    return res.status(400).json({ error: 'Artist and song are required' });
+  }
+
+  // 1. Check if analysis is already cached (complete)
+  const analysisFilename = getAnalysisFilename(artist, song);
+  const analysisPath = path.join(ANALYSIS_DIR, analysisFilename);
+
+  if (fs.existsSync(analysisPath)) {
+    console.log(`📊 Status: analysis_ready (exact) for ${artist} - ${song}`);
+    return res.json({
+      status: 'analysis_ready',
+      analysisUrl: `/analysis/${encodeURIComponent(analysisFilename)}`
+    });
+  }
+
+  // Try fuzzy match for analysis
+  const fuzzyAnalysis = findFileByFuzzyMatch(ANALYSIS_DIR, artist, song, '.json');
+  if (fuzzyAnalysis) {
+    console.log(`📊 Status: analysis_ready (fuzzy) for ${artist} - ${song}`);
+    return res.json({
+      status: 'analysis_ready',
+      analysisUrl: `/analysis/${encodeURIComponent(fuzzyAnalysis)}`
+    });
+  }
+
+  // 2. Check if someone is analyzing
+  const analysisLock = getAnalysisStatus(artist, song);
+  if (analysisLock) {
+    console.log(`📊 Status: analyzing for ${artist} - ${song}`);
+    return res.json({
+      status: 'analyzing',
+      waitTime: Date.now() - analysisLock.startTime
+    });
+  }
+
+  // 3. Check if MP3 is cached (ready for analysis)
+  const cacheFilename = getCacheFilename(artist, song);
+  const cachePath = path.join(MP3_DIR, cacheFilename);
+
+  if (fs.existsSync(cachePath)) {
+    const mp3Url = `/mp3files/${encodeURIComponent(cacheFilename)}`;
+    console.log(`📊 Status: mp3_ready for ${artist} - ${song}`);
+    return res.json({
+      status: 'mp3_ready',
+      mp3Url: mp3Url
+    });
+  }
+
+  // Try fuzzy match for MP3
+  const fuzzyMp3 = findFileByFuzzyMatch(MP3_DIR, artist, song, '.mp3');
+  if (fuzzyMp3) {
+    const mp3Url = `/mp3files/${encodeURIComponent(fuzzyMp3)}`;
+    console.log(`📊 Status: mp3_ready (fuzzy) for ${artist} - ${song}`);
+    return res.json({
+      status: 'mp3_ready',
+      mp3Url: mp3Url
+    });
+  }
+
+  // 4. Check if download is in progress
+  const downloadLock = getDownloadStatus(artist, song);
+  if (downloadLock) {
+    console.log(`📊 Status: downloading for ${artist} - ${song}`);
+    return res.json({
+      status: 'downloading',
+      waitTime: Date.now() - downloadLock.startTime
+    });
+  }
+
+  // 5. Nothing cached, not in progress
+  console.log(`📊 Status: not_found for ${artist} - ${song}`);
+  return res.json({
+    status: 'not_found'
+  });
+});
+
+// ==================== ANALYSIS LOCK NOTIFICATION ====================
+// Client calls this before starting analysis to let other devices know
+app.post('/notify-analyzing', (req, res) => {
+  const { artist, song, deviceId } = req.body;
+
+  if (!artist || !song) {
+    return res.status(400).json({ error: 'Artist and song are required' });
+  }
+
+  const lockResult = acquireAnalysisLock(artist, song, deviceId || 'unknown');
+
+  if (!lockResult.acquired) {
+    return res.json({
+      acquired: false,
+      status: 'already_analyzing',
+      waitTime: Date.now() - lockResult.existingLock.startTime
+    });
+  }
+
+  return res.json({
+    acquired: true,
+    status: 'analyzing'
+  });
+});
+
+// Release analysis lock endpoint (called when analysis completes or fails)
+app.post('/release-analysis-lock', (req, res) => {
+  const { artist, song, success } = req.body;
+
+  if (!artist || !song) {
+    return res.status(400).json({ error: 'Artist and song are required' });
+  }
+
+  releaseAnalysisLock(artist, song, success !== false);
+  return res.json({ released: true });
+});
 
 // Check if analysis data exists
 app.get('/check-analysis-cache', (req, res) => {
@@ -667,19 +978,39 @@ app.get('/get-analysis', (req, res) => {
 
 // Save analysis data
 app.post('/save-analysis', (req, res) => {
-  const { artist, song, data } = req.body;
-  
+  const { artist, song, data, deviceId } = req.body;
+
   if (!artist || !song || !data) {
     return res.status(400).json({ error: 'Artist, song, and data are required' });
   }
-  
+
   const analysisFilename = getAnalysisFilename(artist, song);
   const analysisPath = path.join(ANALYSIS_DIR, analysisFilename);
-  
+
+  // Check if analysis already exists (another device may have saved it)
+  if (fs.existsSync(analysisPath)) {
+    console.log(`📦 Analysis already exists (saved by another device): ${analysisFilename}`);
+    // Release lock if we had it
+    releaseAnalysisLock(artist, song, true);
+    const stats = fs.statSync(analysisPath);
+    return res.json({
+      success: true,
+      message: 'Analysis already saved by another device',
+      cached: true,
+      filename: analysisFilename,
+      size: stats.size,
+      url: `/analysis/${encodeURIComponent(analysisFilename)}`
+    });
+  }
+
   try {
     fs.writeFileSync(analysisPath, JSON.stringify(data, null, 2));
     const stats = fs.statSync(analysisPath);
     console.log(`💾 Saved analysis: ${analysisFilename} (${(stats.size / 1024).toFixed(1)}KB)`);
+
+    // Release analysis lock after saving
+    releaseAnalysisLock(artist, song, true);
+
     res.json({
       success: true,
       filename: analysisFilename,
@@ -688,6 +1019,8 @@ app.post('/save-analysis', (req, res) => {
     });
   } catch (error) {
     console.error('❌ Failed to save analysis:', error);
+    // Release lock on failure
+    releaseAnalysisLock(artist, song, false);
     res.status(500).json({ error: 'Failed to save analysis data' });
   }
 });

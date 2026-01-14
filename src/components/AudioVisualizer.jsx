@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import './AudioVisualizer.css';
 import { drawIdleAnimation } from './visualizers/VisualizerIdle';
 import { drawLoadingAnimation } from './visualizers/VisualizerLoading';
+import { drawSearchingAnimation } from './visualizers/VisualizerSearching';
+import { drawDownloadingAnimation } from './visualizers/VisualizerDownloading';
 import { drawAudioVisualization, initParticles, resetWaveformTiming } from './visualizers/VisualizerAudio';
 import { getAnalysisAtTime } from '../audioAnalysisService';
 
@@ -18,6 +20,8 @@ const AudioVisualizer = ({
   isPlaying, 
   progress, 
   isAnalyzing,
+  isSearching,
+  isDownloading,
   trackId 
 }) => {
   const canvasRef = useRef(null);
@@ -83,11 +87,29 @@ const AudioVisualizer = ({
     lastTimestampRef.current = timestamp;
 
     // IDLE STATE - no analysis data and not analyzing
-    if (!analysisData && !isAnalyzing) {
+    if (!analysisData && !isAnalyzing && !isSearching && !isDownloading) {
       // Clear canvas solid for idle
       ctx.fillStyle = 'rgb(10, 10, 15)';
       ctx.fillRect(0, 0, width, height);
       drawIdleAnimation(ctx, width, height, timestamp / 1000);
+      animationIdRef.current = requestAnimationFrame(animate);
+      return;
+    }
+
+    // SEARCHING STATE - searching for YouTube video
+    if (isSearching) {
+      ctx.fillStyle = 'rgb(10, 10, 15)';
+      ctx.fillRect(0, 0, width, height);
+      drawSearchingAnimation(ctx, width, height, timestamp / 1000);
+      animationIdRef.current = requestAnimationFrame(animate);
+      return;
+    }
+
+    // DOWNLOADING STATE - downloading MP3
+    if (isDownloading) {
+      ctx.fillStyle = 'rgb(10, 10, 15)';
+      ctx.fillRect(0, 0, width, height);
+      drawDownloadingAnimation(ctx, width, height, timestamp / 1000);
       animationIdRef.current = requestAnimationFrame(animate);
       return;
     }
@@ -129,7 +151,7 @@ const AudioVisualizer = ({
     }
 
     animationIdRef.current = requestAnimationFrame(animate);
-  }, [analysisData, isPlaying, isAnalyzing]);
+  }, [analysisData, isPlaying, isAnalyzing, isSearching, isDownloading]);
 
   // Handle resize - only initial setup and cleanup
   // Actual resizing is now handled in the animation loop for smoothness

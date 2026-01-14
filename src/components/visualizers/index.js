@@ -7,6 +7,8 @@
 // Export individual visualizers
 export { drawIdleAnimation } from './VisualizerIdle';
 export { drawLoadingAnimation } from './VisualizerLoading';
+export { drawSearchingAnimation } from './VisualizerSearching';
+export { drawDownloadingAnimation } from './VisualizerDownloading';
 export { 
   drawAudioVisualization, 
   initParticles,

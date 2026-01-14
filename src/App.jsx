@@ -40,6 +40,8 @@ function App() {
   const [versionInfo, setVersionInfo] = useState({ VERSION: '', AUTHOR: '' });
   const [analysisData, setAnalysisData] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Waveform selection state
@@ -69,7 +71,7 @@ function App() {
   // Debounce timer for track changes
   const trackChangeTimerRef = useRef(null);
   // Track change debounce delay (ms) - wait for track to "settle"
-  const TRACK_CHANGE_DEBOUNCE = 1500;
+  const TRACK_CHANGE_DEBOUNCE = 100;
   
   // Prefetch next track refs
   const prefetchedTrackIdRef = useRef(null); // Track ID we've prefetched
@@ -176,7 +178,7 @@ function App() {
           
           // DEBOUNCED PROCESSING: Wait for track to "settle" before starting
           // This prevents rapid API calls when user is skipping through tracks
-          console.log(ts(), `⏳ Waiting ${TRACK_CHANGE_DEBOUNCE}ms for track to settle...`);
+          // console.log(ts(), `⏳ Waiting ${TRACK_CHANGE_DEBOUNCE}ms for track to settle...`);
           
           trackChangeTimerRef.current = setTimeout(async () => {
             trackChangeTimerRef.current = null;
@@ -212,17 +214,46 @@ function App() {
               }
               
               // STEP 2: Fetch MP3 (Check cache first, then YouTube)
-              // NOTE: keeping logic simple - getMP3ForTrack handles server cache check + locking
-              console.log(ts(), '🔍 Step 2: Fetching MP3 (Cache check + YouTube)...');
-              const mp3Result = await YouTubeService.getMP3ForTrack(artistName, trackName);
-              
+              // NOTE: getMP3ForTrack handles unified status check + server cache + locking
+              console.log(ts(), '🔍 Step 2: Fetching MP3 (Unified status check + Cache + YouTube)...');
+              const mp3Result = await YouTubeService.getMP3ForTrack(
+                artistName, 
+                trackName,
+                () => setIsSearching(true),  // onSearchStart
+                () => { setIsSearching(false); setIsDownloading(true); }  // onDownloadStart
+              );
+
               if (!mp3Result) {
                 console.warn(ts(), '⚠️ Could not get MP3 from YouTube');
+                setIsSearching(false);
+                setIsDownloading(false);
                 setIsAnalyzing(false);
                 isProcessingRef.current = false;
                 return;
               }
-              
+
+              // Clear search/download states - now we have the MP3
+              setIsSearching(false);
+              setIsDownloading(false);
+
+              // STEP 2b: Handle pre-cached analysis from another device
+              if (mp3Result.analysisUrl) {
+                console.log(ts(), '📦 Analysis ready from another device, fetching...');
+                try {
+                  const response = await fetch(mp3Result.analysisUrl);
+                  if (response.ok) {
+                    const cachedAnalysis = await response.json();
+                    setAnalysisData(cachedAnalysis);
+                    setIsAnalyzing(false);
+                    isProcessingRef.current = false;
+                    console.log(ts(), '✅ Loaded analysis from server cache (another device)!');
+                    return;
+                  }
+                } catch (fetchErr) {
+                  console.warn(ts(), '⚠️ Failed to fetch cached analysis, will re-analyze');
+                }
+              }
+
               // Verify track hasn't changed
               if (!YouTubeService.shouldContinue(artistName, trackName)) {
                 console.log(ts(), '🛑 Track changed, aborting analysis');
@@ -230,23 +261,107 @@ function App() {
                 isProcessingRef.current = false;
                 return;
               }
-              
-              // Analyze the MP3 with Essentia.js (with caching by artist/song)
-              console.log(ts(), '🎼 Step 4: Analyzing audio with Essentia.js...');
-              const analysis = await analyzeAudio(mp3Result.mp3.mp3Url, artistName, trackName, state.item.duration_ms);
-              
-              // Final verify track hasn't changed
-              if (!YouTubeService.shouldContinue(artistName, trackName)) {
-                console.log(ts(), '🛑 Track changed during analysis, aborting');
+
+              // STEP 3: Notify server we're analyzing (so other devices wait)
+              console.log(ts(), '🔒 Notifying server: starting analysis...');
+              const lockResult = await YouTubeService.notifyAnalyzing(artistName, trackName);
+
+              // Check if another device is already analyzing
+              if (!lockResult.acquired) {
+                console.log(ts(), '⏳ Another device is analyzing, waiting...');
+                try {
+                  const status = await YouTubeService.waitForReady(artistName, trackName);
+                  if (status.status === 'analysis_ready') {
+                    console.log(ts(), '✅ Other device finished analysis');
+                    // Small debounce to ensure file is fully written
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Retry fetching the analysis file (up to 3 times with 1s delay)
+                    let analysisData = null;
+                    let fetchSuccess = false;
+                    const maxRetries = 1;
+                    
+                    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                      try {
+                        console.log(ts(), `📥 Fetching analysis from server (attempt ${attempt}/${maxRetries})...`);
+                        const response = await fetch(status.analysisUrl);
+                        
+                        if (!response.ok) {
+                          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        analysisData = await response.json();
+                        fetchSuccess = true;
+                        console.log(ts(), `✅ Successfully fetched analysis on attempt ${attempt}`);
+                        break;
+                      } catch (fetchError) {
+                        console.warn(ts(), `⚠️ Attempt ${attempt}/${maxRetries} failed:`, fetchError.message);
+                        if (attempt < maxRetries) {
+                          console.log(ts(), `⏳ Retrying in 1 second...`);
+                          await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                      }
+                    }
+                    
+                    if (fetchSuccess && analysisData) {
+                      setAnalysisData(analysisData);
+                      setIsAnalyzing(false);
+                      isProcessingRef.current = false;
+                      return;
+                    } else {
+                      console.warn(ts(), '⚠️ Failed to fetch analysis after all retries, will analyze ourselves');
+                      // Fall through to analyze ourselves
+                    }
+                  }
+                  // If we get here, analysis failed or timed out - fall through to do it ourselves
+                  console.log(ts(), '⚠️ Other device analysis failed/timeout, will analyze ourselves');
+                } catch (waitError) {
+                  console.log(ts(), '🛑 Aborted while waiting for analysis:', waitError.message);
+                  setIsAnalyzing(false);
+                  isProcessingRef.current = false;
+                  return;
+                }
+              }
+
+              // STEP 4: Analyze the MP3 with Essentia.js (with caching by artist/song)
+              console.log(ts(), '🎼 Step 3: Analyzing audio with Essentia.js...');
+              const mp3Url = mp3Result.mp3?.mp3Url;
+              if (!mp3Url) {
+                console.error(ts(), '❌ No MP3 URL available for analysis');
+                await YouTubeService.releaseAnalysisLock(artistName, trackName, false);
                 setIsAnalyzing(false);
                 isProcessingRef.current = false;
                 return;
               }
               
+              let analysis;
+              try {
+                analysis = await analyzeAudio(mp3Url, artistName, trackName, state.item.duration_ms);
+              } catch (analysisError) {
+                console.error(ts(), '❌ Analysis failed:', analysisError);
+                await YouTubeService.releaseAnalysisLock(artistName, trackName, false);
+                setIsAnalyzing(false);
+                isProcessingRef.current = false;
+                return;
+              }
+              
+              // Final verify track hasn't changed
+              if (!YouTubeService.shouldContinue(artistName, trackName)) {
+                console.log(ts(), '🛑 Track changed during analysis, aborting');
+                await YouTubeService.releaseAnalysisLock(artistName, trackName, false);
+                setIsAnalyzing(false);
+                isProcessingRef.current = false;
+                return;
+              }
+              
+              // Release the analysis lock
+              await YouTubeService.releaseAnalysisLock(artistName, trackName, true);
+              
               setAnalysisData(analysis);
               setIsAnalyzing(false);
               isProcessingRef.current = false;
               console.log(ts(), '✅ Audio analysis complete!');
+              console.log(ts(), '🔓 Analysis lock released');
               
             } catch (err) {
               console.error(ts(), '❌ Audio pipeline failed:', err);
@@ -344,19 +459,42 @@ function App() {
           return;
         }
         
-        await analyzeAudio(mp3Cache.mp3Url, nextArtist, nextSong, nextTrack.duration_ms);
-        prefetchedTrackIdRef.current = nextTrackId;
-        console.log(ts(), '✅ Prefetch analysis complete!');
+        // Try to acquire analysis lock for prefetch
+        const lockResult = await YouTubeService.notifyAnalyzing(nextArtist, nextSong);
+        if (!lockResult.acquired) {
+          // Another device is already analyzing - that's fine for prefetch, just skip
+          console.log(ts(), '⏳ Another device analyzing next track, skipping prefetch');
+          isPrefetchingRef.current = false;
+          return;
+        }
+        
+        try {
+          await analyzeAudio(mp3Cache.mp3Url, nextArtist, nextSong, nextTrack.duration_ms);
+          await YouTubeService.releaseAnalysisLock(nextArtist, nextSong, true);
+          prefetchedTrackIdRef.current = nextTrackId;
+          console.log(ts(), '✅ Prefetch analysis complete!');
+        } catch (error) {
+          console.warn(ts(), '⚠️ Prefetch analysis failed:', error);
+          await YouTubeService.releaseAnalysisLock(nextArtist, nextSong, false);
+        }
         isPrefetchingRef.current = false;
         return;
       }
       
-      // Fetch from YouTube
+      // Fetch from YouTube (using prefetch method that skips if another device is working)
       console.log(ts(), '🔮 Prefetching MP3 from YouTube...');
-      const mp3Result = await YouTubeService.getMP3ForTrack(nextArtist, nextSong);
+      const mp3Result = await YouTubeService.getMP3ForTrackPrefetch(nextArtist, nextSong);
       
       if (!mp3Result) {
-        console.warn(ts(), '⚠️ Could not prefetch MP3');
+        console.log(ts(), '⏩ Prefetch skipped (another device working or failed)');
+        isPrefetchingRef.current = false;
+        return;
+      }
+      
+      // If we got analysis from cache, we're done
+      if (mp3Result.analysisUrl) {
+        console.log(ts(), '✅ Prefetch complete (analysis was cached)!');
+        prefetchedTrackIdRef.current = nextTrackId;
         isPrefetchingRef.current = false;
         return;
       }
@@ -368,11 +506,26 @@ function App() {
         return;
       }
       
+      // Try to acquire analysis lock for prefetch
+      const lockResult = await YouTubeService.notifyAnalyzing(nextArtist, nextSong);
+      if (!lockResult.acquired) {
+        // Another device is already analyzing - that's fine for prefetch, just skip
+        console.log(ts(), '⏳ Another device analyzing, skipping prefetch');
+        isPrefetchingRef.current = false;
+        return;
+      }
+      
       // Analyze the prefetched MP3
       console.log(ts(), '🔮 Pre-analyzing next track...');
-      await analyzeAudio(mp3Result.mp3.mp3Url, nextArtist, nextSong, nextTrack.duration_ms);
-      prefetchedTrackIdRef.current = nextTrackId;
-      console.log(ts(), '✅ Prefetch complete!');
+      try {
+        await analyzeAudio(mp3Result.mp3.mp3Url, nextArtist, nextSong, nextTrack.duration_ms);
+        await YouTubeService.releaseAnalysisLock(nextArtist, nextSong, true);
+        prefetchedTrackIdRef.current = nextTrackId;
+        console.log(ts(), '✅ Prefetch complete!');
+      } catch (error) {
+        console.warn(ts(), '⚠️ Prefetch analysis failed:', error);
+        await YouTubeService.releaseAnalysisLock(nextArtist, nextSong, false);
+      }
       
     } catch (err) {
       console.warn(ts(), '⚠️ Prefetch failed:', err.message);
@@ -553,6 +706,8 @@ function App() {
                 isPlaying={playbackState?.is_playing}
                 progress={playbackState?.progress_ms}
                 isAnalyzing={isAnalyzing}
+                isSearching={isSearching}
+                isDownloading={isDownloading}
                 trackId={playbackState?.item?.id}
               />
             </div>

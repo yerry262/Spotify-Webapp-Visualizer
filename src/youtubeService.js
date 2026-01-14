@@ -11,10 +11,33 @@
 
 import { API_BASE_URL } from './config';
 
+// ==================== TIMESTAMP HELPER ====================
+const ts = () => {
+  const now = new Date();
+  return `[${now.toLocaleTimeString('en-US', { hour12: false })}.${now.getMilliseconds().toString().padStart(3, '0')}]`;
+};
+
 // ==================== CONSTANTS ====================
 
 const CACHE_KEY_PREFIX = 'yt_cache_';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days for YouTube URL cache
+const POLL_INTERVAL_MS = 2000;  // Poll every 2s when waiting for another device
+const MAX_WAIT_MS = 20000;      // 20s max wait (server download lock is 15s, analysis is 90s)
+
+// ==================== DEVICE ID ====================
+// Unique device identifier for multi-device coordination
+
+function getDeviceId() {
+  let deviceId = localStorage.getItem('visualizer_device_id');
+  if (!deviceId) {
+    deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('visualizer_device_id', deviceId);
+    console.log('🔑 Generated new device ID:', deviceId);
+  }
+  return deviceId;
+}
+
+const DEVICE_ID = getDeviceId();
 
 // ==================== STATE ====================
 
@@ -173,6 +196,113 @@ export const YouTubeService = {
   },
 
   /**
+   * Unified status check for multi-device coordination
+   * Returns: { status: 'analysis_ready'|'mp3_ready'|'downloading'|'analyzing'|'not_found', ... }
+   */
+  async checkStatus(artistName, songName) {
+    try {
+      const params = new URLSearchParams({
+        artist: artistName,
+        song: songName,
+        deviceId: DEVICE_ID
+      });
+
+      const response = await fetch(`${API_BASE_URL}/check-status?${params}`);
+      if (!response.ok) return { status: 'error' };
+
+      return await response.json();
+    } catch (error) {
+      console.warn('Status check failed:', error);
+      return { status: 'error' };
+    }
+  },
+
+  /**
+   * Wait for a song to become ready (poll server when another device is processing)
+   * @returns {Promise<{status: string, mp3Url?: string, analysisUrl?: string}>}
+   */
+  async waitForReady(artistName, songName) {
+    const startTime = Date.now();
+    console.log(`⏳ Waiting for another device to finish processing ${artistName} - ${songName}...`);
+
+    while (Date.now() - startTime < MAX_WAIT_MS) {
+      // Check if track changed (abort early)
+      if (!this.shouldContinue(artistName, songName)) {
+        throw new Error('Track changed while waiting');
+      }
+
+      const status = await this.checkStatus(artistName, songName);
+
+      if (status.status === 'analysis_ready') {
+        console.log(`✅ Analysis ready after ${Math.round((Date.now() - startTime) / 1000)}s wait`);
+        return status;
+      }
+
+      if (status.status === 'mp3_ready') {
+        console.log(`✅ MP3 ready after ${Math.round((Date.now() - startTime) / 1000)}s wait`);
+        return status;
+      }
+
+      if (status.status === 'not_found' || status.status === 'error') {
+        // No one is working on it - we should start
+        console.log(`📭 Song not found/error after waiting, we should process it`);
+        return status;
+      }
+
+      // Still downloading/analyzing - wait and retry
+      const waitTime = status.waitTime ? Math.round(status.waitTime / 1000) : '?';
+      console.log(`⏳ Still ${status.status}... (${waitTime}s elapsed on other device)`);
+      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+    }
+
+    console.warn(`⏰ Timeout waiting for song to be ready after ${MAX_WAIT_MS / 1000}s`);
+    return { status: 'timeout' };
+  },
+
+  /**
+   * Notify server that we're about to start analyzing
+   * Returns: { acquired: boolean, status: string, waitTime?: number }
+   */
+  async notifyAnalyzing(artistName, songName) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notify-analyzing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          artist: artistName,
+          song: songName,
+          deviceId: DEVICE_ID
+        })
+      });
+
+      if (!response.ok) return { acquired: false };
+      return await response.json();
+    } catch (error) {
+      console.warn('Failed to notify analyzing:', error);
+      return { acquired: false };
+    }
+  },
+
+  /**
+   * Release analysis lock when analysis completes (or fails)
+   */
+  async releaseAnalysisLock(artistName, songName, success = true) {
+    try {
+      await fetch(`${API_BASE_URL}/release-analysis-lock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          artist: artistName,
+          song: songName,
+          success: success
+        })
+      });
+    } catch (error) {
+      console.warn('Failed to release analysis lock:', error);
+    }
+  },
+
+  /**
    * Helper function to search YouTube using Browser-Use API via backend proxy (FREE!)
    * Uses backend proxy to avoid CORS issues
    * @returns {Promise<{videoId: string, url: string} | {error: string}>}
@@ -300,7 +430,7 @@ export const YouTubeService = {
 
   /**
    * Get MP3 from YouTube video via backend server
-   * Now includes artist/song for proper cache filename
+   * Now includes artist/song for proper cache filename and deviceId for coordination
    */
   async getMP3(youtubeUrl, artistName, songName) {
     try {
@@ -309,17 +439,13 @@ export const YouTubeService = {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
-          url: youtubeUrl, 
+        body: JSON.stringify({
+          url: youtubeUrl,
           artist: artistName,
-          song: songName
+          song: songName,
+          deviceId: DEVICE_ID
         })
       });
-
-      if (!response.ok) {
-        console.error(`MP3 server error: HTTP ${response.status}`);
-        return null;
-      }
 
       let data;
       try {
@@ -328,7 +454,18 @@ export const YouTubeService = {
         console.error('MP3 server returned non-JSON response');
         return null;
       }
-      
+
+      // Handle 202 "in progress" response (another device is downloading)
+      if (response.status === 202 && data.status === 'in_progress') {
+        console.log('⏳ Another device is downloading, waiting...');
+        return { inProgress: true, waitTime: data.waitTime };
+      }
+
+      if (!response.ok) {
+        console.error(`MP3 server error: HTTP ${response.status}`);
+        return null;
+      }
+
       if (data.error) {
         console.error('MP3 extraction error:', data.error);
         return null;
@@ -357,72 +494,103 @@ export const YouTubeService = {
 
   /**
    * Main function: Get MP3 from artist and song name
+   *
+   * MULTI-DEVICE COORDINATION SEQUENCE:
+   * 1. Acquire local processing lock (prevent concurrent requests on same device)
+   * 2. Check unified status (analysis_ready, mp3_ready, downloading, analyzing, not_found)
+   * 3. If another device is processing → wait and poll until ready
+   * 4. If analysis_ready → return analysis URL (skip MP3 entirely!)
+   * 5. If mp3_ready → return MP3 URL for local analysis
+   * 6. If not_found → Search YouTube, download MP3
+   * 7. Return result for analysis
    * 
-   * PROPER SEQUENCE:
-   * 1. Acquire processing lock (prevent concurrent requests)
-   * 2. Check if MP3 is already on server (by artist-song.mp3 filename)
-   * 3. If cached on server → SKIP YouTube API, return cached MP3
-   * 4. If not cached → Search YouTube for video URL
-   * 5. Download MP3 via yt-dlp (server saves as artist-song.mp3)
-   * 6. Return MP3 info for analysis
+   * @param {function} onSearchStart - Optional callback when YouTube search begins
+   * @param {function} onDownloadStart - Optional callback when MP3 download begins
    */
-  async getMP3ForTrack(artistName, songName) {
+  async getMP3ForTrack(artistName, songName, onSearchStart = null, onDownloadStart = null) {
     // Acquire processing lock
     if (processingLock) {
-      console.warn('⏳ Already processing a track, skipping...');
+      console.warn(ts(), '⏳ Already processing a track locally, skipping...');
       return null;
     }
     processingLock = true;
-    
+
     // Set current processing track (use sanitized keys for comparison)
     const artist = sanitizeForKey(artistName);
     const song = sanitizeForKey(songName);
     currentProcessingTrack = { artist, song };
-    
-    console.log(`🎵 Processing: ${artistName} - ${songName}`);
-    
+
+    console.log(ts(), `🎵 NEW SONG: "${artistName} - ${songName}" (Device: ${DEVICE_ID.substring(0, 15)}...)`);
+
     try {
       // STEP 0: Clean up old files (>3 minutes) at the start of song
-      console.log('🧹 Cleaning up old files...');
-      this.clearOldMP3s().catch(e => console.warn('Cleanup failed:', e));
-      
-      // STEP 1: Check server MP3 cache FIRST (before any YouTube API call!)
-      console.log('📦 Step 1: Checking server MP3 cache...');
-      const serverCache = await this.checkServerCache(artistName, songName);
-      
-      if (serverCache && serverCache.cached) {
-        console.log('✅ MP3 found in server cache - SKIPPING YouTube API!');
-        
-        // Verify track hasn't changed
-        if (!this.shouldContinue(artistName, songName)) {
-          console.log('🛑 Track changed, aborting');
+      this.clearOldMP3s().catch(e => console.warn(ts(), 'Cleanup failed:', e));
+
+      // STEP 1: Check unified status (includes lock awareness for multi-device coordination)
+      console.log(ts(), '📡 Checking unified status...');
+      let status = await this.checkStatus(artistName, songName);
+      console.log(ts(), `   Status: ${status.status}`);
+
+      // STEP 2: If another device is processing, wait for it
+      if (status.status === 'downloading' || status.status === 'analyzing') {
+        console.log(ts(), `⏳ Another device is ${status.status}, waiting...`);
+        try {
+          status = await this.waitForReady(artistName, songName);
+        } catch (waitError) {
+          console.log(ts(), '🛑 Aborted while waiting:', waitError.message);
+          currentProcessingTrack = null;
           processingLock = false;
           return null;
         }
-        
+      }
+
+      // Verify track hasn't changed
+      if (!this.shouldContinue(artistName, songName)) {
+        console.log(ts(), '🛑 Track changed, aborting');
+        processingLock = false;
+        return null;
+      }
+
+      // STEP 3: Handle analysis_ready (another device already analyzed!)
+      if (status.status === 'analysis_ready') {
+        console.log(ts(), '✅ ANALYSIS READY from another device - no work needed!');
         lastCompletedTrack = { artist, song };
         currentProcessingTrack = null;
         processingLock = false;
-        
+
         return {
           artist: artistName,
           song: songName,
-          youtube: null, // Didn't need to call YouTube API!
+          analysisUrl: `${API_BASE_URL}${status.analysisUrl}`,
+          mp3: null,
+          fromCache: true
+        };
+      }
+
+      // STEP 4: Handle mp3_ready (MP3 cached, need to analyze locally)
+      if (status.status === 'mp3_ready') {
+        console.log(ts(), '✅ MP3 CACHED on server, will analyze locally');
+        lastCompletedTrack = { artist, song };
+        currentProcessingTrack = null;
+        processingLock = false;
+
+        return {
+          artist: artistName,
+          song: songName,
           mp3: {
-            mp3Url: `${API_BASE_URL}${serverCache.mp3Url}`,
-            filename: serverCache.filename,
-            title: `${artistName} - ${songName}`,
+            mp3Url: `${API_BASE_URL}${status.mp3Url}`,
             cached: true
           }
         };
       }
-      
-      // STEP 2: Search YouTube for video URL (only if not in server cache)
-      console.log('🔍 Step 2: Searching YouTube for video...');
+
+      // STEP 5: Not found - we need to download
+      console.log(ts(), '🔍 SEARCHING YouTube for video...');
+      if (onSearchStart) onSearchStart();
       const videoInfo = await this.searchVideo(artistName, songName);
-      
+
       if (!videoInfo) {
-        console.error('Could not find video on YouTube');
+        console.error(ts(), '❌ Could not find video on YouTube');
         currentProcessingTrack = null;
         processingLock = false;
         return null;
@@ -430,20 +598,68 @@ export const YouTubeService = {
 
       // Verify track hasn't changed during search
       if (!this.shouldContinue(artistName, songName)) {
-        console.log('🛑 Track changed during YouTube search, aborting');
+        console.log(ts(), '🛑 Track changed during YouTube search, aborting');
         processingLock = false;
         return null;
       }
 
-      console.log(`📺 Found video: ${videoInfo.videoId}`);
-      console.log(`🔗 URL: ${videoInfo.url}`);
+      console.log(ts(), `📺 YOUTUBE FOUND: ${videoInfo.videoId}`);
+      console.log(ts(), `   URL: ${videoInfo.url}`);
 
-      // STEP 3: Download MP3 via server (saves as artist-song.mp3)
-      console.log('📥 Step 3: Downloading MP3...');
-      const mp3Info = await this.getMP3(videoInfo.url, artistName, songName);
-      
+      // STEP 6: Download MP3 via server (with locking)
+      console.log(ts(), '📥 STARTING MP3 DOWNLOAD...');
+      if (onDownloadStart) onDownloadStart();
+      const downloadStartTime = Date.now();
+      let mp3Info = await this.getMP3(videoInfo.url, artistName, songName);
+
+      // Handle 202 "in progress" response (another device started downloading)
+      if (mp3Info && mp3Info.inProgress) {
+        console.log(ts(), '⏳ Server says another device started download, waiting...');
+        try {
+          status = await this.waitForReady(artistName, songName);
+          if (status.status === 'mp3_ready' || status.status === 'analysis_ready') {
+            lastCompletedTrack = { artist, song };
+            currentProcessingTrack = null;
+            processingLock = false;
+
+            if (status.status === 'analysis_ready') {
+              console.log(ts(), '✅ Other device finished analysis');
+              return {
+                artist: artistName,
+                song: songName,
+                analysisUrl: `${API_BASE_URL}${status.analysisUrl}`,
+                mp3: null,
+                fromCache: true
+              };
+            }
+
+            console.log(ts(), '✅ Other device finished download');
+            // Small debounce to ensure file is fully written
+            await new Promise(resolve => setTimeout(resolve, 100));
+            return {
+              artist: artistName,
+              song: songName,
+              mp3: {
+                mp3Url: `${API_BASE_URL}${status.mp3Url}`,
+                cached: true
+              }
+            };
+          }
+        } catch (waitError) {
+          console.log(ts(), '🛑 Aborted while waiting for download:', waitError.message);
+          currentProcessingTrack = null;
+          processingLock = false;
+          return null;
+        }
+        // If we get here, the other device's download failed - return null
+        console.error(ts(), '❌ Other device download failed');
+        currentProcessingTrack = null;
+        processingLock = false;
+        return null;
+      }
+
       if (!mp3Info) {
-        console.error('Could not extract MP3');
+        console.error(ts(), '❌ DOWNLOAD FAILED - Could not extract MP3');
         currentProcessingTrack = null;
         processingLock = false;
         return null;
@@ -451,12 +667,14 @@ export const YouTubeService = {
 
       // Final check if track changed during MP3 download
       if (!this.shouldContinue(artistName, songName)) {
-        console.log('🛑 Track changed during MP3 download, aborting');
+        console.log(ts(), '🛑 Track changed during MP3 download, aborting');
         processingLock = false;
         return null;
       }
 
-      console.log(`🎧 MP3 ready: ${mp3Info.mp3Url}${mp3Info.cached ? ' (cached)' : ''}`);
+      const downloadTime = ((Date.now() - downloadStartTime) / 1000).toFixed(1);
+      console.log(ts(), `✅ MP3 DOWNLOAD COMPLETE (${downloadTime}s)${mp3Info.cached ? ' [CACHED]' : ''}`);
+      console.log(ts(), `   URL: ${mp3Info.mp3Url}`);
 
       // Mark as completed
       lastCompletedTrack = { artist, song };
@@ -469,11 +687,118 @@ export const YouTubeService = {
         youtube: videoInfo,
         mp3: mp3Info
       };
-      
+
     } catch (error) {
-      console.error('❌ getMP3ForTrack failed:', error);
+      console.error(ts(), '❌ getMP3ForTrack failed:', error);
       currentProcessingTrack = null;
       processingLock = false;
+      return null;
+    }
+  },
+
+  /**
+   * Prefetch version: Get MP3 for next track (non-blocking for multi-device)
+   * 
+   * Key differences from getMP3ForTrack:
+   * - If another device is downloading/analyzing → SKIP (don't wait)
+   * - Returns null if work is in progress elsewhere
+   * - Perfect for background prefetching without blocking
+   * - Handles race conditions with server-side locking
+   */
+  async getMP3ForTrackPrefetch(artistName, songName) {
+    // Check local processing lock first
+    if (processingLock) {
+      console.log(ts(), '⏩ Already processing locally, skipping prefetch');
+      return null;
+    }
+
+    console.log(ts(), `🔮 PREFETCH: "${artistName} - ${songName}"`);
+
+    try {
+      // STEP 1: Check unified status on server
+      const status = await this.checkStatus(artistName, songName);
+
+      // STEP 2: If analysis is ready, return it immediately
+      if (status.status === 'analysis_ready') {
+        console.log(ts(), '📦 Analysis already cached (prefetch)');
+        return {
+          artist: artistName,
+          song: songName,
+          analysisUrl: `${API_BASE_URL}${status.analysisUrl}`,
+          mp3: null,
+          fromCache: true
+        };
+      }
+
+      // STEP 3: If MP3 is ready, return it
+      if (status.status === 'mp3_ready') {
+        console.log(ts(), '📦 MP3 already cached (prefetch)');
+        return {
+          artist: artistName,
+          song: songName,
+          mp3: {
+            mp3Url: `${API_BASE_URL}${status.mp3Url}`,
+            cached: true
+          }
+        };
+      }
+
+      // STEP 4: If another device is working → SKIP (don't wait)
+      if (status.status === 'downloading' || status.status === 'analyzing') {
+        console.log(ts(), `⏩ Another device is ${status.status}, skipping prefetch`);
+        return null;
+      }
+
+      // STEP 5: Not found - we need to download
+      // Search YouTube for video
+      console.log(ts(), '🔍 PREFETCH: Searching YouTube...');
+      const videoInfo = await this.searchVideo(artistName, songName);
+
+      if (!videoInfo) {
+        console.log(ts(), '❌ Prefetch: Video not found');
+        return null;
+      }
+
+      // Verify track hasn't changed (for prefetch context)
+      if (!this.shouldContinue(artistName, songName)) {
+        console.log(ts(), '🛑 Track changed during prefetch search, aborting');
+        return null;
+      }
+
+      console.log(ts(), `📺 PREFETCH FOUND: ${videoInfo.videoId}`);
+
+      // STEP 6: Try to download (server handles locking)
+      // If another device acquired the lock first, we'll get a 202 response
+      const mp3Info = await this.getMP3(videoInfo.url, artistName, songName);
+
+      // Handle 202 "in progress" - another device got the lock first
+      if (mp3Info && mp3Info.inProgress) {
+        console.log(ts(), '⏩ Another device started download during prefetch, skipping');
+        return null; // Don't wait for prefetch
+      }
+
+      if (!mp3Info) {
+        console.log(ts(), '❌ Prefetch download failed');
+        return null;
+      }
+
+      // Verify track hasn't changed
+      if (!this.shouldContinue(artistName, songName)) {
+        console.log(ts(), '🛑 Track changed during prefetch download, aborting');
+        return null;
+      }
+
+      console.log(ts(), '✅ Prefetch MP3 complete');
+
+      return {
+        artist: artistName,
+        song: songName,
+        youtube: videoInfo,
+        mp3: mp3Info
+      };
+
+    } catch (error) {
+      console.error(ts(), '❌ Prefetch failed:', error);
       return null;
     }
   },
