@@ -57,7 +57,7 @@ https://youtu.be/AYoBXHKe2Ow
   - Analysis JSON files cached alongside MP3s for instant playback
   - YouTube URLs cached in localStorage (7-day TTL)
   - Fuzzy file matching handles special characters in song names
-  - Track change debouncing (800ms) to prevent rapid API calls
+  - Track change debouncing (100ms) to prevent rapid API calls
   - Automatic retry logic (5 attempts) for fetching cached analysis from other devices
 - **Loading State Visualizers**:
   - **Idle Animation**: Floating orbs while waiting for music

@@ -268,7 +268,8 @@ export async function testVisualizationPipeline(canvas, onProgress) {
  * Animate visualization in real-time
  */
 export async function animateVisualization(canvas, analysisData, options = {}) {
-  const { speed = 1, loop = true, onFrame } = options;
+  let { speed = 1 } = options;
+  const { loop = true, onFrame } = options;
   const ctx = canvas.getContext('2d');
   const width = canvas.width;
   const height = canvas.height;

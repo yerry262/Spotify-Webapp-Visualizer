@@ -156,10 +156,33 @@ export const SpotifyAuth = {
     localStorage.removeItem('code_verifier');
     
     if (fullLogout) {
-      // Redirect to Spotify logout, then back to our app
-      // This clears Spotify's session cookies so a different user can log in
-      const returnUrl = encodeURIComponent(window.location.origin + window.location.pathname);
-      window.location.href = `https://accounts.spotify.com/logout`;
+      // Clear Spotify's session cookies (so a different account can log in) by
+      // hitting their logout endpoint in a hidden iframe, then return to our app.
+      // Spotify's /logout does not support a redirect param, so navigating there
+      // directly would strand the user on Spotify. The iframe clears the session
+      // in the background and we re-initiate login (which uses show_dialog=true).
+      try {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = 'https://accounts.spotify.com/logout';
+        document.body.appendChild(iframe);
+        iframe.onload = () => {
+          setTimeout(() => {
+            iframe.remove();
+            this.login(true);
+          }, 600);
+        };
+        // Fallback in case onload never fires (blocked frame)
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            iframe.remove();
+            this.login(true);
+          }
+        }, 2000);
+      } catch {
+        // If anything goes wrong, fall back to a normal re-login
+        this.login(true);
+      }
     }
   },
   

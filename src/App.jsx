@@ -250,7 +250,7 @@ function App() {
                     return;
                   }
                 } catch (fetchErr) {
-                  console.warn(ts(), '⚠️ Failed to fetch cached analysis, will re-analyze');
+                  console.warn(ts(), '⚠️ Failed to fetch cached analysis, will re-analyze:', fetchErr.message);
                 }
               }
 
@@ -277,9 +277,10 @@ function App() {
                     await new Promise(resolve => setTimeout(resolve, 100));
                     
                     // Retry fetching the analysis file (up to 3 times with 1s delay)
+                    // The other device may still be flushing the file to disk.
                     let analysisData = null;
                     let fetchSuccess = false;
-                    const maxRetries = 1;
+                    const maxRetries = 3;
                     
                     for (let attempt = 1; attempt <= maxRetries; attempt++) {
                       try {
