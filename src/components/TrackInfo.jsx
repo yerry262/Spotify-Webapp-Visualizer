@@ -99,22 +99,9 @@ const TrackInfo = ({ track, progress, duration, isExpanded }) => {
       });
     }
   }, [track?.id, track?.album?.images]);
-  
-  if (!track) return null;
 
-  const albumArt = track.album.images[0]?.url;
-  const artistNames = track.artists.map(a => a.name).join(', ');
-  
-  const formatTime = (ms) => {
-    const seconds = Math.floor(ms / 1000);
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const progressPercent = (progress / duration) * 100;
-  
-  // Generate particles - memoized so they don't reset on re-render
+  // Generate particles - memoized so they don't reset on re-render.
+  // Must be declared before any early return so hook order stays consistent.
   const particles = useMemo(() => Array.from({ length: NUM_PARTICLES }, (_, i) => ({
     id: i,
     delay: (i * 0.6) + (Math.random() * 2), // Staggered start with some randomness
@@ -123,6 +110,20 @@ const TrackInfo = ({ track, progress, duration, isExpanded }) => {
     size: 3 + Math.random() * 10,
     type: i % 4, // Different particle types
   })), []); // Empty deps = stable across renders
+
+  if (!track) return null;
+
+  const albumArt = track.album.images[0]?.url;
+  const artistNames = track.artists.map(a => a.name).join(', ');
+
+  const formatTime = (ms) => {
+    const seconds = Math.floor(ms / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const progressPercent = (progress / duration) * 100;
 
   return (
     <div className={`track-info ${isExpanded ? 'is-expanded' : ''}`}>

@@ -204,9 +204,19 @@ app.use('/mp3files', express.static(MP3_DIR));
 // Serve static analysis files
 app.use('/analysis', express.static(ANALYSIS_DIR));
 
+// Root route - useful for quick "is it up?" checks (Railway, browsers, uptime pings)
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'YouTube to MP3 server (Educational Research)',
+    endpoints: ['/health', '/check-status', '/get-mp3', '/search-youtube'],
+    uptime: process.uptime()
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'YouTube to MP3 server is running' });
+  res.json({ status: 'ok', message: 'YouTube to MP3 server is running', uptime: process.uptime() });
 });
 
 

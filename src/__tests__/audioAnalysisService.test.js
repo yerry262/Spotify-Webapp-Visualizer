@@ -139,7 +139,7 @@ export async function testMelSpectrogramExtraction() {
     
     // Validate frame structure
     const firstFrame = melFrames[0];
-    if (!firstFrame.time === undefined || !firstFrame.bands) {
+    if (firstFrame.time === undefined || !firstFrame.bands) {
       throw new Error('Invalid mel frame structure');
     }
     
