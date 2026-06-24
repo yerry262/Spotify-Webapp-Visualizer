@@ -151,7 +151,7 @@ You must install dependencies for both the frontend and backend before running o
 
 1. **Frontend dependencies** (from the project root):
    ```bash
-   cd "c:\Users\jerry\OneDrive\Desktop\REPOs\Spotify-Webapp-Visualizer"
+   cd Spotify-Webapp-Visualizer
    npm install
    ```
    This installs all packages for the React/Vite frontend.
@@ -225,7 +225,7 @@ You can run the app locally with the following commands (in two terminals):
 
 **Terminal 1: Start the React Frontend**
 ```bash
-cd "c:\Users\jerry\OneDrive\Desktop\REPOs\Spotify-Webapp-Visualizer"
+cd Spotify-Webapp-Visualizer
 npm run dev
 ```
 This starts the Vite development server at `http://127.0.0.1:3000/Spotify-Webapp-Visualizer/`.
