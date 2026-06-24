@@ -8,8 +8,6 @@
 
 import {
   loadEssentia,
-  fetchAudioBuffer,
-  audioBufferToMono,
   extractMelSpectrogram,
   extractHPCPChroma,
   extractPitch,
@@ -17,6 +15,10 @@ import {
   analyzeAudio,
   getAnalysisAtTime
 } from '../audioAnalysisService';
+import {
+  fetchAudioBuffer,
+  audioBufferToMono
+} from '../analysisUtils';
 
 // Test configuration
 const TEST_CONFIG = {
