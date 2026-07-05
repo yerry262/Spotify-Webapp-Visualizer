@@ -42,6 +42,8 @@ export const WAVEFORM_DEFAULTS = {
   spirograph:       { basePosition: 50,  maxAmplitude: 60, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 75, particles: { enabled: true, count: 4, size: 1.0, speed: 0.8 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: true, beatFlash: false } },
   starfield_warp:   { basePosition: 50,  maxAmplitude: 80, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 95, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: true } },
   vinyl_record:     { basePosition: 50,  maxAmplitude: 65, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 3, size: 1.0, speed: 0.5 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  glitch_art_3:     { basePosition: 50,  maxAmplitude: 55, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: true } },
+  maze_mystery:     { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 85, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: true, beatFlash: false } },
 
   // Classic styles
   layered:          { basePosition: 95,  maxAmplitude: 50, basePositionFullScreen: 95,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 2, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: true, pitchOrb: true, beatFlash: true } },
@@ -306,6 +308,8 @@ export const WAVEFORM_STYLES = [
   { id: 'geo_mandala', name: 'Geometric Mandala' },
   { id: 'glitch_art', name: 'Glitch Art' },
   { id: 'glitch_art_2', name: 'Glitch Art 2' },
+  { id: 'glitch_art_3', name: 'Glitch Art 3' },
+  { id: 'maze_mystery', name: 'Maze Mystery' },
   { id: 'fireworks', name: 'Fireworks Show' },
   { id: 'ocean_waves', name: 'Ocean Waves' },
   { id: 'volcanic_magma', name: 'Volcanic Magma' },
@@ -893,6 +897,12 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
       break;
     case 'glitch_art_2':
       drawGlitchArt2Wave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'glitch_art_3':
+      drawGlitchArt3Wave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'maze_mystery':
+      drawMazeMysteryWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
     case 'terrain_3d':
       drawTerrain3DWave(ctx, width, height, chroma, mel, beatPulse, time);
@@ -3624,6 +3634,271 @@ function drawGlitchArt2Wave(ctx, width, height, chroma, mel, beatPulse, time) {
 }
 
 /**
+ * Glitch Art 3 📡 - Corrupted broadcast: a bold mel waveform whose R/G/B
+ * channels tear apart on beats, with quantized jump-cut glitches, a rolling
+ * VHS tracking band, and digital block-rain in chroma colors
+ */
+function drawGlitchArt3Wave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('glitch_art_3');
+  const centerY = height * (settings.basePosition / 100);
+  const amp = height * 0.5 * (settings.maxAmplitude / 100);
+
+  // Deterministic pseudo-random from a seed — glitches snap on quantized time
+  const rand = (seed) => {
+    const v = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+    return v - Math.floor(v);
+  };
+  // Time quantized to jump-cut steps; steps shorten when the music slaps
+  const stepLen = beatPulse > 0.6 ? 0.09 : 0.22;
+  const tq = Math.floor(time / stepLen);
+  const glitchAmount = Math.min(1, beatPulse * 1.2 + rand(tq) * 0.25);
+
+  const melAt = (t) => {
+    if (!mel || mel.length === 0) return 0.5;
+    const idx = Math.floor(Math.max(0, Math.min(0.999, t)) * mel.length);
+    return Math.max(0, Math.min(1, (mel[idx] + 10) / 10));
+  };
+
+  let dominantIdx = 0;
+  for (let i = 1; i < 12; i++) {
+    if ((chroma[i] || 0) > (chroma[dominantIdx] || 0)) dominantIdx = i;
+  }
+  const dominantHue = CHROMA_HUES[dominantIdx];
+
+  // Waveform y at horizontal position t, sliced into tearing segments
+  const numSegments = 12;
+  const waveYAt = (t, channelShift) => {
+    const seg = Math.floor(t * numSegments);
+    const tear = (rand(tq * 31 + seg) - 0.5) * amp * 0.8 * glitchAmount;
+    const m = melAt(t);
+    const wave = Math.sin(t * Math.PI * 5 + time * 2.2) * 0.3 + Math.sin(t * Math.PI * 11 - time * 3.7) * 0.15;
+    return centerY - (m * 0.7 + wave * 0.3) * amp + tear + channelShift;
+  };
+
+  // Draw the waveform three times: R, G, B channels split by the glitch
+  ctx.globalCompositeOperation = 'lighter';
+  const split = 3 + glitchAmount * 18;
+  const channels = [
+    { color: `rgba(255, 40, 60, 0.8)`, dx: -split, dy: -split * 0.3 },
+    { color: `rgba(40, 255, 120, 0.8)`, dx: 0, dy: 0 },
+    { color: `rgba(60, 120, 255, 0.8)`, dx: split, dy: split * 0.3 }
+  ];
+  const points = 96;
+  for (const ch of channels) {
+    ctx.beginPath();
+    for (let i = 0; i <= points; i++) {
+      const t = i / points;
+      const seg = Math.floor(t * numSegments);
+      // Segments also shift horizontally when tearing
+      const hShift = (rand(tq * 17 + seg * 7) - 0.5) * width * 0.04 * glitchAmount;
+      const x = t * width + hShift + ch.dx;
+      const y = waveYAt(t, ch.dy);
+      // Break the path at segment boundaries so tears are hard cuts
+      if (i === 0 || Math.floor(((i - 1) / points) * numSegments) !== seg) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = ch.color;
+    ctx.lineWidth = 2.5 + beatPulse * 2;
+    ctx.stroke();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Solid fill under the green (true) channel, torn per-segment
+  for (let seg = 0; seg < numSegments; seg++) {
+    const t0 = seg / numSegments;
+    const t1 = (seg + 1) / numSegments;
+    const hShift = (rand(tq * 17 + seg * 7) - 0.5) * width * 0.04 * glitchAmount;
+    const chromaIdx = seg % 12;
+    const chromaValue = chroma[chromaIdx] || 0;
+    if (chromaValue < 0.1) continue;
+
+    ctx.beginPath();
+    const segPts = 8;
+    for (let i = 0; i <= segPts; i++) {
+      const t = t0 + (t1 - t0) * (i / segPts);
+      const x = t * width + hShift;
+      const y = waveYAt(t, 0);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.lineTo(t1 * width + hShift, centerY + amp * 0.25);
+    ctx.lineTo(t0 * width + hShift, centerY + amp * 0.25);
+    ctx.closePath();
+    ctx.fillStyle = `hsla(${CHROMA_HUES[chromaIdx]}, 90%, 55%, ${0.08 + chromaValue * 0.2})`;
+    ctx.fill();
+  }
+
+  // Rolling VHS tracking band — displaces a horizontal strip as it sweeps
+  const bandY = ((time * 0.13) % 1) * height * 1.2 - height * 0.1;
+  const bandH = 14 + beatPulse * 30;
+  ctx.fillStyle = `rgba(255, 255, 255, ${0.04 + beatPulse * 0.06})`;
+  ctx.fillRect(0, bandY, width, bandH);
+  ctx.fillStyle = `hsla(${dominantHue}, 90%, 60%, ${0.05 + glitchAmount * 0.1})`;
+  ctx.fillRect((rand(tq * 3) - 0.5) * width * 0.1, bandY + bandH, width, 2);
+
+  // Digital block-rain: falling squares in chroma colors, denser when loud
+  const numBlocks = 22;
+  for (let b = 0; b < numBlocks; b++) {
+    const colX = rand(b * 13) * width;
+    const fallSpeed = 0.15 + rand(b * 29) * 0.35;
+    const by = (((time * fallSpeed + rand(b * 7)) % 1)) * height;
+    const chromaIdx = b % 12;
+    const chromaValue = chroma[chromaIdx] || 0;
+    if (chromaValue < 0.2 && rand(tq + b) > 0.3) continue;
+    const bs = 3 + chromaValue * 10 + (rand(tq * 5 + b) < glitchAmount ? 8 : 0);
+    ctx.fillStyle = `hsla(${CHROMA_HUES[chromaIdx]}, 95%, 60%, ${0.25 + chromaValue * 0.5})`;
+    ctx.fillRect(colX, by, bs, bs);
+    // Trailing echo block
+    ctx.fillStyle = `hsla(${CHROMA_HUES[chromaIdx]}, 95%, 60%, ${(0.25 + chromaValue * 0.5) * 0.3})`;
+    ctx.fillRect(colX, by - bs * 2, bs, bs);
+  }
+
+  // Full-frame corruption on the hardest hits: inverted bars + freeze flicker
+  if (glitchAmount > 0.75) {
+    const numBars = 3;
+    for (let i = 0; i < numBars; i++) {
+      const barY = rand(tq * 41 + i) * height;
+      const barH = 4 + rand(tq * 43 + i) * 26;
+      ctx.fillStyle = `hsla(${(dominantHue + 180) % 360}, 100%, 60%, ${0.15 * glitchAmount})`;
+      ctx.fillRect(0, barY, width, barH);
+    }
+    ctx.strokeStyle = `rgba(255, 255, 255, ${0.3 * glitchAmount})`;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(width * 0.02, height * 0.02, width * 0.96, height * 0.96);
+  }
+
+  // Faint scanlines to sell the broadcast
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+  for (let y = 0; y < height; y += 3) {
+    ctx.fillRect(0, y, width, 1);
+  }
+
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+/**
+ * Maze Mystery 🌀 - Infinite trippy maze tunnel: nested maze rings endlessly
+ * zoom out of the center, twisting as they grow, walls glowing chroma colors.
+ * The zoom is a seamless loop; energy drives speed, beats kick the twist.
+ */
+function drawMazeMysteryWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('maze_mystery');
+  const centerX = width / 2;
+  const centerY = height * (settings.basePosition / 100);
+  const maxRadius = Math.max(width, height) * 0.75 * (settings.maxAmplitude / 100);
+
+  let melEnergy = 0.5;
+  if (mel && mel.length > 0) {
+    const avg = mel.reduce((a, b) => a + b, 0) / mel.length;
+    melEnergy = Math.max(0, Math.min(1, (avg + 10) / 10));
+  }
+
+  // Deterministic pseudo-random so the maze is stable per ring/cell
+  const rand = (seed) => {
+    const v = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+    return v - Math.floor(v);
+  };
+
+  const numRings = 11;
+  const growth = 1.45;                       // radius ratio between rings
+  const zoomSpeed = 0.25 + melEnergy * 0.5 + beatPulse * 0.3;
+  const zoomPhase = (time * zoomSpeed) % 1;  // 0..1, seamless loop
+  const twist = time * 0.15 + beatPulse * 0.12;
+
+  // Each ring's identity shifts by 1 every loop so walls stay consistent
+  // as rings flow outward (ring k today is ring k+1's pattern next cycle)
+  const epoch = Math.floor(time * zoomSpeed);
+
+  for (let k = numRings - 1; k >= 0; k--) {
+    // Ring radius grows exponentially with the loop phase folded in
+    const fk = k + zoomPhase;
+    const radius = maxRadius * Math.pow(growth, fk - numRings + 1);
+    if (radius < 4 || radius > maxRadius * 1.2) continue;
+
+    const ringSeed = (epoch + numRings - 1 - k) * 97;
+    const depth = radius / maxRadius;        // 0 center .. 1 edge
+    const cells = 8 + (k % 3) * 4;           // walls per ring
+    const rot = twist * (1 - depth * 0.6) + rand(ringSeed) * Math.PI * 2;
+    const innerR = radius / growth;
+
+    const chromaIdx = (epoch + numRings - 1 - k) % 12;
+    const chromaValue = chroma[chromaIdx] || 0;
+    const hue = CHROMA_HUES[chromaIdx];
+    const fade = Math.sin(Math.min(1, depth) * Math.PI); // fade in center, fade at edge
+    const alpha = fade * (0.25 + chromaValue * 0.45 + beatPulse * 0.2);
+    if (alpha < 0.02) continue;
+
+    ctx.strokeStyle = `hsla(${hue}, 85%, ${50 + chromaValue * 25}%, ${alpha})`;
+    ctx.lineWidth = (1 + depth * 3) * (1 + beatPulse * 0.6);
+    ctx.shadowColor = `hsla(${hue}, 90%, 60%, ${alpha})`;
+    ctx.shadowBlur = 4 + chromaValue * 10 + beatPulse * 8;
+    ctx.lineCap = 'round';
+
+    // Maze walls on this ring: arc segments (corridors) + radial spokes (doors)
+    ctx.beginPath();
+    for (let c = 0; c < cells; c++) {
+      const a0 = (c / cells) * Math.PI * 2 + rot;
+      const a1 = ((c + 1) / cells) * Math.PI * 2 + rot;
+      const cellSeed = ringSeed + c * 13;
+
+      // Arc wall present ~70% of the time
+      if (rand(cellSeed) < 0.7) {
+        const trim = (a1 - a0) * 0.08;
+        ctx.moveTo(centerX + Math.cos(a0 + trim) * radius, centerY + Math.sin(a0 + trim) * radius);
+        ctx.arc(centerX, centerY, radius, a0 + trim, a1 - trim);
+      }
+      // Radial wall (blocked door) ~40% of the time
+      if (rand(cellSeed + 7) < 0.4) {
+        ctx.moveTo(centerX + Math.cos(a0) * innerR, centerY + Math.sin(a0) * innerR);
+        ctx.lineTo(centerX + Math.cos(a0) * radius, centerY + Math.sin(a0) * radius);
+      }
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Runner lights racing through the corridors — one per strong chroma note
+  for (let i = 0; i < 12; i++) {
+    const chromaValue = chroma[i] || 0;
+    if (chromaValue < 0.35) continue;
+    const hue = CHROMA_HUES[i];
+    // Each runner spirals outward in its own loop, synced to the zoom
+    const runPhase = ((time * zoomSpeed * 0.5 + i / 12) % 1);
+    const rr = maxRadius * Math.pow(growth, runPhase * 4 - 4);
+    const ra = runPhase * Math.PI * 6 + i * (Math.PI / 6) + twist;
+    const rx = centerX + Math.cos(ra) * rr;
+    const ry = centerY + Math.sin(ra) * rr;
+    const fade = Math.sin(runPhase * Math.PI);
+
+    ctx.fillStyle = `hsla(${hue}, 100%, 70%, ${fade * (0.5 + chromaValue * 0.5)})`;
+    ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.9)`;
+    ctx.shadowBlur = 10 + beatPulse * 12;
+    ctx.beginPath();
+    ctx.arc(rx, ry, 3 + chromaValue * 4 + beatPulse * 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // The mystery at the center of the maze
+  let dominantIdx = 0;
+  for (let i = 1; i < 12; i++) {
+    if ((chroma[i] || 0) > (chroma[dominantIdx] || 0)) dominantIdx = i;
+  }
+  const coreHue = CHROMA_HUES[dominantIdx];
+  const coreR = maxRadius * 0.045 * (1 + beatPulse * 0.5 + Math.sin(time * 3) * 0.1);
+  const core = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, coreR * 3);
+  core.addColorStop(0, `hsla(${coreHue}, 100%, 80%, ${0.8 + beatPulse * 0.2})`);
+  core.addColorStop(0.4, `hsla(${coreHue}, 90%, 55%, 0.4)`);
+  core.addColorStop(1, 'transparent');
+  ctx.fillStyle = core;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, coreR * 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+/**
  * Soundwave Terrain 🏔️ - 3D perspective terrain that rises with mel frequencies
  * Like viewing sound as a mountain landscape from above
  */
@@ -4687,295 +4962,266 @@ function drawSynthwaveHorizonWave(ctx, width, height, chroma, mel, beatPulse, ti
  */
 function drawVolcanicMagmaWave(ctx, width, height, chroma, mel, beatPulse, time) {
   if (!chroma || chroma.length !== 12) return;
-  
+
   const settings = getEffectiveWaveformSettings('volcanic_magma');
   const lerp = 0.12;
-  
-  // 1. Update State
+
   volcanicState.sBeat += (beatPulse - volcanicState.sBeat) * lerp;
   for (let i = 0; i < 12; i++) {
-    volcanicState.sChroma[i] += (chroma[i] - volcanicState.sChroma[i]) * lerp;
+    volcanicState.sChroma[i] += ((chroma[i] || 0) - volcanicState.sChroma[i]) * lerp;
   }
-  
-  // Bass detection for lava intensity
+
   const avgBass = (mel && mel.length > 0) ? (mel.slice(0, 15).reduce((a, b) => a + b, 0) / 15 + 10) / 10 : 0;
-  volcanicState.sBass += (avgBass - volcanicState.sBass) * lerp;
-  
-  // Find dominant chroma for ash lighting
+  volcanicState.sBass += (Math.max(0, Math.min(1, avgBass)) - volcanicState.sBass) * lerp;
+
   let dominantIdx = 0, maxVal = 0;
   for (let i = 0; i < 12; i++) {
     if (volcanicState.sChroma[i] > maxVal) { maxVal = volcanicState.sChroma[i]; dominantIdx = i; }
   }
   const dominantHue = CHROMA_HUES[dominantIdx];
-  
+  const melAt = (t) => {
+    if (!mel || mel.length === 0) return 0.5;
+    const idx = Math.floor(Math.max(0, Math.min(0.999, t)) * mel.length);
+    return Math.max(0, Math.min(1, (mel[idx] + 10) / 10));
+  };
+
   ctx.save();
-  
-  // Environment shake on heavy beats
-  if (volcanicState.sBeat > 0.8) {
-    ctx.translate((Math.random() - 0.5) * 6 * volcanicState.sBeat, (Math.random() - 0.5) * 6 * volcanicState.sBeat);
+
+  // Camera shake on heavy beats
+  if (volcanicState.sBeat > 0.75) {
+    ctx.translate((Math.random() - 0.5) * 5 * volcanicState.sBeat, (Math.random() - 0.5) * 5 * volcanicState.sBeat);
   }
 
-  // Base dark background
+  // Night sky, warmed from below by the eruption
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-  bgGrad.addColorStop(0, '#050308');
-  bgGrad.addColorStop(0.7, '#0c0812');
-  bgGrad.addColorStop(1, `hsla(15, 70%, ${5 + volcanicState.sBass * 15}%, 1)`);
+  bgGrad.addColorStop(0, '#04030a');
+  bgGrad.addColorStop(0.55, `hsl(345, 45%, ${4 + volcanicState.sBass * 8}%)`);
+  bgGrad.addColorStop(1, `hsl(15, 80%, ${8 + volcanicState.sBass * 14}%)`);
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, width, height);
 
-  const baseY = height * (settings.basePosition / 100);
-  const floorArea = height - baseY;
+  const lakeTop = height * (settings.basePosition / 100);
+  const craterX = width / 2;
+  const volcHeight = height * 0.45 * (0.9 + volcanicState.sBass * 0.15);
+  const craterY = lakeTop - volcHeight;
+  const craterHalf = width * 0.045;
 
-  // --- BACKGROUND VOLCANO ---
-  const volcCenterX = width / 2;
-  const volcBaseY = baseY;
-  const volcWidth = width * 0.8;
-  const volcHeight = height * 0.4 * (1 + volcanicState.sBass * 0.2);
+  // Crater glow lights the sky, pulsing with the beat
+  const glow = ctx.createRadialGradient(craterX, craterY, 0, craterX, craterY, width * 0.55);
+  glow.addColorStop(0, `hsla(18, 100%, 55%, ${0.25 + volcanicState.sBeat * 0.35})`);
+  glow.addColorStop(0.4, `hsla(${dominantHue}, 70%, 40%, ${0.08 + volcanicState.sBeat * 0.08})`);
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, width, lakeTop);
 
-  // Volcanic Glow (Atmospheric)
-  const skyGlow = ctx.createRadialGradient(volcCenterX, volcBaseY - volcHeight, 0, volcCenterX, volcBaseY - volcHeight, volcWidth);
-  skyGlow.addColorStop(0, `hsla(15, 100%, 50%, ${0.2 + volcanicState.sBeat * 0.3})`);
-  skyGlow.addColorStop(0.6, `hsla(${dominantHue}, 80%, 40%, 0.1)`);
-  skyGlow.addColorStop(1, 'transparent');
-  ctx.fillStyle = skyGlow;
-  ctx.fillRect(0, 0, width, baseY);
-
-  // Volcano Silhouette
-  ctx.fillStyle = '#0a080d';
+  // Distant ridge (parallax layer)
+  ctx.fillStyle = '#0b0710';
   ctx.beginPath();
-  ctx.moveTo(volcCenterX - volcWidth / 2, volcBaseY);
-  ctx.quadraticCurveTo(volcCenterX - volcWidth / 4, volcBaseY - volcHeight * 0.8, volcCenterX - width * 0.05, volcBaseY - volcHeight);
-  ctx.lineTo(volcCenterX + width * 0.05, volcBaseY - volcHeight);
-  ctx.quadraticCurveTo(volcCenterX + volcWidth / 4, volcBaseY - volcHeight * 0.8, volcCenterX + volcWidth / 2, volcBaseY);
+  ctx.moveTo(0, lakeTop);
+  for (let i = 0; i <= 20; i++) {
+    const x = (i / 20) * width;
+    const y = lakeTop - height * 0.12 * (0.5 + 0.5 * Math.sin(i * 1.7 + 2.3));
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(width, lakeTop);
+  ctx.closePath();
   ctx.fill();
 
-  // Lava "River" from the crater
-  if (volcanicState.sBass > 0.4) {
-    const lavaFlowWidth = width * 0.08 * (1 + volcanicState.sBeat * 0.5);
-    const flowIntensity = 0.5 + volcanicState.sBeat * 0.5;
-    const flowGrad = ctx.createLinearGradient(volcCenterX, volcBaseY - volcHeight, volcCenterX, volcBaseY);
-    flowGrad.addColorStop(0, `hsla(20, 100%, 60%, ${flowIntensity})`);
-    flowGrad.addColorStop(1, `hsla(10, 100%, 40%, ${flowIntensity * 0.5})`);
-    
-    ctx.strokeStyle = flowGrad;
-    ctx.lineWidth = lavaFlowWidth;
+  // Main volcano silhouette
+  ctx.fillStyle = '#080510';
+  ctx.beginPath();
+  ctx.moveTo(craterX - width * 0.42, lakeTop);
+  ctx.quadraticCurveTo(craterX - width * 0.18, lakeTop - volcHeight * 0.55, craterX - craterHalf, craterY);
+  ctx.lineTo(craterX + craterHalf, craterY);
+  ctx.quadraticCurveTo(craterX + width * 0.18, lakeTop - volcHeight * 0.55, craterX + width * 0.42, lakeTop);
+  ctx.closePath();
+  ctx.fill();
+
+  // Crater mouth, always molten
+  const mouthGrad = ctx.createRadialGradient(craterX, craterY, 0, craterX, craterY, craterHalf * 2.2);
+  mouthGrad.addColorStop(0, `hsla(30, 100%, ${60 + volcanicState.sBeat * 25}%, 0.95)`);
+  mouthGrad.addColorStop(0.5, `hsla(15, 100%, 45%, 0.5)`);
+  mouthGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = mouthGrad;
+  ctx.beginPath();
+  ctx.ellipse(craterX, craterY, craterHalf * 2.2, craterHalf * 0.9, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Lava rivers down the slopes — width and brightness ride the mel bands
+  const rivers = [
+    { xOff: -0.02, spread: -0.16, melT: 0.1 },
+    { xOff: 0.01, spread: 0.10, melT: 0.3 },
+    { xOff: -0.005, spread: -0.06, melT: 0.55 },
+    { xOff: 0.02, spread: 0.19, melT: 0.8 }
+  ];
+  for (const rv of rivers) {
+    const intensity = melAt(rv.melT);
+    if (intensity < 0.15) continue;
+    const startX = craterX + rv.xOff * width;
+    const endX = craterX + rv.spread * width * 2.2;
+    const wobble = Math.sin(time * 1.5 + rv.melT * 20) * width * 0.01;
+
+    const riverGrad = ctx.createLinearGradient(0, craterY, 0, lakeTop);
+    riverGrad.addColorStop(0, `hsla(35, 100%, ${55 + intensity * 25}%, ${0.5 + intensity * 0.5})`);
+    riverGrad.addColorStop(1, `hsla(8, 100%, 42%, ${0.3 + intensity * 0.4})`);
+    ctx.strokeStyle = riverGrad;
+    ctx.lineWidth = (1.5 + intensity * 6) * (1 + volcanicState.sBeat * 0.4);
     ctx.lineCap = 'round';
+    ctx.shadowColor = 'hsla(20, 100%, 50%, 0.8)';
+    ctx.shadowBlur = 6 + intensity * 10;
     ctx.beginPath();
-    ctx.moveTo(volcCenterX, volcBaseY - volcHeight + 5);
-    ctx.bezierCurveTo(volcCenterX - 20, volcBaseY - volcHeight/2, volcCenterX + 20, volcBaseY - volcHeight/4, volcCenterX, volcBaseY);
+    ctx.moveTo(startX, craterY + 4);
+    ctx.bezierCurveTo(
+      startX + wobble, craterY + volcHeight * 0.4,
+      (startX + endX) / 2 - wobble, craterY + volcHeight * 0.75,
+      endX, lakeTop
+    );
     ctx.stroke();
+    ctx.shadowBlur = 0;
   }
 
-  // 2. Erruptions, Ash, Sparks, and Bombs
-  // Trigger eruption on strong beats
-  if (beatPulse > 0.8 && volcanicState.bombs.length < 15) {
-    for (let i = 0; i < 3; i++) {
-        volcanicState.bombs.push({
-            x: volcCenterX + (Math.random() - 0.5) * 40,
-            y: volcBaseY - volcHeight,
-            vx: (Math.random() - 0.5) * 10,
-            vy: -8 - Math.random() * 12,
-            gv: 0.4,
-            sz: 2 + Math.random() * 4,
-            hue: 15 + Math.random() * 20,
-            trail: []
-        });
+  // Eruption: lava bombs on strong beats
+  if (beatPulse > 0.75 && volcanicState.bombs.length < 18) {
+    const burst = 2 + Math.round(beatPulse * 3);
+    for (let i = 0; i < burst; i++) {
+      volcanicState.bombs.push({
+        x: craterX + (Math.random() - 0.5) * craterHalf * 2,
+        y: craterY,
+        vx: (Math.random() - 0.5) * 9,
+        vy: -7 - Math.random() * 11,
+        gv: 0.35,
+        sz: 2 + Math.random() * 4,
+        hue: 15 + Math.random() * 25,
+        trail: []
+      });
     }
   }
 
-  // Draw Lava Bombs
-  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
   for (let i = volcanicState.bombs.length - 1; i >= 0; i--) {
     const b = volcanicState.bombs[i];
     b.x += b.vx;
     b.y += b.vy;
     b.vy += b.gv;
-    
-    b.trail.push({x: b.x, y: b.y});
-    if (b.trail.length > 10) b.trail.shift();
+
+    b.trail.push({ x: b.x, y: b.y });
+    if (b.trail.length > 8) b.trail.shift();
 
     ctx.beginPath();
-    ctx.strokeStyle = `hsla(${b.hue}, 100%, 50%, 0.4)`;
-    ctx.lineWidth = b.sz * 0.5;
+    ctx.strokeStyle = `hsla(${b.hue}, 100%, 55%, 0.35)`;
+    ctx.lineWidth = b.sz * 0.6;
     b.trail.forEach((p, idx) => {
-        if (idx === 0) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
+      if (idx === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
     });
     ctx.stroke();
 
-    const bombGrad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.sz * 2);
-    bombGrad.addColorStop(0, `hsla(${b.hue}, 100%, 70%, 1)`);
+    const bombGrad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.sz * 2.5);
+    bombGrad.addColorStop(0, `hsla(${b.hue}, 100%, 75%, 1)`);
     bombGrad.addColorStop(1, 'transparent');
     ctx.fillStyle = bombGrad;
     ctx.beginPath();
-    ctx.arc(b.x, b.y, b.sz, 0, Math.PI * 2);
+    ctx.arc(b.x, b.y, b.sz * 2, 0, Math.PI * 2);
     ctx.fill();
 
-    if (b.y > height + 50) volcanicState.bombs.splice(i, 1);
+    // Splash when a bomb hits the lake
+    if (b.y > lakeTop) {
+      const splash = ctx.createRadialGradient(b.x, lakeTop, 0, b.x, lakeTop, b.sz * 8);
+      splash.addColorStop(0, `hsla(${b.hue}, 100%, 65%, 0.7)`);
+      splash.addColorStop(1, 'transparent');
+      ctx.fillStyle = splash;
+      ctx.beginPath();
+      ctx.ellipse(b.x, lakeTop, b.sz * 8, b.sz * 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+      volcanicState.bombs.splice(i, 1);
+    }
   }
-  ctx.restore();
+  ctx.globalCompositeOperation = 'source-over';
 
-  // Spawn ash and sparks
-  if (volcanicState.ashParticles.length < 100 && Math.random() < (0.4 + volcanicState.sBeat * 0.4)) {
-    const isSpark = Math.random() < 0.3;
+  // Embers drifting up, tinted by the dominant note
+  if (volcanicState.ashParticles.length < 70 && Math.random() < 0.35 + volcanicState.sBeat * 0.4) {
+    const fromCrater = Math.random() < 0.5;
     volcanicState.ashParticles.push({
-      x: Math.random() < 0.3 ? volcCenterX + (Math.random() - 0.5) * 60 : Math.random() * width,
-      y: Math.random() < 0.3 ? volcBaseY - volcHeight : baseY + Math.random() * floorArea,
-      vx: (Math.random() - 0.5) * 1.5,
-      vy: isSpark ? -2 - Math.random() * 3 : -0.6 - Math.random() * 1.2,
-      sz: isSpark ? 1 + Math.random() : 1.5 + Math.random() * 3,
-      alpha: 0.4 + Math.random() * 0.5,
-      hue: isSpark ? 30 + Math.random() * 30 : dominantHue,
-      isSpark: isSpark,
+      x: fromCrater ? craterX + (Math.random() - 0.5) * craterHalf * 3 : Math.random() * width,
+      y: fromCrater ? craterY : lakeTop + Math.random() * (height - lakeTop),
+      vx: (Math.random() - 0.5) * 1.2,
+      vy: -0.8 - Math.random() * 2.2,
+      sz: 1 + Math.random() * 2,
+      hue: Math.random() < 0.7 ? 20 + Math.random() * 25 : dominantHue,
       life: 1.0,
-      decay: isSpark ? 0.01 + Math.random() * 0.02 : 0.002 + Math.random() * 0.005
+      decay: 0.004 + Math.random() * 0.01
     });
   }
 
-  // Update and draw ash/sparks
+  ctx.globalCompositeOperation = 'lighter';
   for (let i = volcanicState.ashParticles.length - 1; i >= 0; i--) {
     const p = volcanicState.ashParticles[i];
-    p.y += p.vy * (1 + volcanicState.sBeat * 2);
-    p.x += p.vx + Math.sin(time * 2 + i) * 0.5;
+    p.y += p.vy * (1 + volcanicState.sBeat);
+    p.x += p.vx + Math.sin(time * 2 + i) * 0.4;
     p.life -= p.decay;
-    
-    if (p.life <= 0 || p.y < -50) {
+    if (p.life <= 0 || p.y < -20) {
       volcanicState.ashParticles.splice(i, 1);
       continue;
     }
-
-    const currentAlpha = p.alpha * p.life;
-    
-    if (p.isSpark) {
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.fillStyle = `hsla(${p.hue}, 100%, 70%, ${currentAlpha})`;
-        ctx.shadowBlur = 4 * volcanicState.sBeat;
-        ctx.shadowColor = `hsla(${p.hue}, 100%, 50%, 0.8)`;
-        ctx.fillRect(p.x, p.y, p.sz, p.sz);
-        ctx.shadowBlur = 0;
-        ctx.globalCompositeOperation = 'source-over';
-    } else {
-        ctx.fillStyle = `hsla(${p.hue}, 20%, ${10 + volcanicState.sBeat * 40}%, ${currentAlpha})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.sz, 0, Math.PI * 2);
-        ctx.fill();
-        
-        if (volcanicState.sBeat > 0.5) {
-          ctx.globalCompositeOperation = 'lighter';
-          ctx.fillStyle = `hsla(${dominantHue}, 80%, 60%, ${currentAlpha * volcanicState.sBeat * 0.3})`;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.sz * 1.8, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.globalCompositeOperation = 'source-over';
-        }
-    }
+    ctx.fillStyle = `hsla(${p.hue}, 100%, 65%, ${0.6 * p.life})`;
+    ctx.fillRect(p.x, p.y, p.sz, p.sz);
   }
+  ctx.globalCompositeOperation = 'source-over';
 
-  // 3. Cracked Obsidian Floor with Lava Bubbles
-  const rows = 10;
-  const cols = 15;
-  const rowH = floorArea / rows;
-  const colW = width / cols;
+  // Magma lake: the surface IS the mel spectrum, mirrored glow beneath
+  const lakeDepth = height - lakeTop;
+  const points = 80;
+  const waveAmp = Math.min(lakeDepth * 0.8, height * 0.5 * (settings.maxAmplitude / 100));
 
-  for (let r = 0; r < rows; r++) {
-    // Horizon fade
-    const rowAlpha = (r / rows);
-    for (let c = 0; c < cols; c++) {
-      const pScale = 0.4 + (r / rows) * 0.6;
-      const x = c * colW;
-      const y = baseY + r * rowH;
-      
-      const seed = Math.sin(r * 45.67 + c * 89.12);
-      const jitterX = seed * 15;
-      const jitterY = Math.cos(r * 32.1 + c * 76.5) * 8;
-
-      const crackIntensity = Math.max(0, (0.2 + volcanicState.sBeat * 0.8 + volcanicState.sBass * 0.6) * (0.5 + Math.abs(seed) * 0.5));
-      const crackHue = 10 + Math.sin(time + seed * 10) * 15;
-
-      // Lava glow beneath
-      if (crackIntensity > 0.2) {
-        ctx.globalCompositeOperation = 'screen';
-        const lavaGrad = ctx.createRadialGradient(x + colW/2 + jitterX, y + rowH/2 + jitterY, 0, x + colW/2 + jitterX, y + rowH/2 + jitterY, colW * pScale * 1.5);
-        lavaGrad.addColorStop(0, `hsla(${crackHue}, 100%, 50%, ${crackIntensity * 0.3 * rowAlpha})`);
-        lavaGrad.addColorStop(1, 'transparent');
-        ctx.fillStyle = lavaGrad;
-        ctx.fillRect(x + jitterX - colW/2, y + jitterY - rowH/2, colW * 2, rowH * 2);
-        ctx.globalCompositeOperation = 'source-over';
-      }
-
-      // Obsidian Plate
-      ctx.fillStyle = `rgba(5, 5, 8, ${0.9 - crackIntensity * 0.2})`;
-      ctx.beginPath();
-      ctx.moveTo(x + jitterX, y + jitterY);
-      ctx.lineTo(x + colW + jitterX, y + jitterY);
-      ctx.lineTo(x + colW + 10 + jitterX, y + rowH + jitterY);
-      ctx.lineTo(x - 10 + jitterX, y + rowH + jitterY);
-      ctx.closePath();
-      ctx.fill();
-
-      // Glowing cracks
-      ctx.strokeStyle = `hsla(${crackHue}, 100%, ${50 + crackIntensity * 30}%, ${0.2 + crackIntensity * 0.8})`;
-      ctx.lineWidth = (0.5 + crackIntensity * 5) * pScale;
-      ctx.stroke();
-
-      // Lava Bubbles (rare, beat reactive)
-      if (crackIntensity > 0.7 && Math.random() < 0.02) {
-          volcanicState.bubbles.push({
-              x: x + colW/2 + jitterX,
-              y: y + rowH/2 + jitterY,
-              r: 2 + Math.random() * 5,
-              life: 1.0,
-              hue: crackHue
-          });
-      }
-    }
+  ctx.beginPath();
+  ctx.moveTo(0, height);
+  for (let i = 0; i <= points; i++) {
+    const t = i / points;
+    const m = melAt(t);
+    const churn = Math.sin(t * Math.PI * 6 + time * 2) * 0.08 + Math.sin(t * Math.PI * 13 - time * 3.1) * 0.05;
+    const y = lakeTop - (m * 0.85 + churn) * waveAmp * (1 + volcanicState.sBeat * 0.25) + waveAmp * 0.15;
+    ctx.lineTo(t * width, Math.min(height, y));
   }
+  ctx.lineTo(width, height);
+  ctx.closePath();
 
-  // Draw and update bubbles
-  for (let i = volcanicState.bubbles.length - 1; i >= 0; i--) {
-    const b = volcanicState.bubbles[i];
-    b.life -= 0.05;
-    if (b.life <= 0) {
-        volcanicState.bubbles.splice(i, 1);
-        continue;
-    }
+  const lakeGrad = ctx.createLinearGradient(0, lakeTop - waveAmp, 0, height);
+  lakeGrad.addColorStop(0, `hsla(40, 100%, ${60 + volcanicState.sBeat * 20}%, 0.95)`);
+  lakeGrad.addColorStop(0.35, 'hsla(20, 100%, 48%, 0.9)');
+  lakeGrad.addColorStop(1, 'hsla(0, 90%, 22%, 0.95)');
+  ctx.fillStyle = lakeGrad;
+  ctx.shadowColor = 'hsla(25, 100%, 50%, 0.7)';
+  ctx.shadowBlur = 14 + volcanicState.sBeat * 18;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Bright crust line along the lava surface
+  ctx.beginPath();
+  for (let i = 0; i <= points; i++) {
+    const t = i / points;
+    const m = melAt(t);
+    const churn = Math.sin(t * Math.PI * 6 + time * 2) * 0.08 + Math.sin(t * Math.PI * 13 - time * 3.1) * 0.05;
+    const y = lakeTop - (m * 0.85 + churn) * waveAmp * (1 + volcanicState.sBeat * 0.25) + waveAmp * 0.15;
+    if (i === 0) ctx.moveTo(t * width, Math.min(height, y));
+    else ctx.lineTo(t * width, Math.min(height, y));
+  }
+  ctx.strokeStyle = `hsla(45, 100%, ${70 + volcanicState.sBeat * 20}%, 0.9)`;
+  ctx.lineWidth = 2 + volcanicState.sBeat * 2;
+  ctx.stroke();
+
+  // Smoke plume drifting from the crater
+  ctx.fillStyle = `hsla(${dominantHue}, 15%, 12%, 0.35)`;
+  for (let s = 0; s < 5; s++) {
+    const rise = ((time * 0.12 + s * 0.2) % 1);
+    const px = craterX + Math.sin(time * 0.7 + s * 2.1) * width * 0.04 * (1 + rise * 3);
+    const py = craterY - rise * height * 0.5;
+    const pr = craterHalf * (0.6 + rise * 3);
+    ctx.globalAlpha = (1 - rise) * 0.4;
     ctx.beginPath();
-    ctx.strokeStyle = `hsla(${b.hue}, 100%, 60%, ${b.life})`;
-    ctx.lineWidth = 2;
-    ctx.arc(b.x, b.y, b.r * (2 - b.life), 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.arc(px, py, pr, 0, Math.PI * 2);
+    ctx.fill();
   }
-
-  // 4. Heat Haze & CRT Effects
-  if (volcanicState.sBass > 0.6) {
-    ctx.save();
-    ctx.globalAlpha = 0.08 * volcanicState.sBass;
-    // RGB split effect
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.drawImage(ctx.canvas, 2, 0, width, height);
-    ctx.drawImage(ctx.canvas, -2, 0, width, height);
-    ctx.restore();
-  }
-
-  // Atmospheric Smoke (Top)
-  const smokeGrad = ctx.createLinearGradient(0, 0, 0, height * 0.3);
-  smokeGrad.addColorStop(0, `hsla(${dominantHue}, 30%, 5%, 0.8)`);
-  smokeGrad.addColorStop(1, 'transparent');
-  ctx.fillStyle = smokeGrad;
-  ctx.fillRect(0, 0, width, height * 0.3);
-
-  // Scanlines (VHS feel)
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-  for (let y = 0; y < height; y += 4) {
-    ctx.fillRect(0, y, width, 1);
-  }
-
-  // Final vignette
-  const vignette = ctx.createRadialGradient(width/2, height/2, width*0.2, width/2, height/2, width*0.8);
-  vignette.addColorStop(0, 'transparent');
-  vignette.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, width, height);
+  ctx.globalAlpha = 1;
 
   ctx.restore();
   drawWaveLabels(ctx, width, height, chroma);
@@ -5301,282 +5547,212 @@ function drawWaveLabels(ctx, width, height, chroma) {
 
 // --- PACMAN STATE ---
 let pacmanState = {
-  pacman: { x: 0.5, y: 0.5, dir: 0, vx: 0.01, vy: 0, lastTurn: 0 },
-  ghosts: [
-    { x: 0.2, y: 0.2, color: 0, type: 'blinky', vx: 0, vy: 0.01, dir: Math.PI/2 },    // Red
-    { x: 0.8, y: 0.2, color: 330, type: 'pinky', vx: 0, vy: -0.01, dir: -Math.PI/2 }, // Pink
-    { x: 0.2, y: 0.8, color: 180, type: 'inky', vx: 0.01, vy: 0, dir: 0 },         // Cyan
-    { x: 0.8, y: 0.8, color: 40, type: 'clyde', vx: -0.01, vy: 0, dir: Math.PI }    // Orange
-  ],
-  dots: [],
-  blueMode: false,
-  blueTimer: 0,
-  lastBlueTime: 0,
-  score: 0
+  pacX: 0.1,
+  lastTime: 0,
+  pellets: [],        // { eatenUntil } indexed along the wave
+  blueUntil: 0,
+  lastBlueTime: 0
 };
 
+const PACMAN_NUM_PELLETS = 36;
+
 function drawPacmanWave(ctx, width, height, chroma, mel, beatPulse, time) {
-  // Initialize dots if empty
-  if (pacmanState.dots.length < 10) {
-    for(let i=0; i<50; i++) {
-        pacmanState.dots.push({x: Math.random(), y: Math.random(), active: true});
+  const settings = getEffectiveWaveformSettings('pacman');
+  const baseY = height * (settings.basePosition / 100);
+  const maxAmplitude = height * 0.5 * (settings.maxAmplitude / 100);
+  const size = Math.min(width, height) * 0.055;
+
+  if (pacmanState.pellets.length !== PACMAN_NUM_PELLETS) {
+    pacmanState.pellets = Array.from({ length: PACMAN_NUM_PELLETS }, () => ({ eatenUntil: 0 }));
+  }
+
+  let melEnergy = 0.5;
+  if (mel && mel.length > 0) {
+    const avg = mel.reduce((a, b) => a + b, 0) / mel.length;
+    melEnergy = Math.max(0, Math.min(1, (avg + 10) / 10));
+  }
+
+  // The waveform path Pac-Man rides: mel bands shape it, gentle motion from time
+  const waveY = (x) => {
+    let melV = 0.5;
+    if (mel && mel.length > 0) {
+      const melIdx = Math.floor(((x % 1) + 1) % 1 * (mel.length - 1));
+      melV = Math.max(0, Math.min(1, (mel[melIdx] + 10) / 10));
     }
-  }
-
-  // Draw Background Grid (neon style)
-  ctx.strokeStyle = `rgba(20, 20, 80, ${0.3 + beatPulse*0.2})`;
-  ctx.lineWidth = 1;
-  const gridSize = 40;
-  for(let x=0; x<width; x+=gridSize) {
-      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,height); ctx.stroke();
-  }
-  for(let y=0; y<height; y+=gridSize) {
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(width,y); ctx.stroke();
-  }
-
-  // High Energy => Blue Ghosts (Occasional - with cooldown)
-  // Only trigger if beat is strong AND it hasn't happened recently (e.g. 10s cooldown)
-  if (beatPulse > 0.9 && !pacmanState.blueMode && (time - pacmanState.lastBlueTime > 15)) {
-      pacmanState.blueMode = true;
-      pacmanState.blueTimer = time + 4; // 4 seconds of blue (chase time)
-      pacmanState.lastBlueTime = time;
-  }
-  if (time > pacmanState.blueTimer) {
-      pacmanState.blueMode = false;
-  }
-
-  const baseSpeed = 0.005 * (1 + beatPulse);
-  const size = Math.min(width, height) * 0.04;
-
-  // Helper for wrap-around distance
-  const getWrapDist = (a, b) => {
-    let d = b - a;
-    if (Math.abs(d) > 0.5) d = d - Math.sign(d) * 1.0;
-    return d;
+    const swell = Math.sin(x * Math.PI * 4 + time * 1.1) * 0.4
+                + Math.sin(x * Math.PI * 7 - time * 0.7) * 0.25
+                + Math.sin(x * Math.PI * 2 + time * 0.4) * 0.35;
+    return baseY - swell * maxAmplitude * (0.35 + melV * 0.65) * (1 + beatPulse * 0.15);
   };
 
-  // Find nearest ghost for speed scaling
-  let nearestGhostDist = 1.0;
-  let targetG = null;
-  let activeGhosts = 0;
-  for(let g of pacmanState.ghosts) {
-      if (g.isDead) continue;
-      activeGhosts++;
-      const dx = getWrapDist(pacmanState.pacman.x, g.x);
-      const dy = getWrapDist(pacmanState.pacman.y, g.y);
-      const d = Math.sqrt(dx*dx + dy*dy);
-      if(d < nearestGhostDist) { nearestGhostDist = d; targetG = g; }
+  // Scrolling neon grid backdrop
+  const gridSize = 40;
+  const scroll = (time * 30) % gridSize;
+  ctx.strokeStyle = `rgba(20, 20, 80, ${0.25 + beatPulse * 0.25})`;
+  ctx.lineWidth = 1;
+  for (let x = -scroll; x < width; x += gridSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+  }
+  for (let y = 0; y < height; y += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
   }
 
-  // Pacman Speed: Faster the closer he is to a ghost (Aggressor scaling)
-  let pSpeed = baseSpeed * (1.0 + (1.0 - Math.min(1.0, nearestGhostDist * 5)) * 0.6);
+  // Advance Pac-Man along the wave (dt from playback time, clamped for seeks/pauses)
+  const dt = Math.max(0, Math.min(0.1, time - pacmanState.lastTime));
+  pacmanState.lastTime = time;
+  const pacSpeed = 0.05 * (0.6 + melEnergy * 0.8 + beatPulse * 0.9);
+  pacmanState.pacX = (pacmanState.pacX + pacSpeed * dt + 1) % 1;
 
-  // If all ghosts dead, find nearest dot to chase
-  let targetDot = null;
-  if (activeGhosts === 0) {
-    let nearestDotDist = 1.0;
-    for (let d of pacmanState.dots) {
-      if (!d.active) continue;
-      const dx = getWrapDist(pacmanState.pacman.x, d.x);
-      const dy = getWrapDist(pacmanState.pacman.y, d.y);
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < nearestDotDist) {
-        nearestDotDist = dist;
-        targetDot = d;
-      }
-    }
-    // Boost speed toward dots too
-    pSpeed = baseSpeed * 1.3;
+  // Big beat => blue ghost mode (with cooldown)
+  if (beatPulse > 0.85 && time > pacmanState.blueUntil && time - pacmanState.lastBlueTime > 12) {
+    pacmanState.blueUntil = time + 3.5;
+    pacmanState.lastBlueTime = time;
   }
+  const blueMode = time < pacmanState.blueUntil;
 
-  // Moves Pacman - Cardinal Movement (Snake-like)
-  if (beatPulse > 0.7 || !pacmanState.pacman.vx || Math.random() > 0.95) {
-      if ((pacmanState.blueMode && targetG) || (activeGhosts === 0 && targetDot)) {
-          // CHASE MODE: Align to axis of nearest target (Ghost or Dot)
-          const target = targetG || targetDot;
-          const dx = getWrapDist(pacmanState.pacman.x, target.x);
-          const dy = getWrapDist(pacmanState.pacman.y, target.y);
-          
-          if (Math.abs(dx) > Math.abs(dy)) {
-              pacmanState.pacman.vx = dx > 0 ? pSpeed : -pSpeed;
-              pacmanState.pacman.vy = 0;
-              pacmanState.pacman.dir = dx > 0 ? 0 : Math.PI;
-          } else {
-              pacmanState.pacman.vy = dy > 0 ? pSpeed : -pSpeed;
-              pacmanState.pacman.vx = 0;
-              pacmanState.pacman.dir = dy > 0 ? Math.PI/2 : -Math.PI/2;
-          }
-      } else {
-          // NORMAL MODE: Randomized Cardinal Turns
-          const decision = Math.random();
-          if (decision > 0.5 || !pacmanState.pacman.vx) {
-              if (pacmanState.pacman.vx !== 0) { // Currently horizontal, turn vertical
-                  pacmanState.pacman.vx = 0;
-                  pacmanState.pacman.vy = Math.random() > 0.5 ? pSpeed : -pSpeed;
-                  pacmanState.pacman.dir = pacmanState.pacman.vy > 0 ? Math.PI/2 : -Math.PI/2;
-              } else { // Currently vertical or stopped, turn horizontal
-                  pacmanState.pacman.vy = 0;
-                  pacmanState.pacman.vx = Math.random() > 0.5 ? pSpeed : -pSpeed;
-                  pacmanState.pacman.dir = pacmanState.pacman.vx > 0 ? 0 : Math.PI;
-              }
-          } else {
-              // Maintain current axis but update speed
-              if (pacmanState.pacman.vx !== 0) pacmanState.pacman.vx = Math.sign(pacmanState.pacman.vx) * pSpeed;
-              if (pacmanState.pacman.vy !== 0) pacmanState.pacman.vy = Math.sign(pacmanState.pacman.vy) * pSpeed;
-          }
-      }
-  } else {
-      // Just update speed magnitude for current velocity
-      if (pacmanState.pacman.vx !== 0) pacmanState.pacman.vx = Math.sign(pacmanState.pacman.vx) * pSpeed;
-      if (pacmanState.pacman.vy !== 0) pacmanState.pacman.vy = Math.sign(pacmanState.pacman.vy) * pSpeed;
+  // Dominant chroma note colors the wave trail
+  let dominantIdx = 0;
+  for (let i = 1; i < 12; i++) {
+    if ((chroma[i] || 0) > (chroma[dominantIdx] || 0)) dominantIdx = i;
   }
-  
-  // Apply velocity and Wrap Around (Snake-like)
-  pacmanState.pacman.x = (pacmanState.pacman.x + (pacmanState.pacman.vx || 0) + 1) % 1;
-  pacmanState.pacman.y = (pacmanState.pacman.y + (pacmanState.pacman.vy || 0) + 1) % 1;
+  const trailHue = CHROMA_HUES[dominantIdx];
 
-  // Draw and Eat Dots
-  ctx.fillStyle = '#ffb8ae';
-  for(let d of pacmanState.dots) {
-      if(!d.active) continue;
-      // Eat check
-      const dx = d.x * width - pacmanState.pacman.x * width;
-      const dy = d.y * height - pacmanState.pacman.y * height;
-      if (Math.sqrt(dx*dx + dy*dy) < size) {
-          d.active = false;
-          pacmanState.score += 10;
-          // Respawn elsewhere
-          setTimeout(() => {
-             d.x = Math.random(); d.y = Math.random(); d.active = true; 
-          }, 2000);
-      } else {
-          ctx.beginPath();
-          ctx.arc(d.x * width, d.y * height, 3, 0, Math.PI*2);
-          ctx.fill();
-      }
-  }
-
-  // Draw Pacman
-  const px = pacmanState.pacman.x * width;
-  const py = pacmanState.pacman.y * height;
-  ctx.fillStyle = '#FFFF00';
+  // Draw the wave path as a glowing dotted trail
+  const pathSteps = 120;
   ctx.beginPath();
-  const mouth = Math.abs(Math.sin(time * 15)) * 0.2 * Math.PI;
-  
-  // Use calculated direction
-  const dir = pacmanState.pacman.dir || 0;
-  
-  ctx.arc(px, py, size/2, dir + mouth, dir + Math.PI * 2 - mouth);
+  for (let i = 0; i <= pathSteps; i++) {
+    const x = i / pathSteps;
+    const px = x * width;
+    const py = waveY(x);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.strokeStyle = `hsla(${trailHue}, 80%, 55%, ${0.15 + melEnergy * 0.2 + beatPulse * 0.15})`;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([2, 10]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Pellets live on the wave; Pac-Man eats them as he passes, they regrow behind him
+  for (let i = 0; i < PACMAN_NUM_PELLETS; i++) {
+    const pellet = pacmanState.pellets[i];
+    const x = (i + 0.5) / PACMAN_NUM_PELLETS;
+    const isPower = i % 9 === 4;
+
+    let distAhead = x - pacmanState.pacX;
+    if (distAhead < -0.5) distAhead += 1;
+    if (distAhead > 0.5) distAhead -= 1;
+
+    if (Math.abs(distAhead) < (size * 0.6) / width && time > pellet.eatenUntil) {
+      pellet.eatenUntil = time + 6;
+    }
+    if (time < pellet.eatenUntil) continue;
+
+    const px = x * width;
+    const py = waveY(x);
+    const chromaIdx = i % 12;
+    const chromaValue = chroma[chromaIdx] || 0;
+
+    if (isPower) {
+      const pulse = 0.7 + Math.sin(time * 6 + i) * 0.3;
+      ctx.fillStyle = `hsla(${CHROMA_HUES[chromaIdx]}, 90%, ${55 + chromaValue * 25}%, ${0.6 + chromaValue * 0.4})`;
+      ctx.shadowColor = `hsla(${CHROMA_HUES[chromaIdx]}, 90%, 60%, 0.8)`;
+      ctx.shadowBlur = 8 + beatPulse * 10;
+      ctx.beginPath();
+      ctx.arc(px, py, (5 + chromaValue * 4) * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.fillStyle = `hsla(35, 60%, ${70 + chromaValue * 15}%, ${0.5 + chromaValue * 0.4})`;
+      ctx.beginPath();
+      ctx.arc(px, py, 2.5 + chromaValue * 2 + beatPulse, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Ghosts trail Pac-Man along the same wave; in blue mode they turn blue and fall back
+  const ghostColors = [0, 330, 180, 40]; // Blinky, Pinky, Inky, Clyde
+  for (let g = 0; g < 4; g++) {
+    const flee = blueMode ? (pacmanState.blueUntil - time) / 3.5 : 0;
+    const gap = 0.07 + g * 0.055 + flee * 0.12 + Math.sin(time * 2 + g * 1.7) * 0.012;
+    const gx = ((pacmanState.pacX - gap) % 1 + 1) % 1;
+    const gpx = gx * width;
+    const gpy = waveY(gx) + Math.sin(time * 5 + g * 2) * 3;
+
+    const flash = blueMode && (pacmanState.blueUntil - time < 1) && Math.sin(time * 12) > 0;
+    const bodyColor = blueMode
+      ? (flash ? '#ffffff' : '#2121de')
+      : `hsl(${ghostColors[g]}, 100%, ${55 + beatPulse * 15}%)`;
+
+    // Slope tells the ghost which way it's looking
+    const slope = waveY(gx + 0.01) - waveY(gx - 0.01);
+
+    ctx.fillStyle = bodyColor;
+    ctx.shadowColor = bodyColor;
+    ctx.shadowBlur = 6 + beatPulse * 8;
+    ctx.beginPath();
+    ctx.arc(gpx, gpy - size * 0.2, size / 2, Math.PI, 0);
+    ctx.lineTo(gpx + size / 2, gpy + size / 2);
+    const feet = 4;
+    for (let k = 0; k < feet; k++) {
+      const fx1 = gpx + size / 2 - ((k + 0.5) * size) / feet;
+      const fx2 = gpx + size / 2 - ((k + 1) * size) / feet;
+      ctx.quadraticCurveTo(fx1, gpy + size / 2 - size * 0.18, fx2, gpy + size / 2);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    if (blueMode && !flash) {
+      // Scared face
+      ctx.fillStyle = '#ffb8ae';
+      ctx.beginPath();
+      ctx.arc(gpx - size * 0.15, gpy - size * 0.2, size * 0.08, 0, Math.PI * 2);
+      ctx.arc(gpx + size * 0.15, gpy - size * 0.2, size * 0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffb8ae';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let z = 0; z < 4; z++) {
+        const zx = gpx - size * 0.3 + (z * size * 0.2);
+        ctx.lineTo(zx, gpy + size * 0.05 + (z % 2 === 0 ? 3 : -3));
+      }
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(gpx - size * 0.15, gpy - size * 0.2, size * 0.15, 0, Math.PI * 2);
+      ctx.arc(gpx + size * 0.15, gpy - size * 0.2, size * 0.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#1919a6';
+      const lookX = 2;
+      const lookY = Math.max(-2, Math.min(2, slope * 0.5));
+      ctx.beginPath();
+      ctx.arc(gpx - size * 0.15 + lookX, gpy - size * 0.2 + lookY, size * 0.07, 0, Math.PI * 2);
+      ctx.arc(gpx + size * 0.15 + lookX, gpy - size * 0.2 + lookY, size * 0.07, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Pac-Man rides the wave, facing along its slope, chomping to the beat
+  const px = pacmanState.pacX * width;
+  const py = waveY(pacmanState.pacX);
+  const slope = waveY(pacmanState.pacX + 0.01) - waveY(pacmanState.pacX - 0.01);
+  const dir = Math.atan2(slope, 0.02 * width);
+  const chompSpeed = 8 + melEnergy * 10 + beatPulse * 8;
+  const mouth = (0.08 + Math.abs(Math.sin(time * chompSpeed)) * 0.22) * Math.PI;
+  const pacSize = (size / 2) * (1 + beatPulse * 0.2);
+
+  ctx.fillStyle = '#FFFF00';
+  ctx.shadowColor = 'rgba(255, 255, 0, 0.7)';
+  ctx.shadowBlur = 10 + beatPulse * 15;
+  ctx.beginPath();
+  ctx.arc(px, py, pacSize, dir + mouth, dir + Math.PI * 2 - mouth);
   ctx.lineTo(px, py);
   ctx.fill();
+  ctx.shadowBlur = 0;
 
-  // Draw Ghosts
-  for(let g of pacmanState.ghosts) {
-    // Respawn Logic
-    if (g.isDead) {
-        if (time > g.respawnTime) {
-            g.isDead = false;
-            g.x = 0.5; g.y = 0.5; // Respawn center
-        } else {
-            // Draw Eyes returning to center (optional visualization of 'dead' ghost)
-            const eyesX = g.x * width;
-            const eyesY = g.y * height;
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(eyesX - size*0.15, eyesY, size*0.15, 0, Math.PI*2);
-            ctx.arc(eyesX + size*0.15, eyesY, size*0.15, 0, Math.PI*2);
-            ctx.fill();
-            // Move eyes to center
-            g.x += (0.5 - g.x) * 0.05;
-            g.y += (0.5 - g.y) * 0.05;
-            continue; 
-        }
-    }
-
-    // Determine Color
-    let color = `hsl(${g.color}, 100%, 50%)`;
-    if (pacmanState.blueMode) color = '#0000FF';
-
-    // Move Ghosts - Cardinal Movement
-    const dx = getWrapDist(g.x, pacmanState.pacman.x);
-    const dy = getWrapDist(g.y, pacmanState.pacman.y);
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    
-    // Ghost Speed: Generally slower (baseSpeed * 0.7) and slows down as it approaches Pacman
-    // This creates the "scared/hesitant" or "easy to kite" arcade feel requested.
-    const ghostBaseSpeed = baseSpeed * (pacmanState.blueMode ? 0.5 : 0.6);
-    const gSpeed = ghostBaseSpeed * (0.4 + Math.min(1.0, dist * 3) * 0.6);
-    
-    // Collision Detect (Eat Ghost)
-    if (pacmanState.blueMode && dist < 0.04) {
-        g.isDead = true;
-        g.respawnTime = time + 5; // Respawn after 5s
-        pacmanState.score += 200;
-        continue;
-    }
-
-    // Periodically change direction or on beat
-    if (Math.random() > 0.95 || (beatPulse > 0.8 && Math.random() > 0.8) || !g.vx) {
-        // Ghost AI: Choose axis to align with/flee from Pacman
-        let moveOnX = Math.abs(dx) > Math.abs(dy);
-        if (Math.random() > 0.85) moveOnX = !moveOnX; // Add some variety/uncertainty
-        
-        if (moveOnX) {
-            g.vx = dx > 0 ? gSpeed : -gSpeed;
-            g.vy = 0;
-            g.dir = dx > 0 ? 0 : Math.PI;
-        } else {
-            g.vy = dy > 0 ? gSpeed : -gSpeed;
-            g.vx = 0;
-            g.dir = dy > 0 ? Math.PI/2 : -Math.PI/2;
-        }
-        
-        // Flee if blue mode
-        if (pacmanState.blueMode) {
-            g.vx = -g.vx;
-            g.vy = -g.vy;
-            g.dir += Math.PI;
-        }
-    } else {
-        // Just update speed magnitude for current velocity
-        if (g.vx !== 0) g.vx = Math.sign(g.vx) * gSpeed;
-        if (g.vy !== 0) g.vy = Math.sign(g.vy) * gSpeed;
-    }
-
-    // Apply velocity and Wrap Around (Snake-like)
-    g.x = (g.x + (g.vx || 0) + 1) % 1;
-    g.y = (g.y + (g.vy || 0) + 1) % 1;
-    
-    // Draw Ghost
-    const gx = g.x * width;
-    const gy = g.y * height;
-    ctx.fillStyle = color;
-    
-    // Ghost Body
-    ctx.beginPath();
-    ctx.arc(gx, gy - size*0.2, size/2, Math.PI, 0);
-    ctx.lineTo(gx + size/2, gy + size/2);
-    // Feet
-    for(let k=1; k<=3; k++) {
-        ctx.lineTo(gx + size/2 - (k*size/3), gy + size/2 - (k%2===0 ? 5 : 0));
-    }
-    ctx.lineTo(gx - size/2, gy + size/2);
-    ctx.fill();
-
-    // Eyes
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(gx - size*0.15, gy - size*0.2, size*0.15, 0, Math.PI*2);
-    ctx.arc(gx + size*0.15, gy - size*0.2, size*0.15, 0, Math.PI*2);
-    ctx.fill();
-    ctx.fillStyle = pacmanState.blueMode ? 'white' : 'blue'; 
-    ctx.beginPath();
-    const lookX = (g.vx > 0 ? 2 : (g.vx < 0 ? -2 : 0));
-    const lookY = (g.vy > 0 ? 2 : (g.vy < 0 ? -2 : 0));
-    ctx.arc(gx - size*0.15 + lookX, gy - size*0.2 + lookY, size*0.07, 0, Math.PI*2);
-    ctx.arc(gx + size*0.15 + lookX, gy - size*0.2 + lookY, size*0.07, 0, Math.PI*2);
-    ctx.fill();
-  }
+  drawWaveLabels(ctx, width, height, chroma);
 }
 
 // --- SNAKE STATE ---
@@ -6369,7 +6545,7 @@ let sacredGeometryState = {
 
 function drawSacredGeometryWave(ctx, width, height, chroma, mel, beatPulse, time) {
     if (!sacredGeometryState.lastTime) sacredGeometryState.lastTime = time;
-    const deltaTime = time - sacredGeometryState.lastTime;
+    const deltaTime = Math.max(0, Math.min(0.1, time - sacredGeometryState.lastTime));
     sacredGeometryState.lastTime = time;
 
     const settings = getEffectiveWaveformSettings('sacred_geometry');
@@ -6394,42 +6570,54 @@ function drawSacredGeometryWave(ctx, width, height, chroma, mel, beatPulse, time
     const R = Math.min(width, height) * 0.12 * scale;
     const circleSize = R * (0.9 + sacredGeometryState.smoothedBeat * 0.2);
     
-    const maxLayers = 10; 
-    const activeLayers = 1 + sacredGeometryState.smoothedBeat * 4;
-    
+    const maxLayers = 4;
+    const activeLayers = 1.5 + energy * 1.5 + sacredGeometryState.smoothedBeat * 1.5;
+
     ctx.lineWidth = 1.2 + energy * 2;
-    
-    // Draw from center outwards
+
+    const rot = sacredGeometryState.rotation;
+    const cosR = Math.cos(rot);
+    const sinR = Math.sin(rot);
+
+    // Draw from center outwards on a true hexagonal lattice (Flower of Life)
     for (let l = 0; l <= maxLayers; l++) {
         const layerActive = Math.max(0, Math.min(1, activeLayers - l));
         if (layerActive <= 0 && l > 0) continue; // Always draw center
 
-        const r = l * R; 
-        // n-1 less rings logic: strictly avoid any angular overlap by ensuring n is correct
         const circleCount = l === 0 ? 1 : 6 * l;
         const layerAlpha = layerActive * (0.2 + energy * 0.4 + sacredGeometryState.smoothedBeat * 0.3);
-        
-        ctx.strokeStyle = `hsla(${(time * 15 + l * 40) % 360}, 75%, 65%, ${layerAlpha})`;
-        
+        const circleColor = `hsla(${(time * 15 + l * 40) % 360}, 75%, 65%, ${layerAlpha})`;
+        const lineColor = `hsla(${(time * 15 + l * 40) % 360}, 75%, 65%, ${0.08 * Math.max(0, (sacredGeometryState.smoothedBeat - 0.3) * 1.5) * layerActive})`;
+
         for (let i = 0; i < circleCount; i++) {
-            // Keep all layers rotating together to maintain sacred geometry alignment
-            // Using i / circleCount strictly ensures N unique positions without overlap at 2PI
-            const angle = (i / circleCount) * Math.PI * 2 + sacredGeometryState.rotation;
-            
-            const cx = centerX + Math.cos(angle) * r;
-            const cy = centerY + Math.sin(angle) * r;
-            
+            // Hex ring position: walk the six edges between corners so circles interlock
+            let lx, ly;
+            if (l === 0) {
+                lx = 0; ly = 0;
+            } else {
+                const side = Math.floor(i / l);
+                const step = i % l;
+                const a1 = (side / 6) * Math.PI * 2;
+                const a2 = ((side + 1) / 6) * Math.PI * 2;
+                const t = step / l;
+                lx = (Math.cos(a1) * (1 - t) + Math.cos(a2) * t) * l * R;
+                ly = (Math.sin(a1) * (1 - t) + Math.sin(a2) * t) * l * R;
+            }
+            // Rotate the whole lattice together so layers stay aligned
+            const cx = centerX + lx * cosR - ly * sinR;
+            const cy = centerY + lx * sinR + ly * cosR;
+
+            ctx.strokeStyle = circleColor;
             ctx.beginPath();
             ctx.arc(cx, cy, circleSize, 0, Math.PI * 2);
             ctx.stroke();
-            
+
             // Connect to center with synchronized lines
             if (l > 0 && sacredGeometryState.smoothedBeat > 0.3) {
-                const connectionAlpha = (sacredGeometryState.smoothedBeat - 0.3) * 1.5 * layerActive;
+                ctx.strokeStyle = lineColor;
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.lineTo(cx, cy);
-                ctx.strokeStyle = `hsla(${(time * 15 + l * 40) % 360}, 75%, 65%, ${0.08 * connectionAlpha})`;
                 ctx.stroke();
             }
         }
