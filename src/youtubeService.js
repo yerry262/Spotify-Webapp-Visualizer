@@ -30,7 +30,11 @@ const MAX_WAIT_MS = 20000;      // 20s max wait (server download lock is 15s, an
 function getDeviceId() {
   let deviceId = localStorage.getItem('visualizer_device_id');
   if (!deviceId) {
-    deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use a more cryptographically unique approach: timestamp + random + browser fingerprint
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 15);
+    const fingerprint = Math.random().toString(36).substring(2, 8);
+    deviceId = `device_${timestamp}_${random}${fingerprint}`;
     localStorage.setItem('visualizer_device_id', deviceId);
     console.log('🔑 Generated new device ID:', deviceId);
   }

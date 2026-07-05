@@ -81,10 +81,27 @@ function App() {
 
   // Load version info
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}version.json`)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    fetch(`${import.meta.env.BASE_URL}version.json`, { signal: controller.signal })
       .then(res => res.json())
-      .then(data => setVersionInfo(data))
-      .catch(err => console.error('Failed to load version info:', err));
+      .then(data => {
+        clearTimeout(timeoutId);
+        setVersionInfo(data);
+      })
+      .catch(err => {
+        clearTimeout(timeoutId);
+        if (err.name !== 'AbortError') {
+          console.error('Failed to load version info:', err);
+        }
+        // Continue with default empty values on timeout/error
+      });
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   // Handle OAuth callback and restore session
@@ -378,14 +395,12 @@ function App() {
         if (state.progress_ms && state.item.duration_ms) {
           const progress = state.progress_ms / state.item.duration_ms;
           if (progress >= 0.5 && !isPrefetchingRef.current && !isProcessingRef.current) {
-            // Check if we haven't already triggered prefetch for this track
-            if (prefetchTriggeredForTrackRef.current !== currentTrackIdRef.current) {
-              // Use setTimeout to avoid blocking and break circular dependency
-              setTimeout(() => {
-                if (prefetchNextTrackRef.current) {
-                  prefetchNextTrackRef.current();
-                }
-              }, 0);
+            // Check if we haven't already triggered prefetch for this track AND analysis is ready
+            if (prefetchTriggeredForTrackRef.current !== currentTrackIdRef.current && analysisData) {
+              // Call prefetch directly instead of via setTimeout to avoid callback accumulation
+              if (prefetchNextTrackRef.current) {
+                prefetchNextTrackRef.current();
+              }
             }
           }
         }
@@ -623,7 +638,7 @@ function App() {
     if (isWaveformAuto) {
       const interval = setInterval(() => {
         setWaveformStyleState(getWaveformStyle());
-      }, 1000);
+      }, 30000); // Changed from 1000ms to 30000ms - matches the auto-rotate feature (30s per style)
       return () => clearInterval(interval);
     }
   }, [isWaveformAuto]);

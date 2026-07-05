@@ -35,11 +35,26 @@ const DOWNLOAD_LOCK_TIMEOUT_MS = 15 * 1000;  // 15 seconds - downloads should be
 const ANALYSIS_LOCK_TIMEOUT_MS = 90 * 1000;  // 90 seconds - analysis takes longer
 
 /**
- * Generate lock key from artist and song (uses sanitizeFilename defined below)
+ * Generate lock key from artist and song
+ * Must be consistent with client-side sanitizeForKey() for multi-device coordination
  */
 function getLockKey(artist, song) {
-  const sanitizedArtist = artist.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 50);
-  const sanitizedSong = song.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 50);
+  const sanitizedArtist = artist
+    .toLowerCase()
+    .trim()
+    .replace(/[<>:"/\\|?*]/g, '')
+    .replace(/\s+/g, '_')
+    .replace(/[^\w\-_.]/g, '')
+    .replace(/_+/g, '_')
+    .substring(0, 100);
+  const sanitizedSong = song
+    .toLowerCase()
+    .trim()
+    .replace(/[<>:"/\\|?*]/g, '')
+    .replace(/\s+/g, '_')
+    .replace(/[^\w\-_.]/g, '')
+    .replace(/_+/g, '_')
+    .substring(0, 100);
   return `${sanitizedArtist}-${sanitizedSong}`;
 }
 
@@ -307,10 +322,12 @@ app.post('/clear-mp3s', (req, res) => {
 
 /**
  * Sanitize filename - remove special characters that could cause issues
+ * Must match client-side sanitizeForKey() for consistent cache keys
  */
 function sanitizeFilename(str) {
   return str
     .toLowerCase()
+    .trim()                        // Trim whitespace to match client
     .replace(/[<>:"/\\|?*]/g, '') // Remove invalid filename chars
     .replace(/\s+/g, '_')          // Replace spaces with underscores
     .replace(/[^\w\-_.]/g, '')     // Remove other special chars
