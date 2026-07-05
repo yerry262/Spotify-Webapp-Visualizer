@@ -24,7 +24,7 @@ https://youtu.be/AYoBXHKe2Ow
 │  ┌─────────────────────────────────────────────────────────────────┐    │
 │  │  1. Get current track info from Spotify API                     │    │
 │  │  2. Check MP3 cache (skip to step 5 if cached!)                 │    │
-│  │  3. Search YouTube for the song (Browser-Use API - FREE!)       │    │
+│  │  3. Search YouTube for the song (yt-dlp ytsearch - FREE!)       │    │
 │  │  4. Download MP3 via backend server (yt-dlp)                    │    │
 │  │  5. Analyze audio with Essentia.js (WASM)                       │    │
 │  │  6. Sync visualization with Spotify playback position           │    │
@@ -65,10 +65,10 @@ https://youtu.be/AYoBXHKe2Ow
   - **Downloading Animation**: Data stream particles during MP3 download
   - **Analyzing Animation**: Spinning rings while processing audio with Essentia.js
   - All themed consistently with Spotify green (#1DB954)
-- **45 Waveform Visualization Styles**:
+- **51 Waveform Visualization Styles**:
   - **Featured Styles**:
     - Synthwave Horizon - Retrowave grid with pulsing sun and mountain silhouette
-    - Volcanic Magma - Advanced environmental scene with background volcano, eruptions, and cinematic effects
+    - Volcanic Magma - Volcano scene where the magma lake surface is the mel spectrum, with lava rivers and beat eruptions
     - Liquid Mercury - Fluid metallic waves
     - Cosmic Nebula - Space-themed with chroma wheel and pitch orb
     - Soundwave Terrain - 3D landscape visualization
@@ -76,20 +76,23 @@ https://youtu.be/AYoBXHKe2Ow
     - Matrix Rain - Digital rain effect
     - Plasma Fire - Fire-like plasma effect
     - DNA Helix - Double helix structure
-    - 8-Bit Chase - Retro Pac-Man style
+    - 8-Bit Chase - Pac-Man rides a mel-driven waveform, ghosts in tow, blue mode on big beats
     - Rhythm Snake - Musical snake game
     - Rain Tetris - Falling Tetris pieces synced to BPM
     - DVD Bouncer - Classic DVD logo bouncing with corner celebrations
-    - Sacred Geometry - Mystical geometric patterns
+    - Sacred Geometry - Flower of Life on a true hex lattice, beat-synced connections
     - Fractal Void - Infinite fractal zoom
+    - Maze Mystery - Infinite trippy maze tunnel with chroma walls and runner lights
+    - Minion Mayhem - Little yellow guys as spectrum bars, bouncing to their bands under banana rain
   - **Classic Styles**:
     - Layered Waves, Oscilloscope, Spectrum Bars, Flowing Ribbons
     - Mirrored Wave, Particle Dots, Pixelated, 3D Mesh
     - Sine Layers, Circular Dots, Neon Lines, Aurora Borealis
     - Shockwave Rings, Kaleidoscope, Lightning Storm, Heartbeat ECG
-    - Fractal Tree, Sound Tornado, Geometric Mandala, Glitch Art
+    - Fractal Tree, Sound Tornado, Geometric Mandala
+    - Glitch Art, Glitch Art 2, Glitch Art 3 (corrupted-broadcast RGB channel tears)
     - Fireworks Show, Ocean Waves, Galaxy Spiral, Neon City
-    - Particle Explosion
+    - Particle Explosion, Spirograph, Starfield Warp, Vinyl Record
   - Auto-rotate mode (changes every 30 seconds) or manual selection
   - Custom settings toggle with adjustable max height and start position
   - Hardcoded optimal defaults per waveform style
@@ -143,7 +146,7 @@ Before you begin, ensure you have the following installed:
 
 > ⚠️ **Important:** Both redirect URIs must be registered in your Spotify app settings for the app to work in both development and production environments. Without the production URI, other users won't be able to log in.
 
-> ✅ **No YouTube API Key Required!** This app uses the Browser-Use API for YouTube search, which is completely FREE with no quota limits.
+> ✅ **No YouTube API Key Required!** This app uses yt-dlp's built-in `ytsearch` for YouTube search on the backend, which is completely FREE with no quota limits.
 
 ## 📦 Installing Dependencies
 

@@ -1,7 +1,17 @@
 # Spotify Webapp Visualizer - Developer Guide
 
 ## Project Overview
-A React-based music visualizer that analyzes real-time audio from Spotify playback using Web Audio API and custom audio processing. Supports 45+ visualization styles with multi-device coordination and intelligent caching.
+A React-based music visualizer that analyzes real-time audio from Spotify playback using Web Audio API and custom audio processing. Supports 51 visualization styles with multi-device coordination and intelligent caching.
+
+## Adding a Waveform Style
+
+All waveform styles live in `src/components/visualizers/VisualizerAudio.js`. A new style needs four wirings in that file:
+1. Entry in `WAVEFORM_DEFAULTS` (basePosition/maxAmplitude + fullscreen variants, particles, centerElements)
+2. Entry in `WAVEFORM_STYLES` (menu + auto-rotate)
+3. Case in the `drawChromaSoundWaves` dispatch switch
+4. A `draw<Name>Wave(ctx, width, height, chroma, mel, beatPulse, time)` function
+
+Conventions: get position/size from `getEffectiveWaveformSettings(styleId)`, colors from `CHROMA_HUES`, normalize mel dB with `(mel[i] + 10) / 10`, end with `drawWaveLabels(ctx, width, height, chroma)`. Prefer stateless animation derived from `time` (stays synced to playback); if you keep module state, clamp time deltas to survive seeks. Reset shared ctx state (strokeStyle, shadowBlur, globalAlpha, composite op) after use — leaked state bleeds into the next draw call.
 
 ## Architecture
 
@@ -13,7 +23,8 @@ A React-based music visualizer that analyzes real-time audio from Spotify playba
 - **Components**: AudioVisualizer, TrackInfo, PlaybackControls, SideMenu, etc.
 
 ### Backend (Node.js + Express)
-- **server.js**: YouTube → MP3 conversion, analysis caching, multi-device coordination
+- **server.js**: YouTube search + MP3 conversion, analysis caching, multi-device coordination
+  - `/search-youtube`: Search YouTube via `yt-dlp "ytsearch1:<query>"` (replaced the dead Browser-Use API, July 2026)
   - `/get-mp3`: Download from YouTube with locking
   - `/check-status`: Check if analysis/MP3 is cached or in progress
   - `/notify-analyzing`: Acquire analysis lock
@@ -139,7 +150,7 @@ npm run deploy  # GitHub Pages
 - **Platform**: Railway
 - **Frontend**: GitHub Pages (`yerry262.github.io/Spotify-Webapp-Visualizer`)
 - **Backend**: Railway (`spotify-webapp-visualizer-production.up.railway.app`)
-- **Last Deploy**: 2026-07-05 21:58:57 UTC ✅ SUCCESS
+- **Last Deploy**: 2026-07-05 (backend: yt-dlp search fix on Railway; frontend: GitHub Pages) ✅ SUCCESS
 - **Build Status**: All CI/CD passing
 - **Dependencies**: All packages up-to-date, 0 vulnerabilities
 
@@ -157,7 +168,7 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 
 ## Known Limitations
 
-1. YouTube search is free but not 100% reliable (returns top result)
+1. YouTube search is free but not 100% reliable (yt-dlp `ytsearch1` returns top result; if searches break, update yt-dlp in the Railway container)
 2. Analysis accuracy depends on MP3 quality
 3. Multi-device coordination requires polling (no WebSocket)
 4. Fuzzy filename matching may give false positives with generic names
@@ -172,6 +183,9 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 
 ## Recent Changes Log
 
+- **2026-07-05**: Replaced dead Browser-Use YouTube search with yt-dlp `ytsearch` (backend was returning 404 on every search, breaking the whole pipeline)
+- **2026-07-05**: Added 6 waveform styles (Spirograph, Starfield Warp, Vinyl Record, Glitch Art 3, Maze Mystery, Minion Mayhem) — 51 total
+- **2026-07-05**: Reworked 8-Bit Chase and Volcanic Magma; fixed Sacred Geometry strokeStyle leak; fixed Synthwave Horizon flicker (shake ramp, RGB strobe, grid wrap)
 - **2026-07-05**: Fixed npm dependencies, optimized polling, enhanced security
 - **2026-07-05**: Added CLAUDE.md documentation
 - **2026-06-24**: Admin review dashboard enhancements
