@@ -37,7 +37,17 @@ Cache analysis results
 Sync visualization with playback
 ```
 
-## Recent Optimizations (July 2026)
+## Recent Optimizations & Fixes (July 2026)
+
+### Latest Deploy (2026-07-05)
+- ✅ Fixed npm dependency sync (express-rate-limit@7.5.0)
+- ✅ Resolved all npm audit vulnerabilities (0 vulnerabilities)
+- ✅ Auto-mode waveform interval: 1000ms → 30000ms (30x reduction)
+- ✅ Removed callback accumulation in polling loop
+- ✅ Device ID security: enhanced uniqueness
+- ✅ Version info timeout: 5s max (prevents blocking)
+- ✅ Consistent filename sanitization client/server
+- ✅ Added CLAUDE.md documentation
 
 ### 1. Auto-mode Waveform Interval
 - Changed from 1000ms to 30000ms update frequency
@@ -124,6 +134,27 @@ npm run deploy  # GitHub Pages
 # Backend deployed separately (Railway, Vercel, etc.)
 ```
 
+## Deployment Status
+
+- **Platform**: Railway
+- **Frontend**: GitHub Pages (`yerry262.github.io/Spotify-Webapp-Visualizer`)
+- **Backend**: Railway (`spotify-webapp-visualizer-production.up.railway.app`)
+- **Last Deploy**: 2026-07-05 21:58:57 UTC ✅ SUCCESS
+- **Build Status**: All CI/CD passing
+- **Dependencies**: All packages up-to-date, 0 vulnerabilities
+
+## Railway Configuration
+
+```env
+# Backend environment variables (set in Railway)
+PORT=3001
+NODE_ENV=production
+
+# Frontend environment
+VITE_API_URL=https://spotify-webapp-visualizer-production.up.railway.app
+VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
+```
+
 ## Known Limitations
 
 1. YouTube search is free but not 100% reliable (returns top result)
@@ -138,6 +169,12 @@ npm run deploy  # GitHub Pages
 - [ ] Visualization recording/export
 - [ ] Custom colorization based on album art
 - [ ] Integration with other music services (Apple Music, YouTube Music)
+
+## Recent Changes Log
+
+- **2026-07-05**: Fixed npm dependencies, optimized polling, enhanced security
+- **2026-07-05**: Added CLAUDE.md documentation
+- **2026-06-24**: Admin review dashboard enhancements
 
 ## Code Style
 
