@@ -4928,10 +4928,11 @@ function drawSynthwaveHorizonWave(ctx, width, height, chroma, mel, beatPulse, ti
   
   ctx.save();
   
-  // === SCREEN SHAKE (Beat-reactive, like Glitch Art 2) ===
-  if (synthwaveState.sBeat > 0.7) {
-    const shakeX = (Math.sin(time * 50) * 3 + Math.cos(time * 37) * 2) * synthwaveState.sBeat;
-    const shakeY = (Math.cos(time * 43) * 2) * synthwaveState.sBeat;
+  // === SCREEN SHAKE (Beat-reactive, ramps in smoothly to avoid flicker) ===
+  const shakeAmount = Math.max(0, (synthwaveState.sBeat - 0.7) / 0.3);
+  if (shakeAmount > 0) {
+    const shakeX = (Math.sin(time * 50) * 3 + Math.cos(time * 37) * 2) * shakeAmount;
+    const shakeY = (Math.cos(time * 43) * 2) * shakeAmount;
     ctx.translate(shakeX, shakeY);
   }
   
@@ -5028,7 +5029,8 @@ function drawSynthwaveHorizonWave(ctx, width, height, chroma, mel, beatPulse, ti
       
       // Brightness increases for closer lines
       const alpha = 0.15 + perspectiveT * 0.5;
-      const hue = (300 + synthwaveState.sChroma[i % 12] * 30) % 360;
+      // Hue keyed to screen position (not loop index) so the scroll wrap is seamless
+      const hue = (300 + maxVal * 30 * perspectiveT) % 360;
       ctx.strokeStyle = `hsla(${hue}, 100%, 65%, ${alpha})`;
       
       ctx.beginPath();
@@ -5065,31 +5067,29 @@ function drawSynthwaveHorizonWave(ctx, width, height, chroma, mel, beatPulse, ti
     ctx.stroke();
   }
   
-  // === NEON GLOW ON GRID (Beat-reactive scanline) ===
+  // === NEON GLOW ON GRID (Beat-reactive scanline, fades at both ends of travel) ===
   synthwaveState.scanY = (synthwaveState.scanY + 2 + synthwaveState.sBeat * 3) % gridHeight;
   const scanLineY = horizonY + synthwaveState.scanY;
-  
+  const scanFade = Math.sin((synthwaveState.scanY / gridHeight) * Math.PI);
+
   const scanGrad = ctx.createLinearGradient(0, scanLineY - 20, 0, scanLineY + 20);
   scanGrad.addColorStop(0, 'transparent');
-  scanGrad.addColorStop(0.5, `hsla(${secondaryHue}, 100%, 70%, ${0.3 + synthwaveState.sBeat * 0.4})`);
+  scanGrad.addColorStop(0.5, `hsla(${secondaryHue}, 100%, 70%, ${(0.3 + synthwaveState.sBeat * 0.4) * scanFade})`);
   scanGrad.addColorStop(1, 'transparent');
   ctx.fillStyle = scanGrad;
   ctx.fillRect(0, scanLineY - 20, width, 40);
   
   // === GLITCH EFFECTS (Like Glitch Art 2) ===
   if (synthwaveState.sBeat > 0.6) {
-    synthwaveState.glitchFrame++;
-    
-    // RGB Split on high beats
-    if (synthwaveState.glitchFrame % 3 === 0) {
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.fillStyle = `rgba(255, 0, 100, 0.05)`;
-      ctx.fillRect(3, 0, width, height);
-      ctx.fillStyle = `rgba(0, 255, 255, 0.05)`;
-      ctx.fillRect(-3, 0, width, height);
-      ctx.globalCompositeOperation = 'source-over';
-    }
-    
+    // RGB Split on high beats — steady tint scaled by beat, no frame strobing
+    const splitAlpha = 0.05 * Math.min(1, (synthwaveState.sBeat - 0.6) / 0.3);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = `rgba(255, 0, 100, ${splitAlpha})`;
+    ctx.fillRect(3, 0, width, height);
+    ctx.fillStyle = `rgba(0, 255, 255, ${splitAlpha})`;
+    ctx.fillRect(-3, 0, width, height);
+    ctx.globalCompositeOperation = 'source-over';
+
     // Random glitch blocks (deterministic randomness like Glitch Art 2)
     const numBlocks = Math.floor(synthwaveState.sBeat * 8);
     for (let i = 0; i < numBlocks; i++) {
