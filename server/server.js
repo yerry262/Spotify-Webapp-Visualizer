@@ -235,49 +235,51 @@ app.get('/health', (req, res) => {
 });
 
 
-// ==================== BROWSER-USE API PROXY ====================
-// Proxy YouTube search requests to avoid CORS issues
-const BROWSER_USE_API_URL = 'https://api.skills.browser-use.com/skill/f7092eae-84d5-49dd-ab94-bb247f781ab5/execute';
-
+// ==================== YOUTUBE SEARCH (yt-dlp) ====================
+// Search YouTube via yt-dlp's built-in ytsearch — no API key, no external service.
+// Response shape matches the old Browser-Use proxy so the frontend needs no changes.
 app.post('/search-youtube', async (req, res) => {
   const { query } = req.body;
-  
+
   if (!query) {
     return res.status(400).json({ error: 'Query is required' });
   }
-  
-  console.log('🔍 Proxying YouTube search:', query);
-  
-  try {
-    const response = await fetch(BROWSER_USE_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        parameters: {
-          query: query
+
+  console.log('🔍 Searching YouTube via yt-dlp:', query);
+
+  const safeQuery = query.replace(/"/g, '');
+  const command = `yt-dlp "ytsearch1:${safeQuery}" --dump-json --no-download --no-playlist --skip-download`;
+
+  exec(command, { maxBuffer: 1024 * 1024 * 10, timeout: 30000 }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('❌ yt-dlp search error:', stderr || error.message);
+      return res.status(500).json({ success: false, error: 'Failed to search YouTube', details: stderr || error.message });
+    }
+
+    try {
+      const info = JSON.parse(stdout.trim().split('\n')[0]);
+
+      if (!info || !info.id) {
+        console.warn('No YouTube results found for:', query);
+        return res.json({ success: false, error: 'no_results' });
+      }
+
+      console.log('✅ Found video:', info.title, 'by', info.channel || info.uploader);
+
+      res.json({
+        success: true,
+        data: {
+          video_id: info.id,
+          video_url: info.webpage_url || `https://www.youtube.com/watch?v=${info.id}`,
+          title: info.title,
+          channel: info.channel || info.uploader || ''
         }
-      })
-    });
-    
-    if (!response.ok) {
-      console.error('Browser-Use API error:', response.status);
-      return res.status(response.status).json({ error: 'Browser-Use API error' });
+      });
+    } catch (parseError) {
+      console.error('❌ Failed to parse yt-dlp output:', parseError.message);
+      res.status(500).json({ success: false, error: 'Failed to parse search result' });
     }
-    
-    const data = await response.json();
-    console.log('✅ Browser-Use API response:', data.success ? 'success' : 'failed');
-    
-    if (data.success && data.data) {
-      console.log('   Video:', data.data.title, 'by', data.data.channel);
-    }
-    
-    res.json(data);
-  } catch (error) {
-    console.error('❌ Browser-Use API proxy error:', error.message);
-    res.status(500).json({ error: 'Failed to search YouTube', details: error.message });
-  }
+  });
 });
 
 // Clear old MP3 files endpoint - only delete files older than 3 minutes
