@@ -91,6 +91,10 @@ Sync visualization with playback
 - **Timeouts**: Download (15s), Analysis (90s) - prevent stale locks
 - **Polling**: Devices poll status endpoint and wait for others to finish
 - **Caching Strategy**: Check server cache → Check lock status → Download/analyze → Cache result
+- **MP3 retention** (`/clear-mp3s`): analysis JSON is the durable artifact.
+  MP3 with saved analysis → purged after 3min; MP3 without analysis → kept 60min
+  (so a skipped song's completed download survives to be analyzed); `.part` → 10min.
+  Cache keys: `artist-song.mp3` ↔ `artist-song.json` (same sanitized basename).
 
 ### Prefetch Logic
 - Triggered at 50% track progress
@@ -122,6 +126,14 @@ Sync visualization with playback
 
 ## Testing Recommendations
 
+0. **Live backend smoke test** (fastest way to verify the pipeline end-to-end):
+   ```bash
+   curl -X POST https://spotify-webapp-visualizer-production.up.railway.app/search-youtube \
+     -H "Content-Type: application/json" -d '{"query":"artist song official audio"}'
+   curl -X POST https://spotify-webapp-visualizer-production.up.railway.app/get-mp3 \
+     -H "Content-Type: application/json" \
+     -d '{"url":"<youtube-url>","artist":"X","song":"Y","deviceId":"test"}'  # full download ~30-60s
+   ```
 1. **Multi-Device**: Run on two browsers, start same song on both
 2. **Auto-Mode**: Enable waveform auto-rotate, verify 30s intervals
 3. **Slow Network**: DevTools → Network → Slow 3G, verify timeout works
@@ -129,6 +141,14 @@ Sync visualization with playback
 5. **Prefetch**: Play track to 50%, check next track prefetch starts
 
 ## Build & Deploy
+
+### Deploy Mechanics (important)
+- Default branch is `master`; keep `main` in sync: `git push origin master master:main`
+- `dist/` is tracked in git — build output lands in every commit (repo convention)
+- Railway auto-deploys on EVERY push to master; each redeploy restarts the container,
+  kills in-flight downloads, and wipes ephemeral `/app/mp3files` + `/app/analysis` caches.
+  Batch commits before pushing while users may be listening.
+- Frontend-only changes still trigger a Railway rebuild (harmless but restarts backend)
 
 ### Development
 ```bash
