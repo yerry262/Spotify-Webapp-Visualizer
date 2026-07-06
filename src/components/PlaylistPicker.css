@@ -1,0 +1,224 @@
+.playlist-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pickerOverlayIn 0.25s ease-out;
+}
+
+@keyframes pickerOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.playlist-picker {
+  width: min(720px, 92vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 18, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  animation: pickerIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes pickerIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.playlist-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.playlist-picker-header h2 {
+  margin: 0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.playlist-picker-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  transition: all 0.2s ease;
+}
+
+.playlist-picker-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.playlist-picker-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.playlist-picker-error {
+  margin: 12px 24px 0;
+  padding: 10px 14px;
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  border-radius: 8px;
+  color: #ff8f8f;
+  font-size: 13px;
+}
+
+.playlist-picker-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+.playlist-picker-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #1DB954;
+  border-radius: 50%;
+  animation: pickerSpin 0.8s linear infinite;
+}
+
+@keyframes pickerSpin {
+  to { transform: rotate(360deg); }
+}
+
+.playlist-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+  padding: 20px 24px 24px;
+  overflow-y: auto;
+}
+
+.playlist-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 10px;
+}
+
+.playlist-card:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.playlist-card.starting {
+  opacity: 1;
+}
+
+.playlist-card-art {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.playlist-card-art.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.playlist-card-art.placeholder svg {
+  width: 40%;
+  height: 40%;
+}
+
+.playlist-card:hover:not(:disabled) .playlist-card-art {
+  transform: scale(1.04);
+  box-shadow: 0 12px 32px rgba(29, 185, 84, 0.25);
+}
+
+.playlist-card-play {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #1DB954;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.playlist-card:hover:not(:disabled) .playlist-card-play,
+.playlist-card.starting .playlist-card-play {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.playlist-card-play svg {
+  width: 18px;
+  height: 18px;
+  margin-left: 2px;
+}
+
+.playlist-card.starting .playlist-card-play {
+  animation: pickerPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes pickerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.85); }
+}
+
+.playlist-card-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-card-count {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 600px) {
+  .playlist-picker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    padding: 16px;
+  }
+}

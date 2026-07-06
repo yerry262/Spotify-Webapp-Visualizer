@@ -273,7 +273,18 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: pillFadeInCenter 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes pillFadeInCenter {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
 }
 
 .playback-controls.is-expanded .device-info {

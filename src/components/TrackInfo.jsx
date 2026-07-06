@@ -77,7 +77,7 @@ const extractDominantColors = (imgUrl, callback) => {
 
 const NUM_PARTICLES = 30;
 
-const TrackInfo = ({ track, progress, duration, isExpanded }) => {
+const TrackInfo = ({ track, progress, duration, isExpanded, onOpenPlaylistPicker }) => {
   const [albumColors, setAlbumColors] = useState(['#1DB954', '#1ed760', '#ff6b6b', '#4ecdc4', '#a855f7']);
   const [particleColors, setParticleColors] = useState(Array(NUM_PARTICLES).fill('#1DB954'));
   const particleContainerRef = useRef(null);
@@ -126,7 +126,11 @@ const TrackInfo = ({ track, progress, duration, isExpanded }) => {
   const progressPercent = (progress / duration) * 100;
 
   return (
-    <div className={`track-info ${isExpanded ? 'is-expanded' : ''}`}>
+    <div
+      className={`track-info ${isExpanded ? 'is-expanded' : ''}`}
+      onClick={isExpanded ? onOpenPlaylistPicker : undefined}
+      title={isExpanded ? 'Choose a playlist' : undefined}
+    >
       {/* Floating Particles */}
       <div className="particle-container" ref={particleContainerRef}>
         {particles.map(p => (
@@ -156,9 +160,13 @@ const TrackInfo = ({ track, progress, duration, isExpanded }) => {
       {/* Content */}
       <div className="track-content">
         {/* Album Art */}
-        <div className="album-art-container">
-          <img 
-            src={albumArt} 
+        <div
+          className="album-art-container"
+          onClick={onOpenPlaylistPicker}
+          title="Choose a playlist"
+        >
+          <img
+            src={albumArt}
             alt={track.album.name}
             className="album-art"
           />
