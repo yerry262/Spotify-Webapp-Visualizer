@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
-import { setWaveformAutoInterval, autoWaveformInterval, getWaveformRotateMode } from './visualizers/VisualizerAudio';
+import React, { useState, useRef } from 'react';
+import RotateControls from './RotateControls';
 import './SideMenu.css';
 
-const SideMenu = ({ 
-  isOpen, 
-  onClose, 
+// Drag distance (px) before the rotate rows pop out into the floating bubble
+const POP_OUT_THRESHOLD = 40;
+
+const SideMenu = ({
+  isOpen,
+  onClose,
   onLogout,
   onSwitchAccount,
-  user, 
-  waveformStyles, 
-  waveformStyle, 
-  isWaveformAuto, 
+  user,
+  waveformStyles,
+  waveformStyle,
+  isWaveformAuto,
   onWaveformChange,
+  rotateMode,
+  autoInterval,
+  onRotateModeClick,
+  onRotateIntervalChange,
+  onPopOutRotate,
   waveformSettings,
   onWaveformSettingsChange,
   particleSettings,
@@ -25,52 +33,30 @@ const SideMenu = ({
   const [isParticlesOpen, setIsParticlesOpen] = useState(false);
   const [isCenterElementsOpen, setIsCenterElementsOpen] = useState(false);
   const [isSampleRateOpen, setIsSampleRateOpen] = useState(false);
-  const [autoInterval, setAutoInterval] = useState(autoWaveformInterval || 30);
-  const [rotateMode, setRotateMode] = useState(getWaveformRotateMode());
+  const rotateDragRef = useRef(null);
 
-  // Shared interval for Random and Cycle. Infinity = no timed advance; the
-  // row label then acts as a one-shot re-roll / next button.
-  const handleIntervalChange = (e, seconds, mode) => {
-    e.stopPropagation();
-    setAutoInterval(seconds);
-    setWaveformAutoInterval(seconds);
-    setRotateMode(mode);
-    if (onWaveformChange) onWaveformChange(mode);
+  // Click-and-drag a rotate row out of the sidebar → pop the whole control
+  // grid into the floating bubble, which keeps following this same drag.
+  const handleRotateRowPointerDown = (e) => {
+    if (!onPopOutRotate || e.button !== 0) return;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const onMove = (ev) => {
+      if (Math.hypot(ev.clientX - startX, ev.clientY - startY) > POP_OUT_THRESHOLD) {
+        cleanup();
+        onPopOutRotate({ x: ev.clientX, y: ev.clientY });
+      }
+    };
+    const cleanup = () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', cleanup);
+      document.removeEventListener('pointercancel', cleanup);
+    };
+    rotateDragRef.current = cleanup;
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', cleanup);
+    document.addEventListener('pointercancel', cleanup);
   };
-
-  const handleModeClick = (mode) => {
-    setRotateMode(mode);
-    if (onWaveformChange) onWaveformChange(mode);
-  };
-
-  const INTERVAL_OPTIONS = [
-    { value: 5, label: '5s' },
-    { value: 15, label: '15s' },
-    { value: 30, label: '30s' },
-    { value: Infinity, label: '∞' },
-  ];
-
-  const renderRotateRow = (mode, label) => (
-    <div className={`dropdown-item auto-row ${isWaveformAuto && rotateMode === mode ? 'active' : ''}`}>
-      <div
-        className="auto-label-area"
-        onClick={() => handleModeClick(mode)}
-        title={mode === 'cycle' ? 'Next style in order (auto-advances unless ∞)' : 'Random style (auto-advances unless ∞)'}
-      >
-        <span className="item-dot"></span>
-        <span>{label}</span>
-      </div>
-      <div className="interval-buttons">
-        {INTERVAL_OPTIONS.map(opt => (
-          <button
-            key={opt.label}
-            className={`interval-btn ${autoInterval === opt.value ? 'active' : ''}`}
-            onClick={(e) => handleIntervalChange(e, opt.value, mode)}
-          >{opt.label}</button>
-        ))}
-      </div>
-    </div>
-  );
 
   const profileImage = user?.images?.[0]?.url;
   const displayName = user?.display_name || user?.id || 'User';
@@ -135,8 +121,14 @@ const SideMenu = ({
             </button>
             
             <div className={`dropdown-content ${isWaveformOpen ? 'open' : ''}`}>
-              {renderRotateRow('random', 'Random')}
-              {renderRotateRow('cycle', 'Cycle')}
+              <RotateControls
+                rotateMode={rotateMode}
+                autoInterval={autoInterval}
+                isWaveformAuto={isWaveformAuto}
+                onModeClick={onRotateModeClick}
+                onIntervalChange={onRotateIntervalChange}
+                onRowPointerDown={handleRotateRowPointerDown}
+              />
               <div className="dropdown-divider"></div>
               {waveformStyles && waveformStyles.map(style => (
                 <button 
