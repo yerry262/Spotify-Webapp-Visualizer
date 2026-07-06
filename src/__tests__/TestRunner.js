@@ -140,7 +140,7 @@ const TestRunner = () => {
       {
         speed: 1,
         loop: true,
-        onFrame: (frame, time) => {
+        onFrame: (_frame, _time) => {
           // Optional: update status with current time
         }
       }

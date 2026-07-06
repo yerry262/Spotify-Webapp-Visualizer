@@ -74,7 +74,12 @@ export default [
     },
     rules: {
       'react/react-in-jsx-scope': 'off',
-      'react/prop-types': 'warn',
+      // Mark identifiers referenced from JSX as used so no-unused-vars stops
+      // flagging imported components and React in <React.StrictMode> files
+      'react/jsx-uses-vars': 'error',
+      'react/jsx-uses-react': 'error',
+      // This codebase doesn't use the prop-types package
+      'react/prop-types': 'off',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-console': 'off',
       'react-hooks/rules-of-hooks': 'error',

@@ -1168,7 +1168,7 @@ function drawOscilloscopeWave(ctx, width, height, chroma, mel, beatPulse, time) 
 /**
  * Bar/spectrum analyzer style - chroma colored
  */
-function drawBarWave(ctx, width, height, chroma, mel, beatPulse, time) {
+function drawBarWave(ctx, width, height, chroma, mel, beatPulse, _time) {
   const settings = getEffectiveWaveformSettings('bars');
   const baseY = height * (settings.basePosition / 100);
   const maxBarHeight = height * (settings.maxAmplitude / 100);
@@ -1591,7 +1591,7 @@ function drawMesh3DWave(ctx, width, height, chroma, mel, beatPulse, time) {
 /**
  * Gradient bars with intense glow - chroma colored
  */
-function drawGradientBarsWave(ctx, width, height, chroma, mel, beatPulse, time) {
+function drawGradientBarsWave(ctx, width, height, chroma, mel, beatPulse, _time) {
   const settings = getEffectiveWaveformSettings('gradient_bars');
   const baseY = height * (settings.basePosition / 100);
   const maxHeight = height * (settings.maxAmplitude / 100);
@@ -1977,7 +1977,9 @@ function drawHelixDNAWave(ctx, width, height, chroma, mel, beatPulse, time) {
       
       if (chromaValue > 0.4) {
         ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.7)`;
-        ctx.shadowBlur = 10 * chromaValue;
+        // Glow intensity scales with total chroma energy: quiet passages
+        // glow softly, full-band moments blaze
+        ctx.shadowBlur = (6 + totalEnergy * 14) * chromaValue;
       }
       ctx.stroke();
       ctx.shadowBlur = 0;
@@ -2079,7 +2081,6 @@ function drawMatrixRainWave(ctx, width, height, chroma, mel, beatPulse, time) {
   
   // Dynamic columns based on window width - one column every 30 pixels
   const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
   const numColumns = Math.floor(windowWidth / 30);
   const columnWidth = width / numColumns;
   
@@ -3088,7 +3089,6 @@ function drawSoundTornadoWave(ctx, width, height, chroma, mel, beatPulse, time) 
 
   for (let tIdx = 0; tIdx < numTornados; tIdx++) {
     const centerX = spacingX * (tIdx + 0.5);
-    const tOffset = tIdx * Math.PI * 0.5; // Offset for each tornado
     const tTime = time + tIdx * 10; // Time offset for particles/rotation
 
     // basePosition controls where the tornado base is
@@ -3420,8 +3420,10 @@ function drawGlitchArtWave(ctx, width, height, chroma, mel, beatPulse, time) {
     const seed = Math.sin(i * 12345.67 + Math.floor(time * 5) * 0.1);
     const seed2 = Math.cos(i * 67890.12 + Math.floor(time * 7) * 0.15);
     
-    const sliceY = ((seed + 1) / 2) * height;
-    const sliceHeight = 3 + Math.abs(seed2) * 30 * glitchIntensity;
+    // Slices concentrate around the basePosition slider and spread with the
+    // amplitude slider (was previously uniform across the full screen)
+    const sliceY = centerY + seed * height * 0.5 * spreadMultiplier;
+    const sliceHeight = (3 + Math.abs(seed2) * 30 * glitchIntensity) * spreadMultiplier;
     
     const chromaIdx = i % 12;
     const chromaValue = chroma[chromaIdx] || 0.3;
@@ -4465,6 +4467,8 @@ function drawOceanWavesWave(ctx, width, height, chroma, mel, beatPulse, time) {
   
   const isNight = coolEnergy > warmEnergy;
   const avgEnergy = energySum / 12;
+  // Amplitude slider scales all wave layers (1.0 at the 50% default)
+  const ampScale = maxAmp / (height * 0.5);
 
   // 1. Draw Atmospheric Backdrop (Gradient Sky)
   ctx.save();
@@ -4484,7 +4488,8 @@ function drawOceanWavesWave(ctx, width, height, chroma, mel, beatPulse, time) {
   // 2. Draw Celestial Body (Sun/Moon)
   const celX = width * 0.75;
   const celY = baseY * 0.4;
-  const celSize = 40 + oceanState.sBeat * 20;
+  // Sun/moon swells with overall chroma energy as well as the beat
+  const celSize = 40 + oceanState.sBeat * 20 + avgEnergy * 25;
   
   ctx.beginPath();
   const celGrad = ctx.createRadialGradient(celX, celY, celSize * 0.2, celX, celY, celSize);
@@ -4504,15 +4509,14 @@ function drawOceanWavesWave(ctx, width, height, chroma, mel, beatPulse, time) {
   // 3. Draw Water Layers (Parallax)
   const layers = 5;
   for (let l = 0; l < layers; l++) {
-    const layerDepth = (l + 1) / layers;
     const layerY = baseY + (l * (height - baseY) / layers);
     const layerFreq = 0.002 + l * 0.001;
     const layerSpeed = time * (0.5 + l * 0.2);
-    
+
     // Wave height based on mel for specific frequency bands
     const mIdx = Math.floor(l * (oceanState.sMel.length / layers));
     const melBounce = (oceanState.sMel[mIdx] || 0) * 15;
-    const amplitude = (15 + l * 10) * (0.5 + oceanState.sBeat) + melBounce;
+    const amplitude = ((15 + l * 10) * (0.5 + oceanState.sBeat) + melBounce) * ampScale;
 
     ctx.beginPath();
     ctx.moveTo(0, height);
@@ -6958,7 +6962,8 @@ function drawDVDBouncerWave(ctx, width, height, chroma, mel, beatPulse, time) {
     const timeSinceBounce = time - dvdBouncerState.lastBounce;
     for (let i = trailLength; i > 0; i--) {
         const alpha = (i / trailLength) * 0.1 * Math.max(0, 1 - timeSinceBounce);
-        ctx.fillStyle = `hsla(${dvdBouncerState.hue}, 100%, 50%, ${alpha})`;
+        // Trail glows in the dominant note's color (logo keeps classic bounce hues)
+        ctx.fillStyle = `hsla(${CHROMA_HUES[maxChroma]}, 100%, 50%, ${alpha})`;
         const offsetX = -dvdBouncerState.vx * i * 3;
         const offsetY = -dvdBouncerState.vy * i * 3;
         ctx.fillRect(
@@ -7082,7 +7087,7 @@ function drawGummyWave(ctx, width, height, chroma, mel, beatPulse, time) {
         const hexWidth = hexSize * 2;
         
         // Draw all honeycomb hexagons with rainbow gradient
-        gummyState.hexagons.forEach((hex, index) => {
+        gummyState.hexagons.forEach((hex) => {
             // Calculate absolute position based on current dimensions
             const x = centerX + hex.col * hexWidth * 0.75;
             const y = centerY + hex.row * hexHeight + (hex.col % 2) * hexHeight * 0.5;
@@ -7922,6 +7927,7 @@ function drawStarfieldWarpWave(ctx, width, height, chroma, mel, beatPulse, time)
   drawWaveLabels(ctx, width, height, chroma);
 }
 
+// Helper function to convert HSL to RGB
 /**
  * Vinyl Record - spinning disc whose grooves ripple with mel energy,
  * chroma notes light up groove arcs, tonearm tracks playback progress
@@ -8057,28 +8063,3 @@ function drawVinylRecordWave(ctx, width, height, chroma, mel, beatPulse, time) {
   drawWaveLabels(ctx, width, height, chroma);
 }
 
-// Helper function to convert HSL to RGB
-function hslToRgb(h, s, l) {
-  let r, g, b;
-  
-  if (s === 0) {
-    r = g = b = l; // achromatic
-  } else {
-    const hue2rgb = (p, q, t) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-      return p;
-    };
-    
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1/3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1/3);
-  }
-  
-  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-}

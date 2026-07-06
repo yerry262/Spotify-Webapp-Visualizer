@@ -12,11 +12,9 @@ export {
   getCachedAnalysis
 } from './analysisCache';
 
-import { 
-  checkServerAnalysisCache, 
-  loadServerAnalysis, 
-  saveServerAnalysis, 
-  normalizeAnalysisData,
+import {
+  loadServerAnalysis,
+  saveServerAnalysis,
   isAnalysisCached,
   getCachedAnalysis
 } from './analysisCache';
@@ -190,7 +188,7 @@ export async function extractPitch(audioSignal, sampleRate = SAMPLE_RATE) {
     const worker = new Worker(`${import.meta.env.BASE_URL}pitch-worker.js`);
     
     worker.onmessage = (e) => {
-      const { type, frames, totalFrames, message } = e.data;
+      const { type, frames, message } = e.data;
       
       if (type === 'progress') {
         console.log(`${timestamp()}    ${message}`);

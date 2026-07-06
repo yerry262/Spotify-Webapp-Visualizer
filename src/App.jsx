@@ -67,6 +67,10 @@ function App() {
   
   // Use ref to track current track ID without causing re-renders
   const currentTrackIdRef = useRef(null);
+  // Ref mirror of analysisData so the polling callback (deps: [isLoggedIn]
+  // only) reads the CURRENT value instead of a stale closure — the stale
+  // closure kept the 50% prefetch check seeing null and never triggering
+  const analysisDataRef = useRef(null);
   // Track if we're currently processing to prevent duplicate calls
   const isProcessingRef = useRef(false);
   // Debounce timer for track changes
@@ -79,6 +83,11 @@ function App() {
   const isPrefetchingRef = useRef(false); // Currently prefetching
   const prefetchTriggeredForTrackRef = useRef(null); // Current track that triggered prefetch
   const prefetchNextTrackRef = useRef(null); // Ref to the prefetch function (to break circular deps)
+
+  // Keep the analysisData ref mirror in sync for the polling callback
+  useEffect(() => {
+    analysisDataRef.current = analysisData;
+  }, [analysisData]);
 
   // Load version info
   useEffect(() => {
@@ -401,7 +410,7 @@ function App() {
           const progress = state.progress_ms / state.item.duration_ms;
           if (progress >= 0.5 && !isPrefetchingRef.current && !isProcessingRef.current) {
             // Check if we haven't already triggered prefetch for this track AND analysis is ready
-            if (prefetchTriggeredForTrackRef.current !== currentTrackIdRef.current && analysisData) {
+            if (prefetchTriggeredForTrackRef.current !== currentTrackIdRef.current && analysisDataRef.current) {
               // Call prefetch directly instead of via setTimeout to avoid callback accumulation
               if (prefetchNextTrackRef.current) {
                 prefetchNextTrackRef.current();
