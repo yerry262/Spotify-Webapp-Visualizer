@@ -7,9 +7,16 @@ const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Use Railway's PORT or default to 3001
+
+// Railway terminates TLS at a single proxy hop in front of the app, so the
+// client IP is in X-Forwarded-For. Trust exactly one hop so express-rate-limit
+// keys on the real client IP (not the shared proxy IP) without trusting a
+// spoofable full chain.
+app.set('trust proxy', 1);
 
 // Directory to store downloaded MP3 files and analysis data
 const MP3_DIR = path.join(__dirname, 'mp3files');
@@ -234,7 +241,44 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json({ limit: '50mb' })); // Increase limit for analysis data
+app.use(express.json({ limit: '25mb' })); // Analysis payloads are large but bounded
+
+// ==================== RATE LIMITING ====================
+// Protect the backend from abuse/DoS. Three tiers, keyed per client IP:
+//  - general: a generous ceiling on all API traffic (multi-device polling of
+//    /check-status is chatty, so this is high and mainly catches runaway loops)
+//  - expensive: search + download spawn yt-dlp/ffmpeg subprocesses, so they get
+//    a much tighter budget
+//  - write: server-side writes (/save-analysis, /notify-analyzing)
+// The `/health` probe and static file serving are exempted from the general cap.
+const rlOpts = { standardHeaders: true, legacyHeaders: false };
+
+const generalLimiter = rateLimit({
+  ...rlOpts,
+  windowMs: 15 * 60 * 1000,
+  max: 1000, // ~1/sec sustained per IP across all API routes
+  message: { error: 'Too many requests, please slow down.' },
+});
+
+const expensiveLimiter = rateLimit({
+  ...rlOpts,
+  windowMs: 5 * 60 * 1000,
+  max: 40, // yt-dlp/ffmpeg spawns — keep this tight
+  message: { error: 'Too many download/search requests, please wait a moment.' },
+});
+
+const writeLimiter = rateLimit({
+  ...rlOpts,
+  windowMs: 5 * 60 * 1000,
+  max: 120,
+  message: { error: 'Too many writes, please slow down.' },
+});
+
+// General limiter on everything except the health probe (Railway hits it often).
+app.use((req, res, next) => {
+  if (req.path === '/health' || req.path === '/') return next();
+  return generalLimiter(req, res, next);
+});
 
 // Serve static MP3 files
 app.use('/mp3files', express.static(MP3_DIR));
@@ -283,7 +327,7 @@ function buildDownloadArgs(clientSpec, outputPath, youtubeUrl) {
 // ==================== YOUTUBE SEARCH (yt-dlp) ====================
 // Search YouTube via yt-dlp's built-in ytsearch — no API key, no external service.
 // Response shape matches the old Browser-Use proxy so the frontend needs no changes.
-app.post('/search-youtube', async (req, res) => {
+app.post('/search-youtube', expensiveLimiter, async (req, res) => {
   const { query } = req.body;
 
   if (!query) {
@@ -573,7 +617,7 @@ function sanitizeYouTubeUrl(url) {
 }
 
 // Main endpoint to extract MP3 from YouTube URL
-app.post('/get-mp3', async (req, res) => {
+app.post('/get-mp3', expensiveLimiter, async (req, res) => {
   const { url: rawYoutubeUrl, artist, song, clearOld, deviceId } = req.body;
 
   // Validate and sanitize YouTube URL
@@ -1099,11 +1143,22 @@ app.get('/get-analysis', (req, res) => {
 });
 
 // Save analysis data
-app.post('/save-analysis', (req, res) => {
+app.post('/save-analysis', writeLimiter, (req, res) => {
   const { artist, song, data, deviceId } = req.body;
 
   if (!artist || !song || !data) {
     return res.status(400).json({ error: 'Artist, song, and data are required' });
+  }
+
+  // Basic shape validation: analysis data must be a JSON object/array, and
+  // artist/song must be short strings. Blocks junk/oversized scalar writes
+  // (rate limiting above bounds volume; this bounds per-item shape).
+  if (typeof data !== 'object' || data === null) {
+    return res.status(400).json({ error: 'Analysis data must be an object' });
+  }
+  if (typeof artist !== 'string' || typeof song !== 'string' ||
+      artist.length > 300 || song.length > 300) {
+    return res.status(400).json({ error: 'Invalid artist or song' });
   }
 
   const analysisFilename = getAnalysisFilename(artist, song);
