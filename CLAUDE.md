@@ -5,11 +5,11 @@ A React-based music visualizer that analyzes real-time audio from Spotify playba
 
 ## Adding a Waveform Style
 
-All waveform styles live in `src/components/visualizers/VisualizerAudio.js`. A new style needs four wirings in that file:
-1. Entry in `WAVEFORM_DEFAULTS` (basePosition/maxAmplitude + fullscreen variants, particles, centerElements)
-2. Entry in `WAVEFORM_STYLES` (menu + auto-rotate)
-3. Case in the `drawChromaSoundWaves` dispatch switch
-4. A `draw<Name>Wave(ctx, width, height, chroma, mel, beatPulse, time)` function
+Each waveform lives in its own file under `src/components/visualizers/waveforms/` (one file per style, private state/helpers included). Shared pieces (`CHROMA_HUES`, `PITCH_CLASSES`, `getEffectiveWaveformSettings`, `drawWaveLabels`, `WAVEFORM_DEFAULTS`) live in `src/components/visualizers/waveformCore.js`. A new style needs four wirings:
+1. New file `waveforms/<name>.js` exporting `draw<Name>Wave(ctx, width, height, chroma, mel, beatPulse, time)`, importing what it needs from `../waveformCore`
+2. Register it in `waveforms/index.js` (`WAVEFORM_RENDERERS` map, style-id → draw fn)
+3. Entry in `WAVEFORM_DEFAULTS` in `waveformCore.js` (basePosition/maxAmplitude + fullscreen variants, particles, centerElements)
+4. Entry in `WAVEFORM_STYLES` in `VisualizerAudio.js` (menu + auto-rotate)
 
 Conventions: get position/size from `getEffectiveWaveformSettings(styleId)`, colors from `CHROMA_HUES`, normalize mel dB with `(mel[i] + 10) / 10`, end with `drawWaveLabels(ctx, width, height, chroma)`. Prefer stateless animation derived from `time` (stays synced to playback); if you keep module state, clamp time deltas to survive seeks. Reset shared ctx state (strokeStyle, shadowBlur, globalAlpha, composite op) after use — leaked state bleeds into the next draw call.
 
@@ -202,6 +202,8 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 - [ ] Integration with other music services (Apple Music, YouTube Music)
 
 ## Recent Changes Log
+
+- **2026-07-06**: Refactored VisualizerAudio.js (8,947 lines) into per-waveform files under `visualizers/waveforms/` + shared `waveformCore.js`; dispatch switch replaced by `WAVEFORM_RENDERERS` registry
 
 - **2026-07-06**: Minion Mayhem 2.0 — airship dropping banana-bombs, minion-piloted rockets bursting into banana fireworks, foreground minions sprinting after bananas, full explosion system (fireball/shockwave/debris)
 

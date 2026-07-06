@@ -7,7 +7,7 @@
  * planet is alive with its own slice of the chromagram.
  */
 
-import { CHROMA_HUES, getEffectiveWaveformSettings, drawWaveLabels } from './VisualizerAudio';
+import { CHROMA_HUES, getEffectiveWaveformSettings, drawWaveLabels } from './waveformCore';
 
 // Planet layout: each planet owns a band of the 12 chroma notes
 const PLANET_DEFS = [
