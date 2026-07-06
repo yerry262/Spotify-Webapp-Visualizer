@@ -4,6 +4,22 @@
 // draw loop can read them without prop drilling through React.
 
 const LRCLIB_API = 'https://lrclib.net/api/get';
+const LRCLIB_SEARCH_API = 'https://lrclib.net/api/search';
+// lrclib can take 5-10s to respond under load; a short timeout turned every
+// slow response into "no lyrics" (the '♪ instrumental vibes ♪' fallback)
+const FETCH_TIMEOUT_MS = 20000;
+
+/**
+ * Strip Spotify-style title decorations that make lrclib's exact-match
+ * lookup miss: "(feat. X)", "[with Y]", "- 2011 Remaster", "- Radio Edit"…
+ */
+export function cleanTrackTitle(track) {
+  return (track || '')
+    .replace(/\s*[([][^)\]]*\b(feat\.?|ft\.?|with)\b[^)\]]*[)\]]/gi, '')
+    .replace(/\s+-\s+[^-]*\b(remaster(ed)?|version|edit|mix|remix|live|mono|stereo|deluxe|single|bonus|acoustic|demo)\b.*$/i, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
 
 // Module-level store read by the Lyric Flow visualizer every frame
 let lyricsState = {
@@ -73,37 +89,57 @@ export async function loadLyricsForTrack(artist, track, durationSec) {
   lyricsState = { status: 'loading', trackKey: key, lines: [], plainText: null };
 
   try {
-    const params = new URLSearchParams({
-      artist_name: artist,
-      track_name: track
-    });
-    if (durationSec) params.set('duration', String(Math.round(durationSec)));
-
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    let response = await fetch(`${LRCLIB_API}?${params}`, { signal: controller.signal });
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const getJson = async (url, params) => {
+      const response = await fetch(`${url}?${params}`, { signal: controller.signal });
+      if (!response.ok) return null;
+      return response.json();
+    };
 
-    // Duration mismatches make lrclib 404; retry once without it
-    if (!response.ok && durationSec) {
+    // 1. Exact lookup with duration (lrclib 404s on duration mismatch)
+    const params = new URLSearchParams({ artist_name: artist, track_name: track });
+    if (durationSec) params.set('duration', String(Math.round(durationSec)));
+    let data = await getJson(LRCLIB_API, params);
+
+    // 2. Exact lookup without duration
+    if (!data && durationSec) {
       params.delete('duration');
-      response = await fetch(`${LRCLIB_API}?${params}`, { signal: controller.signal });
+      data = await getJson(LRCLIB_API, params);
+    }
+
+    // 3. Cleaned title (strips "(feat. X)", "- Remaster", …)
+    const cleaned = cleanTrackTitle(track);
+    if (!data && cleaned && cleaned !== track) {
+      params.set('track_name', cleaned);
+      data = await getJson(LRCLIB_API, params);
+    }
+
+    // 4. Fuzzy search — pick the best hit: synced lyrics preferred, and if we
+    // know the duration, it must be within 10s of the Spotify track
+    if (!data) {
+      const searchParams = new URLSearchParams({
+        track_name: cleaned || track,
+        artist_name: artist
+      });
+      const results = await getJson(LRCLIB_SEARCH_API, searchParams);
+      if (Array.isArray(results) && results.length > 0) {
+        const durationOk = (r) =>
+          !durationSec || !r.duration || Math.abs(r.duration - durationSec) <= 10;
+        data =
+          results.find(r => r.syncedLyrics && durationOk(r)) ||
+          results.find(r => r.plainLyrics && durationOk(r)) ||
+          null;
+      }
     }
     clearTimeout(timer);
 
     if (lyricsState.trackKey !== key) return; // track changed mid-fetch
 
-    if (!response.ok) {
-      lyricsState = { status: 'unavailable', trackKey: key, lines: [], plainText: null };
-      return;
-    }
-
-    const data = await response.json();
-    if (lyricsState.trackKey !== key) return;
-
     let next;
-    if (data.syncedLyrics) {
+    if (data?.syncedLyrics) {
       next = { status: 'synced', lines: parseLRC(data.syncedLyrics), plainText: null };
-    } else if (data.plainLyrics) {
+    } else if (data?.plainLyrics) {
       next = { status: 'plain', lines: [], plainText: data.plainLyrics };
     } else {
       next = { status: 'unavailable', lines: [], plainText: null };
