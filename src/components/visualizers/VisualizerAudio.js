@@ -1926,14 +1926,25 @@ function drawHelixDNAWave(ctx, width, height, chroma, mel, beatPulse, time) {
       const chromaIdx = Math.floor(t * 12);
       const chromaValue = chroma[chromaIdx] || 0.3;
       const hue = CHROMA_HUES[chromaIdx];
-      const alpha = 0.3 + chromaValue * 0.4;
-      
-      ctx.strokeStyle = `hsla(${hue}, 70%, 50%, ${alpha})`;
-      ctx.lineWidth = 2 + chromaValue * 2;
+
+      // Replication pulse: a bright wave sweeps down the helix, supercharged
+      // by beats — rungs flash sequencer-style as it passes them
+      const pulsePos = (time * 0.35) % 1.3;
+      const pulseProximity = Math.max(0, 1 - Math.abs(t - pulsePos) * 6);
+      const pulseBoost = pulseProximity * (0.5 + beatPulse);
+
+      const alpha = 0.3 + chromaValue * 0.4 + pulseBoost * 0.5;
+      ctx.strokeStyle = `hsla(${hue}, ${70 + pulseBoost * 30}%, ${50 + pulseBoost * 35}%, ${Math.min(1, alpha)})`;
+      ctx.lineWidth = 2 + chromaValue * 2 + pulseBoost * 3;
+      if (pulseBoost > 0.3) {
+        ctx.shadowColor = `hsla(${hue}, 100%, 70%, 0.9)`;
+        ctx.shadowBlur = pulseBoost * 18;
+      }
       ctx.beginPath();
       ctx.moveTo(x, y1);
       ctx.lineTo(x, y2);
       ctx.stroke();
+      ctx.shadowBlur = 0;
     }
   }
   
@@ -1985,7 +1996,35 @@ function drawHelixDNAWave(ctx, width, height, chroma, mel, beatPulse, time) {
       ctx.shadowBlur = 0;
     }
   }
-  
+
+  // Nucleotide orbs: strong notes materialize as glowing beads riding the
+  // strands, popping bigger on the beat
+  const pulsePos = (time * 0.35) % 1.3;
+  for (let i = 0; i < numPoints; i += 5) {
+    const t = i / numPoints;
+    const chromaIdx = Math.floor(t * 12);
+    const chromaValue = chroma[chromaIdx] || 0;
+    if (chromaValue < 0.5) continue;
+
+    const x = t * width;
+    for (let strand = 0; strand < 2; strand++) {
+      const phase = t * Math.PI * twistFrequency * 2 + time * rotationSpeed + strand * Math.PI;
+      const amplitude = maxAmplitude * (0.7 + 0.3) * (1 + beatPulse * 0.3);
+      const y = centerY + Math.sin(phase) * amplitude;
+      const hue = CHROMA_HUES[chromaIdx];
+      const nearPulse = Math.max(0, 1 - Math.abs(t - pulsePos) * 6);
+      const orbR = (2 + chromaValue * 4) * (1 + beatPulse * 0.5 + nearPulse * 0.8);
+
+      ctx.shadowColor = `hsla(${hue}, 100%, 65%, 0.9)`;
+      ctx.shadowBlur = 8 + chromaValue * 12;
+      ctx.fillStyle = `hsla(${hue}, 95%, ${65 + nearPulse * 20}%, ${0.5 + chromaValue * 0.5})`;
+      ctx.beginPath();
+      ctx.arc(x, y, orbR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.shadowBlur = 0;
+
   drawWaveLabels(ctx, width, height, chroma);
 }
 
@@ -2526,19 +2565,59 @@ function drawLightningWave(ctx, width, height, chroma, mel, beatPulse, time) {
   // Manage persistent bolts
   const totalEnergy = sChroma.reduce((a, b) => a + b, 0) / 12;
   
-  // High energy / beat triggers new bolts
-  if (sBeat > 0.6 && Math.random() < 0.2 + totalEnergy * 0.3 && lightningState.bolts.length < 15) {
-    const idx = Math.floor(Math.random() * 12);
+  // Bolts strike OUT to the chroma node ring: beats fire mega-bolts at the
+  // loudest notes, and any individually hot note draws its own arc
+  const nodeAngle = (i) => (i / 12) * Math.PI * 2 - Math.PI / 2;
+  if (sBeat > 0.6 && Math.random() < 0.3 + totalEnergy * 0.4 && lightningState.bolts.length < 18) {
+    let idx = 0;
+    for (let i = 1; i < 12; i++) if (sChroma[i] > sChroma[idx]) idx = i;
     lightningState.bolts.push({
       id: Math.random(),
       startTime: time,
-      duration: 0.1 + Math.random() * 0.2,
+      duration: 0.12 + Math.random() * 0.2,
       chromaIdx: idx,
-      angle: Math.random() * Math.PI * 2,
-      startX: (Math.random() - 0.5) * 50, // Slight offset from center
-      startY: (Math.random() - 0.5) * 50,
+      angle: nodeAngle(idx),
+      startX: (Math.random() - 0.5) * 30,
+      startY: (Math.random() - 0.5) * 30,
+      mega: true,
       complexity: 3 + Math.floor(sChroma[idx] * 5)
     });
+  }
+  for (let i = 0; i < 12; i++) {
+    if (sChroma[i] > 0.55 && Math.random() < sChroma[i] * 0.12 && lightningState.bolts.length < 18) {
+      lightningState.bolts.push({
+        id: Math.random(),
+        startTime: time,
+        duration: 0.08 + Math.random() * 0.15,
+        chromaIdx: i,
+        angle: nodeAngle(i) + (Math.random() - 0.5) * 0.2,
+        startX: (Math.random() - 0.5) * 40,
+        startY: (Math.random() - 0.5) * 40,
+        mega: false,
+        complexity: 2 + Math.floor(sChroma[i] * 4)
+      });
+    }
+  }
+  // Chain arcs: when two notes are hot at once, lightning jumps between
+  // their nodes around the ring
+  if (lightningState.bolts.length < 18 && Math.random() < 0.15 + sBeat * 0.2) {
+    const hot = [];
+    for (let i = 0; i < 12; i++) if (sChroma[i] > 0.45) hot.push(i);
+    if (hot.length >= 2) {
+      const a = hot[Math.floor(Math.random() * hot.length)];
+      let b = hot[Math.floor(Math.random() * hot.length)];
+      if (a !== b) {
+        lightningState.bolts.push({
+          id: Math.random(),
+          startTime: time,
+          duration: 0.1 + Math.random() * 0.12,
+          chromaIdx: a,
+          chainTo: b,
+          mega: false,
+          complexity: 3
+        });
+      }
+    }
   }
 
   // Filter out dead bolts
@@ -2559,19 +2638,46 @@ function drawLightningWave(ctx, width, height, chroma, mel, beatPulse, time) {
     ctx.fill();
   }
 
+  // Chroma node ring: 12 storm nodes, one per note, glowing with intensity —
+  // these are the strike targets, so the bolts read as connected to the music
+  const ringR = maxTravel * 0.85;
+  for (let i = 0; i < 12; i++) {
+    const nx = Math.cos(nodeAngle(i)) * ringR;
+    const ny = Math.sin(nodeAngle(i)) * ringR;
+    const v = sChroma[i];
+    const nodeR = 3 + v * 9 + sBeat * 3;
+    ctx.shadowColor = `hsla(${CHROMA_HUES[i]}, 100%, 65%, 0.9)`;
+    ctx.shadowBlur = 6 + v * 20;
+    ctx.fillStyle = `hsla(${CHROMA_HUES[i]}, 90%, ${55 + v * 25}%, ${0.25 + v * 0.7})`;
+    ctx.beginPath();
+    ctx.arc(nx, ny, nodeR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+
   // Draw each active bolt
   lightningState.bolts.forEach(bolt => {
     const age = (time - bolt.startTime) / bolt.duration;
     const chromaValue = sChroma[bolt.chromaIdx];
     const hue = CHROMA_HUES[bolt.chromaIdx];
-    const mVal = (sMel[bolt.chromaIdx % sMel.length] + 15) / 15;
-    
-    // Bolt structure
-    const travel = maxTravel * mVal * (0.6 + Math.random() * 0.4);
-    const endX = Math.cos(bolt.angle) * travel;
-    const endY = Math.sin(bolt.angle) * travel;
-    
-    drawBolt(ctx, bolt.startX, bolt.startY, endX, endY, hue, chromaValue, age, 0, 3);
+
+    let sx, sy, endX, endY;
+    if (bolt.chainTo !== undefined) {
+      // Chain arc: node-to-node along the ring
+      sx = Math.cos(nodeAngle(bolt.chromaIdx)) * ringR;
+      sy = Math.sin(nodeAngle(bolt.chromaIdx)) * ringR;
+      endX = Math.cos(nodeAngle(bolt.chainTo)) * ringR;
+      endY = Math.sin(nodeAngle(bolt.chainTo)) * ringR;
+    } else {
+      // Center strike out to the note's node; mega bolts hit the ring dead-on
+      const mVal = (sMel[bolt.chromaIdx % sMel.length] + 15) / 15;
+      const travel = bolt.mega ? ringR : ringR * mVal * (0.6 + Math.random() * 0.4);
+      sx = bolt.startX; sy = bolt.startY;
+      endX = Math.cos(bolt.angle) * travel;
+      endY = Math.sin(bolt.angle) * travel;
+    }
+
+    drawBolt(ctx, sx, sy, endX, endY, hue, chromaValue + (bolt.mega ? 0.4 : 0), age, 0, bolt.mega ? 4 : 3);
   });
 
   ctx.restore();
@@ -7393,8 +7499,14 @@ function drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time) {
         ctx.beginPath();
         for (let i = 0; i <= sides; i++) {
             const theta = angle + (i / sides) * Math.PI * 2;
-            // Morph shape slightly with beat (make it breathe)
-            const r = radius * (1 + 0.1 * Math.sin(time * 2 + i + beatPulse));
+            // Each vertex rides its own mel band: treble spikes the shape,
+            // quiet passages relax it back to a smooth hexagon
+            let melSpike = 0;
+            if (mel && mel.length) {
+                const mIdx = Math.floor(((i % sides) / sides) * mel.length);
+                melSpike = Math.max(0, (mel[mIdx] + 10) / 10) * 0.35;
+            }
+            const r = radius * (1 + 0.08 * Math.sin(time * 2 + i + beatPulse) + melSpike);
             const px = x + Math.cos(theta) * r;
             const py = y + Math.sin(theta) * r;
             if (i===0) ctx.moveTo(px, py);
@@ -7422,9 +7534,14 @@ function drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time) {
         }
     };
     
-    // Draw Main Fractal
+    // Draw Main Fractal + a counter-rotating mirror twin in the opposite hue —
+    // the two interlock and separate with the energy, way trippier in motion
     const startRadius = Math.min(width, height) * 0.22;
     drawFractal(centerX, centerY, startRadius, fractalState.rotation, maxDepth);
+    const mirrorHueSave = fractalState.hueOffset;
+    fractalState.hueOffset = (fractalState.hueOffset + 180) % 360;
+    drawFractal(centerX, centerY, startRadius * (0.5 + smoothE * 0.3), -fractalState.rotation * 1.3, maxDepth - 1);
+    fractalState.hueOffset = mirrorHueSave;
     
     // Background Tunnel - Smoother and separate from fractal logic
     const tunnelDepth = 8;
@@ -7438,10 +7555,14 @@ function drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time) {
         if (alpha <= 0) continue;
 
         const rot = -fractalState.rotation * (0.5 + i*0.1);
-        const hue = (fractalState.hueOffset + i * 20 - time*20) % 360;
-        
-        ctx.strokeStyle = `hsla(${hue}, 60%, 40%, ${alpha * 0.3})`;
-        ctx.lineWidth = 1;
+        // Tunnel rings take each note's own color and thump with the bass
+        const chromaIdx = i % 12;
+        const hue = (CHROMA_HUES[chromaIdx] + fractalState.hueOffset - time*20) % 360;
+        let bass = 0;
+        if (mel && mel.length) bass = Math.max(0, (mel[0] + 10) / 10);
+
+        ctx.strokeStyle = `hsla(${hue}, 70%, ${35 + (chroma[chromaIdx] || 0) * 25}%, ${alpha * (0.3 + (chroma[chromaIdx] || 0) * 0.4)})`;
+        ctx.lineWidth = 1 + bass * 2.5 + beatPulse * 1.5;
         ctx.beginPath();
         const sides = 6;
         for (let j = 0; j <= sides; j++) {
