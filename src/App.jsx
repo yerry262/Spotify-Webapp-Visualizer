@@ -16,6 +16,7 @@ import {
   setWaveformStyle, 
   setWaveformAutoMode, 
   isWaveformAutoMode,
+  setWaveformRotateMode,
   getParticleSettings,
   setParticleSettings,
   getWaveformSettings,
@@ -606,8 +607,11 @@ function App() {
 
   // Waveform selection handlers
   const handleWaveformChange = (styleId) => {
-    if (styleId === 'auto') {
-      // Enable auto mode
+    if (styleId === 'auto' || styleId === 'random' || styleId === 'cycle') {
+      // Enable auto rotate. 'cycle' walks the list in order, 'random'/'auto'
+      // picks randomly. Re-clicking while already active advances immediately
+      // (acts as a re-roll / next button, especially with the ∞ interval).
+      setWaveformRotateMode(styleId === 'cycle' ? 'cycle' : 'random');
       setWaveformAutoMode(true);
       setIsWaveformAuto(true);
     } else {

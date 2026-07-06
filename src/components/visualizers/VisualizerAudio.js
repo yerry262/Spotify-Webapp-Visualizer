@@ -19,11 +19,22 @@ export {
 export { resetSnakeState } from './waveforms';
 
 // Waveform style tracking (changes every 30 seconds)
+// autoWaveformInterval may be Infinity: no timed advance — the Random/Cycle
+// buttons then act as one-shot "re-roll"/"next" triggers.
 export let autoWaveformInterval = 30;
 export const setWaveformAutoInterval = (seconds) => { autoWaveformInterval = seconds; };
 let currentWaveformStyle = 0;
 let lastWaveformStyleChange = 0;
 let isAutoWaveformMode = true; // Auto-switch mode
+let autoRotateMode = 'random'; // 'random' | 'cycle' (sequential through the menu)
+
+export function getWaveformRotateMode() {
+  return autoRotateMode;
+}
+
+export function setWaveformRotateMode(mode) {
+  autoRotateMode = mode === 'cycle' ? 'cycle' : 'random';
+}
 
 // Particle settings state
 let particleSettings = {
@@ -325,11 +336,17 @@ export function drawAudioVisualization(ctx, width, height, vizState, frame, time
       lastWaveformStyleChange = -9999;
     }
     
-    if (time - lastWaveformStyleChange > autoWaveformInterval || lastWaveformStyleChange < -9000) {
+    const timedAdvance = Number.isFinite(autoWaveformInterval) &&
+      time - lastWaveformStyleChange > autoWaveformInterval;
+    if (timedAdvance || lastWaveformStyleChange < -9000) {
       let newStyle;
-      do {
-        newStyle = Math.floor(Math.random() * WAVEFORM_STYLES.length);
-      } while (newStyle === currentWaveformStyle && WAVEFORM_STYLES.length > 1);
+      if (autoRotateMode === 'cycle') {
+        newStyle = (currentWaveformStyle + 1) % WAVEFORM_STYLES.length;
+      } else {
+        do {
+          newStyle = Math.floor(Math.random() * WAVEFORM_STYLES.length);
+        } while (newStyle === currentWaveformStyle && WAVEFORM_STYLES.length > 1);
+      }
       currentWaveformStyle = newStyle;
       lastWaveformStyleChange = time;
       // Reset Rain Tetris state when auto-switching waveforms

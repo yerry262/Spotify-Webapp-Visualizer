@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { setWaveformAutoInterval, autoWaveformInterval } from './visualizers/VisualizerAudio';
+import { setWaveformAutoInterval, autoWaveformInterval, getWaveformRotateMode } from './visualizers/VisualizerAudio';
 import './SideMenu.css';
 
 const SideMenu = ({ 
@@ -26,15 +26,51 @@ const SideMenu = ({
   const [isCenterElementsOpen, setIsCenterElementsOpen] = useState(false);
   const [isSampleRateOpen, setIsSampleRateOpen] = useState(false);
   const [autoInterval, setAutoInterval] = useState(autoWaveformInterval || 30);
+  const [rotateMode, setRotateMode] = useState(getWaveformRotateMode());
 
-  const handleIntervalChange = (e, seconds) => {
+  // Shared interval for Random and Cycle. Infinity = no timed advance; the
+  // row label then acts as a one-shot re-roll / next button.
+  const handleIntervalChange = (e, seconds, mode) => {
     e.stopPropagation();
     setAutoInterval(seconds);
     setWaveformAutoInterval(seconds);
-    if (!isWaveformAuto && onWaveformChange) {
-      onWaveformChange('auto');
-    }
+    setRotateMode(mode);
+    if (onWaveformChange) onWaveformChange(mode);
   };
+
+  const handleModeClick = (mode) => {
+    setRotateMode(mode);
+    if (onWaveformChange) onWaveformChange(mode);
+  };
+
+  const INTERVAL_OPTIONS = [
+    { value: 5, label: '5s' },
+    { value: 15, label: '15s' },
+    { value: 30, label: '30s' },
+    { value: Infinity, label: '∞' },
+  ];
+
+  const renderRotateRow = (mode, label) => (
+    <div className={`dropdown-item auto-row ${isWaveformAuto && rotateMode === mode ? 'active' : ''}`}>
+      <div
+        className="auto-label-area"
+        onClick={() => handleModeClick(mode)}
+        title={mode === 'cycle' ? 'Next style in order (auto-advances unless ∞)' : 'Random style (auto-advances unless ∞)'}
+      >
+        <span className="item-dot"></span>
+        <span>{label}</span>
+      </div>
+      <div className="interval-buttons">
+        {INTERVAL_OPTIONS.map(opt => (
+          <button
+            key={opt.label}
+            className={`interval-btn ${autoInterval === opt.value ? 'active' : ''}`}
+            onClick={(e) => handleIntervalChange(e, opt.value, mode)}
+          >{opt.label}</button>
+        ))}
+      </div>
+    </div>
+  );
 
   const profileImage = user?.images?.[0]?.url;
   const displayName = user?.display_name || user?.id || 'User';
@@ -99,29 +135,8 @@ const SideMenu = ({
             </button>
             
             <div className={`dropdown-content ${isWaveformOpen ? 'open' : ''}`}>
-              <div className={`dropdown-item auto-row ${isWaveformAuto ? 'active' : ''}`}>
-                <div 
-                  className="auto-label-area"
-                  onClick={() => onWaveformChange && onWaveformChange('auto')}
-                >
-                  <span className="item-dot"></span>
-                  <span>Random</span>
-                </div>
-                <div className="interval-buttons">
-                  <button 
-                    className={`interval-btn ${autoInterval === 5 ? 'active' : ''}`}
-                    onClick={(e) => handleIntervalChange(e, 5)}
-                  >5s</button>
-                  <button 
-                    className={`interval-btn ${autoInterval === 15 ? 'active' : ''}`}
-                    onClick={(e) => handleIntervalChange(e, 15)}
-                  >15s</button>
-                  <button 
-                    className={`interval-btn ${autoInterval === 30 ? 'active' : ''}`}
-                    onClick={(e) => handleIntervalChange(e, 30)}
-                  >30s</button>
-                </div>
-              </div>
+              {renderRotateRow('random', 'Random')}
+              {renderRotateRow('cycle', 'Cycle')}
               <div className="dropdown-divider"></div>
               {waveformStyles && waveformStyles.map(style => (
                 <button 
