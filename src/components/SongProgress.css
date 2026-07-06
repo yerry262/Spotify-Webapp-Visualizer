@@ -70,19 +70,17 @@
   justify-content: center;
   flex: 0 0 auto;
   gap: 6px;
-  animation: slideToRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: pillFadeInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes slideToRight {
+@keyframes pillFadeInRight {
   0% {
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
   }
   100% {
-    right: 20px;
-    left: auto;
-    transform: translateX(0);
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

@@ -4,6 +4,7 @@ import AudioVisualizer from './components/AudioVisualizer';
 import TrackInfo from './components/TrackInfo';
 import PlaybackControls from './components/PlaybackControls';
 import SongProgress from './components/SongProgress';
+import PlaylistPicker from './components/PlaylistPicker';
 import UserProfile from './components/UserProfile';
 import SideMenu from './components/SideMenu';
 import { analyzeAudio, getCachedAnalysis, cancelAnalysis } from './audioAnalysisService';
@@ -64,6 +65,9 @@ function App() {
   
   // Visualizer expanded/collapsed state
   const [isVisualizerExpanded, setIsVisualizerExpanded] = useState(false);
+
+  // Playlist picker modal state
+  const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
   
   // Use ref to track current track ID without causing re-renders
   const currentTrackIdRef = useRef(null);
@@ -762,11 +766,12 @@ function App() {
             
             {/* Bottom Half - Track Info */}
             
-            <TrackInfo 
+            <TrackInfo
               track={playbackState?.item}
               progress={playbackState?.progress_ms}
               duration={playbackState?.item?.duration_ms}
               isExpanded={isVisualizerExpanded}
+              onOpenPlaylistPicker={() => setIsPlaylistPickerOpen(true)}
             />
             
             <PlaybackControls 
@@ -821,6 +826,13 @@ function App() {
         )}
       </div>
       
+      {/* Playlist Picker Modal */}
+      <PlaylistPicker
+        isOpen={isPlaylistPickerOpen}
+        onClose={() => setIsPlaylistPickerOpen(false)}
+        onPlaylistStarted={fetchPlaybackState}
+      />
+
       {/* Version Footer */}
       <footer className={`version-footer ${isVisualizerExpanded ? 'hidden' : ''}`}>
         {/* Now Playing badge on left */}

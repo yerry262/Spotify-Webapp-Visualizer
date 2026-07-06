@@ -17,7 +17,9 @@ export const SPOTIFY_CONFIG = {
     'user-read-private',
     'user-read-email',
     'streaming',
-    'user-modify-playback-state'
+    'user-modify-playback-state',
+    'playlist-read-private',
+    'playlist-read-collaborative'
   ].join(' ')
 };
 
@@ -296,5 +298,19 @@ export const SpotifyAPI = {
   async setRepeat(state) {
     // state can be: 'track', 'context', or 'off'
     return this.request(`/me/player/repeat?state=${state}`, { method: 'PUT' });
+  },
+
+  // Get the current user's playlists (first 50)
+  async getMyPlaylists() {
+    return this.request('/me/playlists?limit=50');
+  },
+
+  // Start playback of a context (playlist/album/artist URI) on the active device
+  async playContext(contextUri) {
+    return this.request('/me/player/play', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context_uri: contextUri }),
+    });
   }
 };
