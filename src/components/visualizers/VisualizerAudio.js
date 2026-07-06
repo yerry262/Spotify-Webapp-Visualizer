@@ -5,6 +5,7 @@
  */
 
 import { getLyricsState, getLyricAt } from '../../lyricsService';
+import { drawSuperGalaxyWave } from './VisualizerGalaxy';
 
 // Pitch class names for visualization
 export const PITCH_CLASSES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -37,6 +38,7 @@ export const WAVEFORM_DEFAULTS = {
   rain_tetris:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   galaga:           { basePosition: 88,  maxAmplitude: 60, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   neon_pong:        { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  super_galaxy:     { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   dvd_bouncer:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   gummy:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   sacred_geometry:  { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 4, size: 1.0, speed: 0.6 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: true, beatFlash: false } },
@@ -285,6 +287,7 @@ export const WAVEFORM_STYLES = [
   { id: 'rain_tetris', name: 'Rain Tetris' },
   { id: 'galaga', name: 'Galaga Swarm' },
   { id: 'neon_pong', name: 'Neon Pong' },
+  { id: 'super_galaxy', name: 'Super Galaxy' },
   { id: 'dvd_bouncer', name: 'DVD Bouncer' },
   { id: 'gummy', name: 'Gummy' },
   { id: 'sacred_geometry', name: 'Sacred Geometry' },
@@ -958,6 +961,9 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
       break;
     case 'neon_pong':
       drawNeonPongWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'super_galaxy':
+      drawSuperGalaxyWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
     case 'dvd_bouncer':
       drawDVDBouncerWave(ctx, width, height, chroma, mel, beatPulse, time);
@@ -6415,7 +6421,7 @@ function drawLyricFlowWave(ctx, width, height, chroma, mel, beatPulse, time) {
   drawWaveLabels(ctx, width, height, chroma);
 }
 
-function drawWaveLabels(ctx, width, height, chroma) {
+export function drawWaveLabels(ctx, width, height, chroma) {
   const labelY = height - 18; // Fixed at bottom (y=100%)
   ctx.font = '12px "Orbitron", monospace';
   ctx.textAlign = 'center';
