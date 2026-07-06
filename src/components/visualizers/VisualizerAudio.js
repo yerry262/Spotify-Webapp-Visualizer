@@ -35,6 +35,8 @@ export const WAVEFORM_DEFAULTS = {
   pacman:           { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   snake:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: false, beatFlash: false } },
   rain_tetris:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  galaga:           { basePosition: 88,  maxAmplitude: 60, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  neon_pong:        { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   dvd_bouncer:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   gummy:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   sacred_geometry:  { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 4, size: 1.0, speed: 0.6 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: true, beatFlash: false } },
@@ -281,6 +283,8 @@ export const WAVEFORM_STYLES = [
   { id: 'pacman', name: '8-Bit Chase' },
   { id: 'snake', name: 'Rhythm Snake' },
   { id: 'rain_tetris', name: 'Rain Tetris' },
+  { id: 'galaga', name: 'Galaga Swarm' },
+  { id: 'neon_pong', name: 'Neon Pong' },
   { id: 'dvd_bouncer', name: 'DVD Bouncer' },
   { id: 'gummy', name: 'Gummy' },
   { id: 'sacred_geometry', name: 'Sacred Geometry' },
@@ -948,6 +952,12 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
       break;
     case 'rain_tetris':
       drawRainTetrisWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'galaga':
+      drawGalagaWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'neon_pong':
+      drawNeonPongWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
     case 'dvd_bouncer':
       drawDVDBouncerWave(ctx, width, height, chroma, mel, beatPulse, time);
@@ -5995,6 +6005,243 @@ function drawParticleExplosionWave(ctx, width, height, chroma, mel, beatPulse, t
 /**
  * Draw pitch class labels at bottom of screen
  */
+// --- GALAGA SWARM STATE ---
+let galagaState = {
+  shipX: 0.5, lasers: [], explosions: [], stars: [], lastTime: 0, initialized: false
+};
+
+function drawGalagaWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('galaga');
+  const shipY = height * (settings.basePosition / 100);
+  const swarmDepth = height * 0.55 * (settings.maxAmplitude / 100);
+
+  // Clamp dt so seeks don't teleport everything
+  let dt = time - galagaState.lastTime;
+  if (dt < 0 || dt > 0.1) dt = 0.016;
+  galagaState.lastTime = time;
+
+  if (!galagaState.initialized) {
+    galagaState.stars = Array.from({ length: 60 }, (_, i) => ({
+      x: (i * 0.618) % 1, y: (i * 0.382) % 1, speed: 0.3 + (i % 5) * 0.2, size: 0.5 + (i % 3) * 0.7
+    }));
+    galagaState.initialized = true;
+  }
+
+  let energy = 0.3;
+  if (mel && mel.length) {
+    energy = Math.max(0.1, Math.min(1, (mel.reduce((a, b) => a + b, 0) / mel.length + 10) / 10));
+  }
+
+  // Scrolling starfield, faster when the song pushes
+  for (const star of galagaState.stars) {
+    star.y = (star.y + star.speed * (0.3 + energy) * dt) % 1;
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + star.size * 0.25})`;
+    ctx.fillRect(star.x * width, star.y * height, star.size, star.size * 2);
+  }
+
+  // Enemy swarm: 12 columns (one per note) x 3 rows in classic formation,
+  // wobbling side to side; a bug's glow = its note's intensity
+  const cols = 12, rows = 3;
+  const wobble = Math.sin(time * 1.2) * width * 0.04;
+  const colWidth = (width * 0.8) / cols;
+  let domIdx = 0;
+  for (let i = 1; i < 12; i++) if (chroma[i] > chroma[domIdx]) domIdx = i;
+
+  for (let c = 0; c < cols; c++) {
+    const v = chroma[c] || 0;
+    for (let r = 0; r < rows; r++) {
+      const bx = width * 0.1 + c * colWidth + colWidth / 2 + wobble * (r % 2 ? 1 : -1);
+      const by = height * 0.12 + r * (swarmDepth / rows) + Math.sin(time * 2 + c * 0.5 + r) * 6 * (0.5 + beatPulse);
+      const hue = CHROMA_HUES[c];
+      const size = (5 + v * 7) * (1 + beatPulse * 0.25) * (1 - r * 0.15);
+
+      ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.8)`;
+      ctx.shadowBlur = 4 + v * 14;
+      ctx.fillStyle = `hsla(${hue}, 90%, ${45 + v * 30}%, ${0.35 + v * 0.6})`;
+      // Bug body: diamond + wing dots, reads 8-bit at a distance
+      ctx.beginPath();
+      ctx.moveTo(bx, by - size);
+      ctx.lineTo(bx + size, by);
+      ctx.lineTo(bx, by + size);
+      ctx.lineTo(bx - size, by);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillRect(bx - size * 1.5, by - size * 0.3, size * 0.6, size * 0.6);
+      ctx.fillRect(bx + size * 0.9, by - size * 0.3, size * 0.6, size * 0.6);
+    }
+  }
+  ctx.shadowBlur = 0;
+
+  // Ship glides toward the loudest note's column
+  const targetX = 0.1 + (domIdx + 0.5) / cols * 0.8;
+  galagaState.shipX += (targetX - galagaState.shipX) * Math.min(1, dt * 6);
+  const sx = galagaState.shipX * width;
+
+  // Beat = fire! Laser streaks up at the dominant column, bug explodes
+  if (beatPulse > 0.85 && galagaState.lasers.length < 6) {
+    galagaState.lasers.push({ x: sx, y: shipY, hue: CHROMA_HUES[domIdx], col: domIdx, born: time });
+  }
+  galagaState.lasers = galagaState.lasers.filter(l => time - l.born < 0.5);
+  for (const laser of galagaState.lasers) {
+    laser.y -= height * 2.2 * dt;
+    ctx.shadowColor = `hsla(${laser.hue}, 100%, 70%, 1)`;
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = `hsla(${laser.hue}, 100%, 75%, 0.95)`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(laser.x, laser.y);
+    ctx.lineTo(laser.x, laser.y + 18);
+    ctx.stroke();
+    // Impact: explosion at the column's front row
+    const hitY = height * 0.12 + (rows - 1) * (swarmDepth / rows);
+    if (laser.y <= hitY && !laser.hit) {
+      laser.hit = true;
+      galagaState.explosions.push({ x: laser.x, y: hitY, hue: laser.hue, born: time });
+    }
+  }
+  galagaState.explosions = galagaState.explosions.filter(e => time - e.born < 0.45);
+  for (const boom of galagaState.explosions) {
+    const a = (time - boom.born) / 0.45;
+    for (let p = 0; p < 8; p++) {
+      const ang = (p / 8) * Math.PI * 2;
+      const d = a * 30;
+      ctx.fillStyle = `hsla(${boom.hue}, 100%, 65%, ${1 - a})`;
+      ctx.fillRect(boom.x + Math.cos(ang) * d - 2, boom.y + Math.sin(ang) * d - 2, 4, 4);
+    }
+  }
+  ctx.shadowBlur = 0;
+
+  // Player ship (chunky pixel fighter), thrusters flare with the bass
+  const bass = mel && mel.length ? Math.max(0, (mel[0] + 10) / 10) : 0.3;
+  const s = Math.min(width, height) * 0.022 * (1 + beatPulse * 0.15);
+  ctx.fillStyle = '#e8e8ff';
+  ctx.fillRect(sx - s * 0.4, shipY - s * 2, s * 0.8, s * 2);
+  ctx.fillRect(sx - s * 1.6, shipY - s * 0.6, s * 3.2, s);
+  ctx.fillStyle = `hsla(${CHROMA_HUES[domIdx]}, 90%, 60%, 0.9)`;
+  ctx.fillRect(sx - s * 0.25, shipY - s * 2.7, s * 0.5, s * 0.7);
+  ctx.fillStyle = `hsla(30, 100%, ${50 + bass * 30}%, ${0.5 + bass * 0.5})`;
+  ctx.fillRect(sx - s * 0.9, shipY + s * 0.4, s * 0.5, s * (0.8 + bass * 1.5));
+  ctx.fillRect(sx + s * 0.4, shipY + s * 0.4, s * 0.5, s * (0.8 + bass * 1.5));
+
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+// --- NEON PONG STATE ---
+let pongState = {
+  x: 0.5, y: 0.5, vx: 0.32, vy: 0.21, leftY: 0.5, rightY: 0.5,
+  trail: [], sparks: [], lastTime: 0
+};
+
+function drawNeonPongWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('neon_pong');
+  const courtMidY = height * (settings.basePosition / 100);
+  const paddleRange = height * 0.5 * (settings.maxAmplitude / 100);
+
+  let dt = time - pongState.lastTime;
+  if (dt < 0 || dt > 0.1) dt = 0.016;
+  pongState.lastTime = time;
+
+  // Left paddle chases the BASS, right paddle chases the TREBLE
+  let bass = 0.5, treble = 0.5;
+  if (mel && mel.length) {
+    const third = Math.floor(mel.length / 3);
+    const norm = (v) => Math.max(0, Math.min(1, (v + 10) / 10));
+    bass = norm(mel.slice(0, third).reduce((a, b) => a + b, 0) / third);
+    treble = norm(mel.slice(-third).reduce((a, b) => a + b, 0) / third);
+  }
+  const leftTarget = 0.5 - (bass - 0.5) * 0.9;
+  const rightTarget = 0.5 - (treble - 0.5) * 0.9;
+  pongState.leftY += (leftTarget - pongState.leftY) * Math.min(1, dt * 5);
+  pongState.rightY += (rightTarget - pongState.rightY) * Math.min(1, dt * 5);
+
+  // Ball physics: energy sets pace, beats kick it harder
+  const energy = (bass + treble) / 2;
+  const speed = (0.25 + energy * 0.5) * (1 + beatPulse * 0.9);
+  pongState.x += pongState.vx * speed * dt * 2.2;
+  pongState.y += pongState.vy * speed * dt * 2.2;
+
+  let domIdx = 0;
+  for (let i = 1; i < 12; i++) if (chroma[i] > chroma[domIdx]) domIdx = i;
+  const ballHue = CHROMA_HUES[domIdx];
+
+  // Bounces (paddles always connect — the crowd goes wild forever)
+  const spark = (x, y) => pongState.sparks.push({ x, y, hue: ballHue, born: time });
+  if (pongState.y <= 0.06) { pongState.y = 0.06; pongState.vy = Math.abs(pongState.vy); spark(pongState.x, pongState.y); }
+  if (pongState.y >= 0.94) { pongState.y = 0.94; pongState.vy = -Math.abs(pongState.vy); spark(pongState.x, pongState.y); }
+  if (pongState.x <= 0.06) {
+    pongState.x = 0.06; pongState.vx = Math.abs(pongState.vx);
+    pongState.vy += (Math.random() - 0.5) * 0.15; spark(pongState.x, pongState.y);
+  }
+  if (pongState.x >= 0.94) {
+    pongState.x = 0.94; pongState.vx = -Math.abs(pongState.vx);
+    pongState.vy += (Math.random() - 0.5) * 0.15; spark(pongState.x, pongState.y);
+  }
+  // Keep vy sane
+  pongState.vy = Math.max(-0.5, Math.min(0.5, pongState.vy));
+
+  // Center net: mel spectrum as glowing dashes
+  if (mel && mel.length) {
+    const dashes = 16;
+    for (let i = 0; i < dashes; i++) {
+      const mIdx = Math.floor((i / dashes) * mel.length);
+      const v = Math.max(0, Math.min(1, (mel[mIdx] + 10) / 10));
+      const dy = (i + 0.5) / dashes * height;
+      ctx.fillStyle = `hsla(${CHROMA_HUES[i % 12]}, 80%, 60%, ${0.15 + v * 0.5})`;
+      ctx.fillRect(width / 2 - 2 - v * 3, dy - 8, 4 + v * 6, 16);
+    }
+  }
+
+  // Paddles: neon slabs glowing with their band's energy
+  const padH = paddleRange * 0.5;
+  const padW = Math.max(6, width * 0.012);
+  const drawPaddle = (px, py, hue, level) => {
+    ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.9)`;
+    ctx.shadowBlur = 10 + level * 25 + beatPulse * 10;
+    ctx.fillStyle = `hsla(${hue}, 90%, ${55 + level * 25}%, 0.95)`;
+    ctx.fillRect(px, py - padH / 2, padW, padH);
+  };
+  const leftPy = courtMidY + (pongState.leftY - 0.5) * 2 * paddleRange;
+  const rightPy = courtMidY + (pongState.rightY - 0.5) * 2 * paddleRange;
+  drawPaddle(width * 0.035, leftPy, 200, bass);      // bass = cool blue
+  drawPaddle(width * 0.965 - padW, rightPy, 320, treble); // treble = hot pink
+  ctx.shadowBlur = 0;
+
+  // Ball trail
+  pongState.trail.push({ x: pongState.x, y: pongState.y, born: time });
+  pongState.trail = pongState.trail.filter(t => time - t.born < 0.35);
+  for (const t of pongState.trail) {
+    const a = 1 - (time - t.born) / 0.35;
+    ctx.fillStyle = `hsla(${ballHue}, 95%, 65%, ${a * 0.35})`;
+    ctx.beginPath();
+    ctx.arc(t.x * width, t.y * height, 7 * a, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Ball: dominant-note color, beat-pumped
+  const ballR = (6 + energy * 5) * (1 + beatPulse * 0.4);
+  ctx.shadowColor = `hsla(${ballHue}, 100%, 70%, 1)`;
+  ctx.shadowBlur = 16 + beatPulse * 20;
+  ctx.fillStyle = `hsla(${ballHue}, 95%, 70%, 1)`;
+  ctx.beginPath();
+  ctx.arc(pongState.x * width, pongState.y * height, ballR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Bounce sparks
+  pongState.sparks = pongState.sparks.filter(sp => time - sp.born < 0.4);
+  for (const sp of pongState.sparks) {
+    const a = (time - sp.born) / 0.4;
+    for (let p = 0; p < 6; p++) {
+      const ang = (p / 6) * Math.PI * 2 + sp.born * 7;
+      const d = a * 25;
+      ctx.fillStyle = `hsla(${sp.hue}, 100%, 70%, ${1 - a})`;
+      ctx.fillRect(sp.x * width + Math.cos(ang) * d, sp.y * height + Math.sin(ang) * d, 3, 3);
+    }
+  }
+
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
 // --- LYRIC FLOW STATE ---
 // Remembers word reveal times per line so words pop once and stay (survives
 // seeks: state resets whenever the active line index changes)
