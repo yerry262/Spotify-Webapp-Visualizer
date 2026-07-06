@@ -8,6 +8,7 @@ import UserProfile from './components/UserProfile';
 import SideMenu from './components/SideMenu';
 import { analyzeAudio, getCachedAnalysis, cancelAnalysis } from './audioAnalysisService';
 import { YouTubeService } from './youtubeService';
+import { loadLyricsForTrack, clearLyrics } from './lyricsService';
 import { 
   getWaveformStyles, 
   getWaveformStyle, 
@@ -192,6 +193,10 @@ function App() {
           
           // Clear old audio data immediately
           setAnalysisData(null);
+
+          // Fetch synced lyrics for the Lyric Flow visualizer (fire-and-forget)
+          clearLyrics();
+          loadLyricsForTrack(artistName, trackName, state.item.duration_ms / 1000);
           
           // DEBOUNCED PROCESSING: Wait for track to "settle" before starting
           // This prevents rapid API calls when user is skipping through tracks
