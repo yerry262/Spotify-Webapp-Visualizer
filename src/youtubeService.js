@@ -19,7 +19,9 @@ const ts = () => {
 
 // ==================== CONSTANTS ====================
 
-const CACHE_KEY_PREFIX = 'yt_cache_';
+// v2: bumped to invalidate URLs cached by the old unscored search, which
+// sometimes pointed at the wrong song (e.g. Łaszewo - 3am → Til U Hate Me)
+const CACHE_KEY_PREFIX = 'yt_cache_v2_';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days for YouTube URL cache
 const POLL_INTERVAL_MS = 2000;  // Poll every 2s when waiting for another device
 const MAX_WAIT_MS = 20000;      // 20s max wait (server download lock is 15s, analysis is 90s)
