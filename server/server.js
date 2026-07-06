@@ -286,36 +286,54 @@ app.post('/search-youtube', async (req, res) => {
 app.post('/clear-mp3s', (req, res) => {
   try {
     const { exclude } = req.body;
-    const THREE_MINUTES_MS = 3 * 60 * 1000; // 3 minutes in milliseconds
+    // Analysis-aware retention:
+    // - .part files (incomplete downloads): stale after 10 min
+    // - .mp3 WITH saved analysis JSON: safe to delete after 3 min (the JSON is
+    //   the durable artifact; the MP3 is no longer needed)
+    // - .mp3 WITHOUT analysis: keep 60 min so a skipped song's completed
+    //   download survives long enough to be analyzed on replay/another device
+    const PART_TTL_MS = 10 * 60 * 1000;
+    const ANALYZED_TTL_MS = 3 * 60 * 1000;
+    const UNANALYZED_TTL_MS = 60 * 60 * 1000;
     const now = Date.now();
-    
-    // Filter for .mp3 AND .part files
+
     const files = fs.readdirSync(MP3_DIR).filter(f => f.endsWith('.mp3') || f.endsWith('.part'));
     let deletedCount = 0;
-    
+
     files.forEach(file => {
       // Don't delete excluded file (only if it matches exactly, typically the mp3)
       if (exclude && file === exclude) return;
-      
+
       try {
         const filepath = path.join(MP3_DIR, file);
         const stats = fs.statSync(filepath);
         const fileAge = now - stats.mtimeMs;
-        
-        // Only delete if file is older than 3 minutes
-        if (fileAge > THREE_MINUTES_MS) {
+
+        let ttl;
+        let reason;
+        if (file.endsWith('.part')) {
+          ttl = PART_TTL_MS;
+          reason = 'stale partial';
+        } else {
+          const analysisPath = path.join(ANALYSIS_DIR, file.replace(/\.mp3$/, '.json'));
+          const hasAnalysis = fs.existsSync(analysisPath);
+          ttl = hasAnalysis ? ANALYZED_TTL_MS : UNANALYZED_TTL_MS;
+          reason = hasAnalysis ? 'analysis saved' : 'no analysis yet';
+        }
+
+        if (fileAge > ttl) {
           fs.unlinkSync(filepath);
-          console.log(`   ❌ Deleted old file (${Math.round(fileAge / 1000 / 60)}min old): ${file}`);
+          console.log(`   ❌ Deleted (${reason}, ${Math.round(fileAge / 1000 / 60)}min old): ${file}`);
           deletedCount++;
         } else {
-          console.log(`   ⏳ Kept recent file (${Math.round(fileAge / 1000)}sec old): ${file}`);
+          console.log(`   ⏳ Kept (${reason}, ${Math.round(fileAge / 1000)}sec old): ${file}`);
         }
       } catch (e) {
         console.error(`Could not delete ${file}:`, e.message);
       }
     });
-    
-    console.log(`🗑️ Cleared ${deletedCount} old files (>3min)${exclude ? ` (excluded ${exclude})` : ''}`);
+
+    console.log(`🗑️ Cleared ${deletedCount} old files${exclude ? ` (excluded ${exclude})` : ''}`);
     res.json({ message: 'Old files cleared', count: deletedCount });
   } catch (error) {
     res.status(500).json({ error: 'Could not clear files' });
