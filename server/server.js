@@ -3,7 +3,7 @@
 // Uses yt-dlp for audio extraction
 
 const express = require('express');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
@@ -180,6 +180,23 @@ function getAnalysisStatus(artist, song) {
   return existing;
 }
 
+/**
+ * Guard for destructive admin endpoints (raw file deletes). These are not used
+ * by the web client, so they require an x-admin-token header matching the
+ * ADMIN_TOKEN env var. If ADMIN_TOKEN is unset in production the endpoints stay
+ * locked (fail closed) rather than being open to anyone.
+ */
+function requireAdmin(req, res, next) {
+  const configured = process.env.ADMIN_TOKEN;
+  if (!configured) {
+    return res.status(503).json({ error: 'Admin endpoints disabled (ADMIN_TOKEN not configured)' });
+  }
+  if (req.get('x-admin-token') !== configured) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  next();
+}
+
 // CORS configuration - allow GitHub Pages and localhost
 const allowedOrigins = [
   'http://localhost:3000',
@@ -239,7 +256,7 @@ app.get('/health', (req, res) => {
 // the tv/web_embedded player clients currently bypass the check without cookies.
 // Formats from all listed clients are merged, so a DRM'd or blocked client
 // degrades to the next one instead of failing the download.
-const YT_DLP_CLIENT_ARGS = '--extractor-args "youtube:player_client=tv,web_embedded,default"';
+const YT_DLP_CLIENT_ARGS = ['--extractor-args', 'youtube:player_client=tv,web_embedded,default'];
 
 // ==================== YOUTUBE SEARCH (yt-dlp) ====================
 // Search YouTube via yt-dlp's built-in ytsearch — no API key, no external service.
@@ -253,12 +270,14 @@ app.post('/search-youtube', async (req, res) => {
 
   console.log('🔍 Searching YouTube via yt-dlp:', query);
 
-  const safeQuery = query.replace(/"/g, '');
+  // execFile with an args array — the query is passed as a single argument and
+  // is never parsed by a shell, so shell metacharacters ($(), backticks, ;)
+  // in the query cannot inject commands.
   // --flat-playlist returns search metadata without hitting the player API,
   // so the search step can never trip YouTube's datacenter-IP bot challenge.
-  const command = `yt-dlp "ytsearch1:${safeQuery}" --dump-json --flat-playlist --no-download`;
+  const args = [`ytsearch1:${query}`, '--dump-json', '--flat-playlist', '--no-download'];
 
-  exec(command, { maxBuffer: 1024 * 1024 * 10, timeout: 30000 }, (error, stdout, stderr) => {
+  execFile('yt-dlp', args, { maxBuffer: 1024 * 1024 * 10, timeout: 30000 }, (error, stdout, stderr) => {
     if (error) {
       console.error('❌ yt-dlp search error:', stderr || error.message);
       return res.status(500).json({ success: false, error: 'Failed to search YouTube', details: stderr || error.message });
@@ -347,6 +366,23 @@ app.post('/clear-mp3s', (req, res) => {
     res.status(500).json({ error: 'Could not clear files' });
   }
 });
+
+/**
+ * Resolve a user-supplied filename against a base directory and confirm the
+ * result stays inside it. Blocks path-traversal (e.g. "../../etc/passwd" or
+ * URL-encoded "%2F.." segments). Returns the safe absolute path, or null if
+ * the name escapes baseDir or isn't a plain filename.
+ */
+function resolveWithinDir(baseDir, filename) {
+  if (!filename || typeof filename !== 'string') return null;
+  // A legitimate cache file is a single path segment; reject anything with
+  // separators or traversal before touching the filesystem.
+  if (filename.includes('/') || filename.includes('\\') || filename.includes('\0')) return null;
+  const resolved = path.resolve(baseDir, filename);
+  const root = path.resolve(baseDir) + path.sep;
+  if (!resolved.startsWith(root)) return null;
+  return resolved;
+}
 
 /**
  * Sanitize filename - remove special characters that could cause issues
@@ -676,10 +712,17 @@ app.post('/get-mp3', async (req, res) => {
   //   --force-overwrites: Overwrite any existing partial/corrupt files
   
   // Use globally installed yt-dlp and ffmpeg (installed via winget/pip)
-  // Both Windows and Linux should have these in PATH
-  const command = `yt-dlp -x --audio-format mp3 --audio-quality 0 --no-playlist --force-overwrites ${YT_DLP_CLIENT_ARGS} -o "${outputPath}" "${youtubeUrl}"`;
+  // Both Windows and Linux should have these in PATH.
+  // execFile + args array: outputPath/URL are passed as literal arguments,
+  // never through a shell (defense-in-depth; URL is already regex-validated).
+  const args = [
+    '-x', '--audio-format', 'mp3', '--audio-quality', '0',
+    '--no-playlist', '--force-overwrites',
+    ...YT_DLP_CLIENT_ARGS,
+    '-o', outputPath, youtubeUrl
+  ];
 
-  exec(command, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+  execFile('yt-dlp', args, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
     console.log('📋 yt-dlp stdout:', stdout);
     console.log('📋 yt-dlp stderr:', stderr);
     
@@ -785,9 +828,13 @@ app.get('/mp3files/list', (req, res) => {
 });
 
 // Delete an MP3 file
-app.delete('/mp3files/:filename', (req, res) => {
+app.delete('/mp3files/:filename', requireAdmin, (req, res) => {
   const filename = decodeURIComponent(req.params.filename);
-  const filepath = path.join(MP3_DIR, filename);
+  const filepath = resolveWithinDir(MP3_DIR, filename);
+
+  if (!filepath) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
 
   if (!fs.existsSync(filepath)) {
     return res.status(404).json({ error: 'File not found' });
@@ -802,7 +849,7 @@ app.delete('/mp3files/:filename', (req, res) => {
 });
 
 // Clear all MP3 files
-app.delete('/mp3files/clear/all', (req, res) => {
+app.delete('/mp3files/clear/all', requireAdmin, (req, res) => {
   try {
     const files = fs.readdirSync(MP3_DIR).filter(f => f.endsWith('.mp3'));
     files.forEach(file => fs.unlinkSync(path.join(MP3_DIR, file)));
@@ -1104,9 +1151,13 @@ app.get('/analysis/list', (req, res) => {
 });
 
 // Delete analysis file
-app.delete('/analysis/:filename', (req, res) => {
+app.delete('/analysis/:filename', requireAdmin, (req, res) => {
   const filename = decodeURIComponent(req.params.filename);
-  const filepath = path.join(ANALYSIS_DIR, filename);
+  const filepath = resolveWithinDir(ANALYSIS_DIR, filename);
+
+  if (!filepath) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
 
   if (!fs.existsSync(filepath)) {
     return res.status(404).json({ error: 'Analysis file not found' });
