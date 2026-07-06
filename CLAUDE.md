@@ -222,6 +222,8 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 
 ## Recent Changes Log
 
+- **2026-07-06**: Added Cycle rotate mode (sequential next-in-list) beside Random; both share 5s/15s/30s/∞ interval options — ∞ disables timed advance and the row label becomes a one-shot re-roll/next button
+
 - **2026-07-06**: YouTube search accuracy — /search-youtube now fetches 8 candidates and scores them against Spotify artist/title/duration (server/searchScoring.js); rejects wrong songs instead of trusting ytsearch1 (fixes Łaszewo/HAPPY LANDING wrong-download bug)
 
 - **2026-07-06**: Raw analysis v2 (mel/chroma saved unflattened, render-time track-global scaling, melRaw/chromaRaw for waveforms); MP3s retained on Railway volume (DATA_DIR) with size-cap eviction (MP3_CACHE_MAX_MB)
