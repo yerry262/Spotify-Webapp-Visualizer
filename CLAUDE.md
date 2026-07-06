@@ -143,8 +143,8 @@ Sync visualization with playback
 ## Build & Deploy
 
 ### Deploy Mechanics (important)
-- Default branch is `master`; keep `main` in sync: `git push origin master master:main`
-- `dist/` is tracked in git — build output lands in every commit (repo convention)
+- Default branch is `main` (PRs merge here), but the Railway service still deploys from `master` — after merging, sync it: `git push origin main:master`. Without that push the backend never redeploys.
+- `dist/` is gitignored — frontend ships via `npm run deploy` (gh-pages), not via commits
 - Railway auto-deploys on EVERY push to master; each redeploy restarts the container,
   kills in-flight downloads, and wipes ephemeral `/app/mp3files` + `/app/analysis` caches.
   Batch commits before pushing while users may be listening.
