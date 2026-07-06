@@ -18,9 +18,12 @@ const PORT = process.env.PORT || 3001; // Use Railway's PORT or default to 3001
 // spoofable full chain.
 app.set('trust proxy', 1);
 
-// Directory to store downloaded MP3 files and analysis data
-const MP3_DIR = path.join(__dirname, 'mp3files');
-const ANALYSIS_DIR = path.join(__dirname, 'analysis');
+// Directory to store downloaded MP3 files and analysis data.
+// DATA_DIR points at a Railway volume in production (survives deploys);
+// falls back to the app directory for local dev.
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const MP3_DIR = path.join(DATA_DIR, 'mp3files');
+const ANALYSIS_DIR = path.join(DATA_DIR, 'analysis');
 
 // Create directories if they don't exist
 if (!fs.existsSync(MP3_DIR)) {
@@ -379,54 +382,65 @@ app.post('/search-youtube', expensiveLimiter, async (req, res) => {
 app.post('/clear-mp3s', (req, res) => {
   try {
     const { exclude } = req.body;
-    // Analysis-aware retention:
+    // Retention policy (with persistent volume):
     // - .part files (incomplete downloads): stale after 10 min
-    // - .mp3 WITH saved analysis JSON: safe to delete after 3 min (the JSON is
-    //   the durable artifact; the MP3 is no longer needed)
-    // - .mp3 WITHOUT analysis: keep 60 min so a skipped song's completed
-    //   download survives long enough to be analyzed on replay/another device
+    // - .mp3 files: RETAINED indefinitely (analysis JSON + MP3 are both
+    //   durable artifacts now), except a size cap below
+    // - Size cap: if the MP3 dir exceeds MP3_CACHE_MAX_MB (default 4000),
+    //   the oldest analyzed MP3s are evicted first until under the cap.
+    //   Unanalyzed MP3s are only evicted after analyzed ones.
     const PART_TTL_MS = 10 * 60 * 1000;
-    const ANALYZED_TTL_MS = 3 * 60 * 1000;
-    const UNANALYZED_TTL_MS = 60 * 60 * 1000;
+    const MAX_CACHE_BYTES = (parseInt(process.env.MP3_CACHE_MAX_MB, 10) || 4000) * 1024 * 1024;
     const now = Date.now();
 
-    const files = fs.readdirSync(MP3_DIR).filter(f => f.endsWith('.mp3') || f.endsWith('.part'));
     let deletedCount = 0;
 
-    files.forEach(file => {
-      // Don't delete excluded file (only if it matches exactly, typically the mp3)
+    // 1. Clear stale partial downloads
+    const partFiles = fs.readdirSync(MP3_DIR).filter(f => f.endsWith('.part'));
+    partFiles.forEach(file => {
       if (exclude && file === exclude) return;
-
       try {
         const filepath = path.join(MP3_DIR, file);
-        const stats = fs.statSync(filepath);
-        const fileAge = now - stats.mtimeMs;
-
-        let ttl;
-        let reason;
-        if (file.endsWith('.part')) {
-          ttl = PART_TTL_MS;
-          reason = 'stale partial';
-        } else {
-          const analysisPath = path.join(ANALYSIS_DIR, file.replace(/\.mp3$/, '.json'));
-          const hasAnalysis = fs.existsSync(analysisPath);
-          ttl = hasAnalysis ? ANALYZED_TTL_MS : UNANALYZED_TTL_MS;
-          reason = hasAnalysis ? 'analysis saved' : 'no analysis yet';
-        }
-
-        if (fileAge > ttl) {
+        if (now - fs.statSync(filepath).mtimeMs > PART_TTL_MS) {
           fs.unlinkSync(filepath);
-          console.log(`   ❌ Deleted (${reason}, ${Math.round(fileAge / 1000 / 60)}min old): ${file}`);
+          console.log(`   ❌ Deleted stale partial: ${file}`);
           deletedCount++;
-        } else {
-          console.log(`   ⏳ Kept (${reason}, ${Math.round(fileAge / 1000)}sec old): ${file}`);
         }
       } catch (e) {
         console.error(`Could not delete ${file}:`, e.message);
       }
     });
 
-    console.log(`🗑️ Cleared ${deletedCount} old files${exclude ? ` (excluded ${exclude})` : ''}`);
+    // 2. Enforce the size cap, oldest analyzed files first
+    const mp3s = fs.readdirSync(MP3_DIR)
+      .filter(f => f.endsWith('.mp3') && !(exclude && f === exclude))
+      .map(file => {
+        const filepath = path.join(MP3_DIR, file);
+        const stats = fs.statSync(filepath);
+        const hasAnalysis = fs.existsSync(path.join(ANALYSIS_DIR, file.replace(/\.mp3$/, '.json')));
+        return { file, filepath, size: stats.size, mtime: stats.mtimeMs, hasAnalysis };
+      });
+    let totalBytes = mp3s.reduce((s, f) => s + f.size, 0);
+    if (totalBytes > MAX_CACHE_BYTES) {
+      // Analyzed first (their JSON survives), then unanalyzed; oldest first within each group
+      const evictionOrder = [
+        ...mp3s.filter(f => f.hasAnalysis).sort((a, b) => a.mtime - b.mtime),
+        ...mp3s.filter(f => !f.hasAnalysis).sort((a, b) => a.mtime - b.mtime),
+      ];
+      for (const f of evictionOrder) {
+        if (totalBytes <= MAX_CACHE_BYTES) break;
+        try {
+          fs.unlinkSync(f.filepath);
+          totalBytes -= f.size;
+          deletedCount++;
+          console.log(`   ❌ Evicted (cache over ${Math.round(MAX_CACHE_BYTES / 1024 / 1024)}MB, ${f.hasAnalysis ? 'analyzed' : 'unanalyzed'}): ${f.file}`);
+        } catch (e) {
+          console.error(`Could not evict ${f.file}:`, e.message);
+        }
+      }
+    }
+
+    console.log(`🗑️ Cleanup: ${deletedCount} files removed, cache at ${(totalBytes / 1024 / 1024).toFixed(0)}MB${exclude ? ` (excluded ${exclude})` : ''}`);
     res.json({ message: 'Old files cleared', count: deletedCount });
   } catch (error) {
     res.status(500).json({ error: 'Could not clear files' });

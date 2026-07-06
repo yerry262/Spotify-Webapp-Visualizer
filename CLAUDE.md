@@ -91,10 +91,27 @@ Sync visualization with playback
 - **Timeouts**: Download (15s), Analysis (90s) - prevent stale locks
 - **Polling**: Devices poll status endpoint and wait for others to finish
 - **Caching Strategy**: Check server cache → Check lock status → Download/analyze → Cache result
-- **MP3 retention** (`/clear-mp3s`): analysis JSON is the durable artifact.
-  MP3 with saved analysis → purged after 3min; MP3 without analysis → kept 60min
-  (so a skipped song's completed download survives to be analyzed); `.part` → 10min.
+- **MP3 retention** (`/clear-mp3s`): MP3s and analysis JSON are BOTH durable
+  artifacts, stored on a Railway volume (`DATA_DIR=/app/data`) that survives
+  deploys. `.part` files → deleted after 10min. MP3s are retained until the
+  cache exceeds `MP3_CACHE_MAX_MB` (default 4000), then oldest analyzed MP3s
+  are evicted first (their JSON survives), then oldest unanalyzed.
   Cache keys: `artist-song.mp3` ↔ `artist-song.json` (same sanitized basename).
+
+### Analysis Data (raw v2 format)
+- Analysis JSONs store **RAW** feature values (`rawFeatures: true`): mel bands
+  are raw spectrum energy sums (no log scaling) and chroma is raw accumulated
+  energy (no per-frame normalization — the old `c / maxChroma` made every
+  frame peak at 1.0, flattening chord dynamics).
+- All shaping happens at render time in `getAnalysisAtTime`
+  (audioAnalysisService.js), scaled against **track-global** maxima so
+  loud/quiet dynamics survive: chroma → `raw / trackMax`; mel →
+  `sqrt(raw / trackMax)` mapped onto the legacy dB-ish range so the waveform
+  convention `(mel + 10) / 10` still works.
+- Waveforms that want truly raw values get `melRaw` / `chromaRaw` alongside
+  `mel` / `chroma` in the per-frame data.
+- Legacy (v1) cached JSONs (no `rawFeatures` flag) pass through unchanged —
+  don't add normalization back into the extractors or the saved JSON.
 
 ### Prefetch Logic
 - Triggered at 50% track progress
@@ -180,6 +197,8 @@ npm run deploy  # GitHub Pages
 # Backend environment variables (set in Railway)
 PORT=3001
 NODE_ENV=production
+DATA_DIR=/app/data        # Railway volume mount — persists mp3files/ + analysis/ across deploys
+MP3_CACHE_MAX_MB=4000     # optional; MP3 cache size cap before oldest-first eviction
 
 # Frontend environment
 VITE_API_URL=https://spotify-webapp-visualizer-production.up.railway.app
@@ -202,6 +221,8 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 - [ ] Integration with other music services (Apple Music, YouTube Music)
 
 ## Recent Changes Log
+
+- **2026-07-06**: Raw analysis v2 (mel/chroma saved unflattened, render-time track-global scaling, melRaw/chromaRaw for waveforms); MP3s retained on Railway volume (DATA_DIR) with size-cap eviction (MP3_CACHE_MAX_MB)
 
 - **2026-07-06**: Refactored VisualizerAudio.js (8,947 lines) into per-waveform files under `visualizers/waveforms/` + shared `waveformCore.js`; dispatch switch replaced by `WAVEFORM_RENDERERS` registry
 
