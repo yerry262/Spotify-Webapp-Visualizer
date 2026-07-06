@@ -311,18 +311,19 @@ export const YouTubeService = {
    * Uses backend proxy to avoid CORS issues
    * @returns {Promise<{videoId: string, url: string} | {error: string}>}
    */
-  async _searchBrowserUseAPI(query) {
+  async _searchBrowserUseAPI(query, meta = null) {
     console.log('🔍 Making Browser-Use API call (FREE - no quota!)...');
     console.log('   Query:', query);
-    
+
     try {
-      // Use backend proxy to avoid CORS issues
+      // Use backend proxy to avoid CORS issues. Passing artist/song/duration
+      // lets the server score multiple candidates and reject wrong songs.
       const response = await fetch(`${API_BASE_URL}/search-youtube`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ query, ...(meta || {}) })
       });
 
       if (!response.ok) {
@@ -361,7 +362,7 @@ export const YouTubeService = {
    * Uses localStorage cache to avoid duplicate API calls
    * Retries with simplified query (song name only) if no results found
    */
-  async searchVideo(artistName, songName) {
+  async searchVideo(artistName, songName, durationSec = null) {
     const cacheKey = getCacheKey(artistName, songName);
     
     // Check localStorage first
@@ -379,14 +380,22 @@ export const YouTubeService = {
     }
 
     try {
-      // First attempt: artist + song name + "official audio lyrics" for better results
-      const query = `${artistName} ${songName} official audio lyrics`;
-      let result = await this._searchBrowserUseAPI(query);
-      
-      // If no results found, retry with just the song name
+      // First attempt: artist + song name + "official audio" — the server
+      // scores candidates against this metadata and rejects wrong songs
+      const meta = { artist: artistName, song: songName, durationSec };
+      const query = `${artistName} ${songName} official audio`;
+      let result = await this._searchBrowserUseAPI(query, meta);
+
+      // Retry with a plain query (no "official audio" bias)
       if (result.error === 'no_results') {
-        console.log('🔄 No results with full query, retrying with just song name...');
-        result = await this._searchBrowserUseAPI(songName);
+        console.log('🔄 No scored match, retrying with plain artist+song query...');
+        result = await this._searchBrowserUseAPI(`${artistName} ${songName}`, meta);
+      }
+
+      // Last resort: just the song name, still scored
+      if (result.error === 'no_results') {
+        console.log('🔄 Still nothing, retrying with just song name...');
+        result = await this._searchBrowserUseAPI(songName, meta);
       }
       
       // If we got an error response, return null
@@ -511,7 +520,7 @@ export const YouTubeService = {
    * @param {function} onSearchStart - Optional callback when YouTube search begins
    * @param {function} onDownloadStart - Optional callback when MP3 download begins
    */
-  async getMP3ForTrack(artistName, songName, onSearchStart = null, onDownloadStart = null) {
+  async getMP3ForTrack(artistName, songName, onSearchStart = null, onDownloadStart = null, durationSec = null) {
     // Acquire processing lock
     if (processingLock) {
       console.warn(ts(), '⏳ Already processing a track locally, skipping...');
@@ -591,7 +600,7 @@ export const YouTubeService = {
       // STEP 5: Not found - we need to download
       console.log(ts(), '🔍 SEARCHING YouTube for video...');
       if (onSearchStart) onSearchStart();
-      const videoInfo = await this.searchVideo(artistName, songName);
+      const videoInfo = await this.searchVideo(artistName, songName, durationSec);
 
       if (!videoInfo) {
         console.error(ts(), '❌ Could not find video on YouTube');
@@ -709,7 +718,7 @@ export const YouTubeService = {
    * - Perfect for background prefetching without blocking
    * - Handles race conditions with server-side locking
    */
-  async getMP3ForTrackPrefetch(artistName, songName) {
+  async getMP3ForTrackPrefetch(artistName, songName, durationSec = null) {
     // Check local processing lock first
     if (processingLock) {
       console.log(ts(), '⏩ Already processing locally, skipping prefetch');
@@ -756,7 +765,7 @@ export const YouTubeService = {
       // STEP 5: Not found - we need to download
       // Search YouTube for video
       console.log(ts(), '🔍 PREFETCH: Searching YouTube...');
-      const videoInfo = await this.searchVideo(artistName, songName);
+      const videoInfo = await this.searchVideo(artistName, songName, durationSec);
 
       if (!videoInfo) {
         console.log(ts(), '❌ Prefetch: Video not found');

@@ -255,7 +255,8 @@ function App() {
                 artistName, 
                 trackName,
                 () => setIsSearching(true),  // onSearchStart
-                () => { setIsSearching(false); setIsDownloading(true); }  // onDownloadStart
+                () => { setIsSearching(false); setIsDownloading(true); },  // onDownloadStart
+                state.item.duration_ms / 1000
               );
 
               if (!mp3Result) {
@@ -517,7 +518,7 @@ function App() {
       
       // Fetch from YouTube (using prefetch method that skips if another device is working)
       console.log(ts(), '🔮 Prefetching MP3 from YouTube...');
-      const mp3Result = await YouTubeService.getMP3ForTrackPrefetch(nextArtist, nextSong);
+      const mp3Result = await YouTubeService.getMP3ForTrackPrefetch(nextArtist, nextSong, nextTrack.duration_ms / 1000);
       
       if (!mp3Result) {
         console.log(ts(), '⏩ Prefetch skipped (another device working or failed)');
