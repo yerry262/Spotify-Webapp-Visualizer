@@ -39,3 +39,6 @@ ehthumbs.db
 
 # Test coverage
 coverage/
+
+# Vite build output (deployed via gh-pages branch)
+dist/
