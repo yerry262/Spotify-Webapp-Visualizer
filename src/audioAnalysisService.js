@@ -85,7 +85,9 @@ export async function extractMelSpectrogram(audioSignal, sampleRate = SAMPLE_RAT
       // Use fast spectrum computation
       const spectrum = computeSpectrumFast(frameData, numBands * 2);
       
-      // Group into mel-like bands
+      // Group into mel-like bands — store RAW energy sums. No log scaling or
+      // normalization here: the saved analysis keeps true dynamics and any
+      // perceptual shaping happens at render time (getAnalysisAtTime).
       const bands = [];
       const binsPerBand = 2;
       for (let b = 0; b < numBands; b++) {
@@ -93,8 +95,7 @@ export async function extractMelSpectrogram(audioSignal, sampleRate = SAMPLE_RAT
         for (let j = 0; j < binsPerBand; j++) {
           sum += spectrum[b * binsPerBand + j] || 0;
         }
-        // Log scale for better visualization
-        bands.push(Math.log10(1 + sum * 100) * 10);
+        bands.push(sum);
       }
       
       frames.push({
@@ -155,13 +156,13 @@ export async function extractHPCPChroma(audioSignal, sampleRate = SAMPLE_RATE) {
         }
       }
       
-      // Normalize
-      const maxChroma = Math.max(...chroma, 0.001);
-      const normalizedChroma = chroma.map(c => c / maxChroma);
-      
+      // Store RAW accumulated energies. The old per-frame max-normalization
+      // (c / maxChroma) made every frame peak at 1.0, flattening the
+      // difference between a slamming chord and near-silence. Track-relative
+      // scaling now happens at render time (getAnalysisAtTime).
       frames.push({
         time: frameTime,
-        chroma: normalizedChroma
+        chroma
       });
     }
   } catch (error) {
@@ -440,6 +441,9 @@ export async function analyzeAudio(audioUrl, artistName = null, songName = null,
     duration,
     sampleRate,
     analysisTime: parseFloat(analysisTime),
+    // v2: mel/chroma are stored RAW (no log scaling, no per-frame
+    // normalization). Render-time scaling lives in getAnalysisAtTime.
+    rawFeatures: true,
     features: {
       melSpectrogram,
       hpcpChroma,
@@ -478,9 +482,31 @@ export async function analyzeAudio(audioUrl, artistName = null, songName = null,
  * Used to sync visualization with Spotify playback
  * Now interpolates between frames for smoother, more precise visualization
  */
+/**
+ * Compute track-global scale factors for raw (v2) analysis data, cached on
+ * the analysisData object. Scaling against the TRACK max (not per-frame max)
+ * preserves the dynamics between loud and quiet moments.
+ */
+function getRawScale(analysisData) {
+  if (analysisData._rawScale) return analysisData._rawScale;
+  let chromaMax = 0;
+  let melMax = 0;
+  for (const frame of analysisData.features.hpcpChroma || []) {
+    for (const v of frame.chroma || []) if (v > chromaMax) chromaMax = v;
+  }
+  for (const frame of analysisData.features.melSpectrogram || []) {
+    for (const v of frame.bands || []) if (v > melMax) melMax = v;
+  }
+  analysisData._rawScale = {
+    chromaMax: chromaMax || 1,
+    melMax: melMax || 1,
+  };
+  return analysisData._rawScale;
+}
+
 export function getAnalysisAtTime(analysisData, timeInSeconds) {
   if (!analysisData || !analysisData.features) return null;
-  
+
   const { melSpectrogram, hpcpChroma, pitch, rhythm } = analysisData.features;
   
   // Find surrounding frames and interpolation factor for smooth transitions
@@ -587,11 +613,32 @@ export function getAnalysisAtTime(analysisData, timeInSeconds) {
   );
   
   const beatInfo = isOnBeat(timeInSeconds, rhythm?.beats);
-  
+
+  // v2 raw data: scale against TRACK-GLOBAL maxima so dynamics survive.
+  // - chroma: raw / track max — a big chord peaks near 1, quiet parts stay low
+  //   (the old per-frame normalization forced every frame's peak to 1.0)
+  // - mel: sqrt(raw / track max) mapped onto the legacy dB-ish range so the
+  //   waveform convention (mel + 10) / 10 keeps working unchanged. sqrt is a
+  //   gentle perceptual default; waveforms wanting true raw get melRaw/chromaRaw.
+  // Legacy (v1) cached JSONs pass through exactly as before.
+  let outMel = interpolatedMel;
+  let outChroma = interpolatedChroma;
+  let melRaw = null;
+  let chromaRaw = null;
+  if (analysisData.rawFeatures) {
+    const scale = getRawScale(analysisData);
+    melRaw = interpolatedMel;
+    chromaRaw = interpolatedChroma;
+    outChroma = interpolatedChroma.map(v => v / scale.chromaMax);
+    outMel = interpolatedMel.map(v => Math.sqrt(Math.max(0, v) / scale.melMax) * 10 - 10);
+  }
+
   return {
     time: timeInSeconds,
-    mel: interpolatedMel,
-    chroma: interpolatedChroma,
+    mel: outMel,
+    chroma: outChroma,
+    melRaw,
+    chromaRaw,
     pitch: interpolatedPitch,
     pitchConfidence: interpolatedConfidence,
     bpm: rhythm?.bpm || 120,
