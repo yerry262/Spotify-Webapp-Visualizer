@@ -235,6 +235,12 @@ app.get('/health', (req, res) => {
 });
 
 
+// YouTube bot-challenges datacenter IPs ("Sign in to confirm you're not a bot");
+// the tv/web_embedded player clients currently bypass the check without cookies.
+// Formats from all listed clients are merged, so a DRM'd or blocked client
+// degrades to the next one instead of failing the download.
+const YT_DLP_CLIENT_ARGS = '--extractor-args "youtube:player_client=tv,web_embedded,default"';
+
 // ==================== YOUTUBE SEARCH (yt-dlp) ====================
 // Search YouTube via yt-dlp's built-in ytsearch — no API key, no external service.
 // Response shape matches the old Browser-Use proxy so the frontend needs no changes.
@@ -248,7 +254,9 @@ app.post('/search-youtube', async (req, res) => {
   console.log('🔍 Searching YouTube via yt-dlp:', query);
 
   const safeQuery = query.replace(/"/g, '');
-  const command = `yt-dlp "ytsearch1:${safeQuery}" --dump-json --no-download --no-playlist --skip-download`;
+  // --flat-playlist returns search metadata without hitting the player API,
+  // so the search step can never trip YouTube's datacenter-IP bot challenge.
+  const command = `yt-dlp "ytsearch1:${safeQuery}" --dump-json --flat-playlist --no-download`;
 
   exec(command, { maxBuffer: 1024 * 1024 * 10, timeout: 30000 }, (error, stdout, stderr) => {
     if (error) {
@@ -669,7 +677,7 @@ app.post('/get-mp3', async (req, res) => {
   
   // Use globally installed yt-dlp and ffmpeg (installed via winget/pip)
   // Both Windows and Linux should have these in PATH
-  const command = `yt-dlp -x --audio-format mp3 --audio-quality 0 --no-playlist --force-overwrites -o "${outputPath}" "${youtubeUrl}"`;
+  const command = `yt-dlp -x --audio-format mp3 --audio-quality 0 --no-playlist --force-overwrites ${YT_DLP_CLIENT_ARGS} -o "${outputPath}" "${youtubeUrl}"`;
 
   exec(command, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
     console.log('📋 yt-dlp stdout:', stdout);
