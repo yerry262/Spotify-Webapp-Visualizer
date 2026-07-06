@@ -1,0 +1,88 @@
+.rotate-bubble {
+  position: fixed;
+  z-index: 2500;
+  background: rgba(15, 18, 25, 0.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  animation: rotateBubbleIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  touch-action: none;
+}
+
+@keyframes rotateBubbleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.rotate-bubble-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  cursor: grab;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rotate-bubble-header:active {
+  cursor: grabbing;
+}
+
+.rotate-bubble-grip {
+  display: flex;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.rotate-bubble-grip svg {
+  width: 14px;
+  height: 14px;
+}
+
+.rotate-bubble-title {
+  flex: 1;
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.rotate-bubble-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 6px;
+  display: flex;
+  transition: all 0.2s ease;
+}
+
+.rotate-bubble-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.rotate-bubble-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+.rotate-bubble-body {
+  padding: 6px;
+}
+
+/* The bubble reuses the SideMenu row styles (.dropdown-item.auto-row etc.);
+   these overrides adapt them to the compact floating context */
+.rotate-bubble-body .dropdown-item.auto-row {
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 2px 0;
+}
+
+.rotate-bubble-body .dropdown-item.auto-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}

@@ -7,6 +7,7 @@ import SongProgress from './components/SongProgress';
 import PlaylistPicker from './components/PlaylistPicker';
 import UserProfile from './components/UserProfile';
 import SideMenu from './components/SideMenu';
+import RotateBubble from './components/RotateBubble';
 import { analyzeAudio, getCachedAnalysis, cancelAnalysis } from './audioAnalysisService';
 import { YouTubeService } from './youtubeService';
 import { loadLyricsForTrack, clearLyrics } from './lyricsService';
@@ -17,6 +18,9 @@ import {
   setWaveformAutoMode, 
   isWaveformAutoMode,
   setWaveformRotateMode,
+  getWaveformRotateMode,
+  setWaveformAutoInterval,
+  autoWaveformInterval,
   getParticleSettings,
   setParticleSettings,
   getWaveformSettings,
@@ -69,6 +73,21 @@ function App() {
 
   // Playlist picker modal state
   const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
+
+  // Rotate controls (Random/Cycle + interval) — state lives here so the
+  // sidebar rows and the floating bubble stay in sync
+  const [rotateMode, setRotateModeState] = useState(getWaveformRotateMode());
+  const [rotateInterval, setRotateIntervalState] = useState(autoWaveformInterval || 30);
+  // Floating bubble: { x, y, grabActive } or null. Position persists;
+  // Infinity never lands in here so JSON round-trips are safe.
+  const [rotateBubble, setRotateBubble] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('rotate_bubble_pos'));
+      return saved && typeof saved.x === 'number' ? { ...saved, grabActive: false } : null;
+    } catch {
+      return null;
+    }
+  });
   
   // Use ref to track current track ID without causing re-renders
   const currentTrackIdRef = useRef(null);
@@ -628,6 +647,40 @@ function App() {
     setIsWaveformAuto(enabled);
   };
 
+  // Rotate control handlers (shared by SideMenu rows and the RotateBubble)
+  const handleRotateModeClick = (mode) => {
+    setRotateModeState(mode);
+    handleWaveformChange(mode);
+  };
+
+  const handleRotateIntervalChange = (mode, seconds) => {
+    setRotateIntervalState(seconds);
+    setWaveformAutoInterval(seconds);
+    setRotateModeState(mode);
+    handleWaveformChange(mode);
+  };
+
+  // Drag the rotate rows out of the sidebar → floating bubble at the pointer,
+  // still following the drag. No point given (future callers) → right-middle.
+  const handlePopOutRotate = (point) => {
+    const pos = point
+      ? { x: point.x - 145, y: point.y - 16 }
+      : { x: window.innerWidth - 310, y: window.innerHeight / 2 - 70 };
+    const bubble = { ...pos, grabActive: !!point };
+    setRotateBubble(bubble);
+    localStorage.setItem('rotate_bubble_pos', JSON.stringify({ x: bubble.x, y: bubble.y }));
+  };
+
+  const handleRotateBubbleMove = (pos) => {
+    setRotateBubble(b => (b ? { ...b, ...pos, grabActive: false } : b));
+    localStorage.setItem('rotate_bubble_pos', JSON.stringify(pos));
+  };
+
+  const handleRotateBubbleClose = () => {
+    setRotateBubble(null);
+    localStorage.removeItem('rotate_bubble_pos');
+  };
+
   // Particle settings handler
   const handleParticleSettingsChange = (newSettings) => {
     const updated = { ...particleSettingsState, ...newSettings };
@@ -722,6 +775,11 @@ function App() {
         waveformStyle={waveformStyle}
         waveformStyles={waveformStyles}
         isWaveformAuto={isWaveformAuto}
+        rotateMode={rotateMode}
+        autoInterval={rotateInterval}
+        onRotateModeClick={handleRotateModeClick}
+        onRotateIntervalChange={handleRotateIntervalChange}
+        onPopOutRotate={handlePopOutRotate}
         onWaveformChange={handleWaveformChange}
         onWaveformAutoToggle={handleWaveformAutoToggle}
         waveformSettings={waveformSettingsState}
@@ -831,6 +889,21 @@ function App() {
         )}
       </div>
       
+      {/* Floating Random/Cycle rotate controls (dragged out of the sidebar) */}
+      {rotateBubble && (
+        <RotateBubble
+          position={{ x: rotateBubble.x, y: rotateBubble.y }}
+          grabActive={rotateBubble.grabActive}
+          onMove={handleRotateBubbleMove}
+          onClose={handleRotateBubbleClose}
+          rotateMode={rotateMode}
+          autoInterval={rotateInterval}
+          isWaveformAuto={isWaveformAuto}
+          onModeClick={handleRotateModeClick}
+          onIntervalChange={handleRotateIntervalChange}
+        />
+      )}
+
       {/* Playlist Picker Modal */}
       <PlaylistPicker
         isOpen={isPlaylistPickerOpen}

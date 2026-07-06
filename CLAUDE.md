@@ -222,6 +222,8 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 
 ## Recent Changes Log
 
+- **2026-07-06**: Rotate controls pop-out — drag the Random/Cycle rows out of the sidebar to float them as a draggable bubble (RotateBubble/RotateControls components, position persisted in localStorage)
+
 - **2026-07-06**: Added Cycle rotate mode (sequential next-in-list) beside Random; both share 5s/15s/30s/∞ interval options — ∞ disables timed advance and the row label becomes a one-shot re-roll/next button
 
 - **2026-07-06**: YouTube search accuracy — /search-youtube now fetches 8 candidates and scores them against Spotify artist/title/duration (server/searchScoring.js); rejects wrong songs instead of trusting ytsearch1 (fixes Łaszewo/HAPPY LANDING wrong-download bug)
