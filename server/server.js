@@ -204,20 +204,23 @@ const allowedOrigins = [
   'https://yerry262.github.io'
 ];
 
+// Fail SAFE: only relax CORS when NODE_ENV is *explicitly* "development".
+// If NODE_ENV is unset (or anything other than "development") we behave as
+// production and reject unknown origins — an unset var must never open CORS up
+// to arbitrary origins (which, with credentials:true, is a real vulnerability).
+const isDev = process.env.NODE_ENV === 'development';
+
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl) in development only
+    // Requests with no Origin header (curl, server-to-server) — allowed in dev only
     if (!origin) {
-      const isDev = process.env.NODE_ENV !== 'production';
       return callback(isDev ? null : new Error('Origin required'), isDev);
     }
-    
+
     if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
-      // In production, reject unknown origins
-      const isDev = process.env.NODE_ENV !== 'production';
       if (isDev) {
         console.warn('⚠️ Allowing unknown origin in development mode');
         callback(null, true);
