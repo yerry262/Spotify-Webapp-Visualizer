@@ -5,6 +5,7 @@
  */
 
 import { getLyricsState, getLyricAt } from '../../lyricsService';
+import { drawSuperGalaxyWave } from './VisualizerGalaxy';
 
 // Pitch class names for visualization
 export const PITCH_CLASSES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -35,6 +36,9 @@ export const WAVEFORM_DEFAULTS = {
   pacman:           { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   snake:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: true, circularMel: false, pitchOrb: false, beatFlash: false } },
   rain_tetris:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  galaga:           { basePosition: 88,  maxAmplitude: 60, basePositionFullScreen: 90,  maxAmplitudeFullScreen: 70, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  neon_pong:        { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
+  super_galaxy:     { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 60, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   dvd_bouncer:      { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   gummy:            { basePosition: 50,  maxAmplitude: 50, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 50, particles: { enabled: false, count: 0, size: 1.0, speed: 1.0 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: false, beatFlash: false } },
   sacred_geometry:  { basePosition: 50,  maxAmplitude: 70, basePositionFullScreen: 50,  maxAmplitudeFullScreen: 80, particles: { enabled: true, count: 4, size: 1.0, speed: 0.6 }, centerElements: { chromaWheel: false, circularMel: false, pitchOrb: true, beatFlash: false } },
@@ -281,6 +285,9 @@ export const WAVEFORM_STYLES = [
   { id: 'pacman', name: '8-Bit Chase' },
   { id: 'snake', name: 'Rhythm Snake' },
   { id: 'rain_tetris', name: 'Rain Tetris' },
+  { id: 'galaga', name: 'Galaga Swarm' },
+  { id: 'neon_pong', name: 'Neon Pong' },
+  { id: 'super_galaxy', name: 'Super Galaxy' },
   { id: 'dvd_bouncer', name: 'DVD Bouncer' },
   { id: 'gummy', name: 'Gummy' },
   { id: 'sacred_geometry', name: 'Sacred Geometry' },
@@ -948,6 +955,15 @@ function drawChromaSoundWaves(ctx, width, height, chroma, mel, beatPulse, time) 
       break;
     case 'rain_tetris':
       drawRainTetrisWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'galaga':
+      drawGalagaWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'neon_pong':
+      drawNeonPongWave(ctx, width, height, chroma, mel, beatPulse, time);
+      break;
+    case 'super_galaxy':
+      drawSuperGalaxyWave(ctx, width, height, chroma, mel, beatPulse, time);
       break;
     case 'dvd_bouncer':
       drawDVDBouncerWave(ctx, width, height, chroma, mel, beatPulse, time);
@@ -1926,14 +1942,25 @@ function drawHelixDNAWave(ctx, width, height, chroma, mel, beatPulse, time) {
       const chromaIdx = Math.floor(t * 12);
       const chromaValue = chroma[chromaIdx] || 0.3;
       const hue = CHROMA_HUES[chromaIdx];
-      const alpha = 0.3 + chromaValue * 0.4;
-      
-      ctx.strokeStyle = `hsla(${hue}, 70%, 50%, ${alpha})`;
-      ctx.lineWidth = 2 + chromaValue * 2;
+
+      // Replication pulse: a bright wave sweeps down the helix, supercharged
+      // by beats — rungs flash sequencer-style as it passes them
+      const pulsePos = (time * 0.35) % 1.3;
+      const pulseProximity = Math.max(0, 1 - Math.abs(t - pulsePos) * 6);
+      const pulseBoost = pulseProximity * (0.5 + beatPulse);
+
+      const alpha = 0.3 + chromaValue * 0.4 + pulseBoost * 0.5;
+      ctx.strokeStyle = `hsla(${hue}, ${70 + pulseBoost * 30}%, ${50 + pulseBoost * 35}%, ${Math.min(1, alpha)})`;
+      ctx.lineWidth = 2 + chromaValue * 2 + pulseBoost * 3;
+      if (pulseBoost > 0.3) {
+        ctx.shadowColor = `hsla(${hue}, 100%, 70%, 0.9)`;
+        ctx.shadowBlur = pulseBoost * 18;
+      }
       ctx.beginPath();
       ctx.moveTo(x, y1);
       ctx.lineTo(x, y2);
       ctx.stroke();
+      ctx.shadowBlur = 0;
     }
   }
   
@@ -1985,7 +2012,35 @@ function drawHelixDNAWave(ctx, width, height, chroma, mel, beatPulse, time) {
       ctx.shadowBlur = 0;
     }
   }
-  
+
+  // Nucleotide orbs: strong notes materialize as glowing beads riding the
+  // strands, popping bigger on the beat
+  const pulsePos = (time * 0.35) % 1.3;
+  for (let i = 0; i < numPoints; i += 5) {
+    const t = i / numPoints;
+    const chromaIdx = Math.floor(t * 12);
+    const chromaValue = chroma[chromaIdx] || 0;
+    if (chromaValue < 0.5) continue;
+
+    const x = t * width;
+    for (let strand = 0; strand < 2; strand++) {
+      const phase = t * Math.PI * twistFrequency * 2 + time * rotationSpeed + strand * Math.PI;
+      const amplitude = maxAmplitude * (0.7 + 0.3) * (1 + beatPulse * 0.3);
+      const y = centerY + Math.sin(phase) * amplitude;
+      const hue = CHROMA_HUES[chromaIdx];
+      const nearPulse = Math.max(0, 1 - Math.abs(t - pulsePos) * 6);
+      const orbR = (2 + chromaValue * 4) * (1 + beatPulse * 0.5 + nearPulse * 0.8);
+
+      ctx.shadowColor = `hsla(${hue}, 100%, 65%, 0.9)`;
+      ctx.shadowBlur = 8 + chromaValue * 12;
+      ctx.fillStyle = `hsla(${hue}, 95%, ${65 + nearPulse * 20}%, ${0.5 + chromaValue * 0.5})`;
+      ctx.beginPath();
+      ctx.arc(x, y, orbR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.shadowBlur = 0;
+
   drawWaveLabels(ctx, width, height, chroma);
 }
 
@@ -2526,19 +2581,59 @@ function drawLightningWave(ctx, width, height, chroma, mel, beatPulse, time) {
   // Manage persistent bolts
   const totalEnergy = sChroma.reduce((a, b) => a + b, 0) / 12;
   
-  // High energy / beat triggers new bolts
-  if (sBeat > 0.6 && Math.random() < 0.2 + totalEnergy * 0.3 && lightningState.bolts.length < 15) {
-    const idx = Math.floor(Math.random() * 12);
+  // Bolts strike OUT to the chroma node ring: beats fire mega-bolts at the
+  // loudest notes, and any individually hot note draws its own arc
+  const nodeAngle = (i) => (i / 12) * Math.PI * 2 - Math.PI / 2;
+  if (sBeat > 0.6 && Math.random() < 0.3 + totalEnergy * 0.4 && lightningState.bolts.length < 18) {
+    let idx = 0;
+    for (let i = 1; i < 12; i++) if (sChroma[i] > sChroma[idx]) idx = i;
     lightningState.bolts.push({
       id: Math.random(),
       startTime: time,
-      duration: 0.1 + Math.random() * 0.2,
+      duration: 0.12 + Math.random() * 0.2,
       chromaIdx: idx,
-      angle: Math.random() * Math.PI * 2,
-      startX: (Math.random() - 0.5) * 50, // Slight offset from center
-      startY: (Math.random() - 0.5) * 50,
+      angle: nodeAngle(idx),
+      startX: (Math.random() - 0.5) * 30,
+      startY: (Math.random() - 0.5) * 30,
+      mega: true,
       complexity: 3 + Math.floor(sChroma[idx] * 5)
     });
+  }
+  for (let i = 0; i < 12; i++) {
+    if (sChroma[i] > 0.55 && Math.random() < sChroma[i] * 0.12 && lightningState.bolts.length < 18) {
+      lightningState.bolts.push({
+        id: Math.random(),
+        startTime: time,
+        duration: 0.08 + Math.random() * 0.15,
+        chromaIdx: i,
+        angle: nodeAngle(i) + (Math.random() - 0.5) * 0.2,
+        startX: (Math.random() - 0.5) * 40,
+        startY: (Math.random() - 0.5) * 40,
+        mega: false,
+        complexity: 2 + Math.floor(sChroma[i] * 4)
+      });
+    }
+  }
+  // Chain arcs: when two notes are hot at once, lightning jumps between
+  // their nodes around the ring
+  if (lightningState.bolts.length < 18 && Math.random() < 0.15 + sBeat * 0.2) {
+    const hot = [];
+    for (let i = 0; i < 12; i++) if (sChroma[i] > 0.45) hot.push(i);
+    if (hot.length >= 2) {
+      const a = hot[Math.floor(Math.random() * hot.length)];
+      let b = hot[Math.floor(Math.random() * hot.length)];
+      if (a !== b) {
+        lightningState.bolts.push({
+          id: Math.random(),
+          startTime: time,
+          duration: 0.1 + Math.random() * 0.12,
+          chromaIdx: a,
+          chainTo: b,
+          mega: false,
+          complexity: 3
+        });
+      }
+    }
   }
 
   // Filter out dead bolts
@@ -2559,19 +2654,46 @@ function drawLightningWave(ctx, width, height, chroma, mel, beatPulse, time) {
     ctx.fill();
   }
 
+  // Chroma node ring: 12 storm nodes, one per note, glowing with intensity —
+  // these are the strike targets, so the bolts read as connected to the music
+  const ringR = maxTravel * 0.85;
+  for (let i = 0; i < 12; i++) {
+    const nx = Math.cos(nodeAngle(i)) * ringR;
+    const ny = Math.sin(nodeAngle(i)) * ringR;
+    const v = sChroma[i];
+    const nodeR = 3 + v * 9 + sBeat * 3;
+    ctx.shadowColor = `hsla(${CHROMA_HUES[i]}, 100%, 65%, 0.9)`;
+    ctx.shadowBlur = 6 + v * 20;
+    ctx.fillStyle = `hsla(${CHROMA_HUES[i]}, 90%, ${55 + v * 25}%, ${0.25 + v * 0.7})`;
+    ctx.beginPath();
+    ctx.arc(nx, ny, nodeR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+
   // Draw each active bolt
   lightningState.bolts.forEach(bolt => {
     const age = (time - bolt.startTime) / bolt.duration;
     const chromaValue = sChroma[bolt.chromaIdx];
     const hue = CHROMA_HUES[bolt.chromaIdx];
-    const mVal = (sMel[bolt.chromaIdx % sMel.length] + 15) / 15;
-    
-    // Bolt structure
-    const travel = maxTravel * mVal * (0.6 + Math.random() * 0.4);
-    const endX = Math.cos(bolt.angle) * travel;
-    const endY = Math.sin(bolt.angle) * travel;
-    
-    drawBolt(ctx, bolt.startX, bolt.startY, endX, endY, hue, chromaValue, age, 0, 3);
+
+    let sx, sy, endX, endY;
+    if (bolt.chainTo !== undefined) {
+      // Chain arc: node-to-node along the ring
+      sx = Math.cos(nodeAngle(bolt.chromaIdx)) * ringR;
+      sy = Math.sin(nodeAngle(bolt.chromaIdx)) * ringR;
+      endX = Math.cos(nodeAngle(bolt.chainTo)) * ringR;
+      endY = Math.sin(nodeAngle(bolt.chainTo)) * ringR;
+    } else {
+      // Center strike out to the note's node; mega bolts hit the ring dead-on
+      const mVal = (sMel[bolt.chromaIdx % sMel.length] + 15) / 15;
+      const travel = bolt.mega ? ringR : ringR * mVal * (0.6 + Math.random() * 0.4);
+      sx = bolt.startX; sy = bolt.startY;
+      endX = Math.cos(bolt.angle) * travel;
+      endY = Math.sin(bolt.angle) * travel;
+    }
+
+    drawBolt(ctx, sx, sy, endX, endY, hue, chromaValue + (bolt.mega ? 0.4 : 0), age, 0, bolt.mega ? 4 : 3);
   });
 
   ctx.restore();
@@ -5889,6 +6011,243 @@ function drawParticleExplosionWave(ctx, width, height, chroma, mel, beatPulse, t
 /**
  * Draw pitch class labels at bottom of screen
  */
+// --- GALAGA SWARM STATE ---
+let galagaState = {
+  shipX: 0.5, lasers: [], explosions: [], stars: [], lastTime: 0, initialized: false
+};
+
+function drawGalagaWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('galaga');
+  const shipY = height * (settings.basePosition / 100);
+  const swarmDepth = height * 0.55 * (settings.maxAmplitude / 100);
+
+  // Clamp dt so seeks don't teleport everything
+  let dt = time - galagaState.lastTime;
+  if (dt < 0 || dt > 0.1) dt = 0.016;
+  galagaState.lastTime = time;
+
+  if (!galagaState.initialized) {
+    galagaState.stars = Array.from({ length: 60 }, (_, i) => ({
+      x: (i * 0.618) % 1, y: (i * 0.382) % 1, speed: 0.3 + (i % 5) * 0.2, size: 0.5 + (i % 3) * 0.7
+    }));
+    galagaState.initialized = true;
+  }
+
+  let energy = 0.3;
+  if (mel && mel.length) {
+    energy = Math.max(0.1, Math.min(1, (mel.reduce((a, b) => a + b, 0) / mel.length + 10) / 10));
+  }
+
+  // Scrolling starfield, faster when the song pushes
+  for (const star of galagaState.stars) {
+    star.y = (star.y + star.speed * (0.3 + energy) * dt) % 1;
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + star.size * 0.25})`;
+    ctx.fillRect(star.x * width, star.y * height, star.size, star.size * 2);
+  }
+
+  // Enemy swarm: 12 columns (one per note) x 3 rows in classic formation,
+  // wobbling side to side; a bug's glow = its note's intensity
+  const cols = 12, rows = 3;
+  const wobble = Math.sin(time * 1.2) * width * 0.04;
+  const colWidth = (width * 0.8) / cols;
+  let domIdx = 0;
+  for (let i = 1; i < 12; i++) if (chroma[i] > chroma[domIdx]) domIdx = i;
+
+  for (let c = 0; c < cols; c++) {
+    const v = chroma[c] || 0;
+    for (let r = 0; r < rows; r++) {
+      const bx = width * 0.1 + c * colWidth + colWidth / 2 + wobble * (r % 2 ? 1 : -1);
+      const by = height * 0.12 + r * (swarmDepth / rows) + Math.sin(time * 2 + c * 0.5 + r) * 6 * (0.5 + beatPulse);
+      const hue = CHROMA_HUES[c];
+      const size = (5 + v * 7) * (1 + beatPulse * 0.25) * (1 - r * 0.15);
+
+      ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.8)`;
+      ctx.shadowBlur = 4 + v * 14;
+      ctx.fillStyle = `hsla(${hue}, 90%, ${45 + v * 30}%, ${0.35 + v * 0.6})`;
+      // Bug body: diamond + wing dots, reads 8-bit at a distance
+      ctx.beginPath();
+      ctx.moveTo(bx, by - size);
+      ctx.lineTo(bx + size, by);
+      ctx.lineTo(bx, by + size);
+      ctx.lineTo(bx - size, by);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillRect(bx - size * 1.5, by - size * 0.3, size * 0.6, size * 0.6);
+      ctx.fillRect(bx + size * 0.9, by - size * 0.3, size * 0.6, size * 0.6);
+    }
+  }
+  ctx.shadowBlur = 0;
+
+  // Ship glides toward the loudest note's column
+  const targetX = 0.1 + (domIdx + 0.5) / cols * 0.8;
+  galagaState.shipX += (targetX - galagaState.shipX) * Math.min(1, dt * 6);
+  const sx = galagaState.shipX * width;
+
+  // Beat = fire! Laser streaks up at the dominant column, bug explodes
+  if (beatPulse > 0.85 && galagaState.lasers.length < 6) {
+    galagaState.lasers.push({ x: sx, y: shipY, hue: CHROMA_HUES[domIdx], col: domIdx, born: time });
+  }
+  galagaState.lasers = galagaState.lasers.filter(l => time - l.born < 0.5);
+  for (const laser of galagaState.lasers) {
+    laser.y -= height * 2.2 * dt;
+    ctx.shadowColor = `hsla(${laser.hue}, 100%, 70%, 1)`;
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = `hsla(${laser.hue}, 100%, 75%, 0.95)`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(laser.x, laser.y);
+    ctx.lineTo(laser.x, laser.y + 18);
+    ctx.stroke();
+    // Impact: explosion at the column's front row
+    const hitY = height * 0.12 + (rows - 1) * (swarmDepth / rows);
+    if (laser.y <= hitY && !laser.hit) {
+      laser.hit = true;
+      galagaState.explosions.push({ x: laser.x, y: hitY, hue: laser.hue, born: time });
+    }
+  }
+  galagaState.explosions = galagaState.explosions.filter(e => time - e.born < 0.45);
+  for (const boom of galagaState.explosions) {
+    const a = (time - boom.born) / 0.45;
+    for (let p = 0; p < 8; p++) {
+      const ang = (p / 8) * Math.PI * 2;
+      const d = a * 30;
+      ctx.fillStyle = `hsla(${boom.hue}, 100%, 65%, ${1 - a})`;
+      ctx.fillRect(boom.x + Math.cos(ang) * d - 2, boom.y + Math.sin(ang) * d - 2, 4, 4);
+    }
+  }
+  ctx.shadowBlur = 0;
+
+  // Player ship (chunky pixel fighter), thrusters flare with the bass
+  const bass = mel && mel.length ? Math.max(0, (mel[0] + 10) / 10) : 0.3;
+  const s = Math.min(width, height) * 0.022 * (1 + beatPulse * 0.15);
+  ctx.fillStyle = '#e8e8ff';
+  ctx.fillRect(sx - s * 0.4, shipY - s * 2, s * 0.8, s * 2);
+  ctx.fillRect(sx - s * 1.6, shipY - s * 0.6, s * 3.2, s);
+  ctx.fillStyle = `hsla(${CHROMA_HUES[domIdx]}, 90%, 60%, 0.9)`;
+  ctx.fillRect(sx - s * 0.25, shipY - s * 2.7, s * 0.5, s * 0.7);
+  ctx.fillStyle = `hsla(30, 100%, ${50 + bass * 30}%, ${0.5 + bass * 0.5})`;
+  ctx.fillRect(sx - s * 0.9, shipY + s * 0.4, s * 0.5, s * (0.8 + bass * 1.5));
+  ctx.fillRect(sx + s * 0.4, shipY + s * 0.4, s * 0.5, s * (0.8 + bass * 1.5));
+
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
+// --- NEON PONG STATE ---
+let pongState = {
+  x: 0.5, y: 0.5, vx: 0.32, vy: 0.21, leftY: 0.5, rightY: 0.5,
+  trail: [], sparks: [], lastTime: 0
+};
+
+function drawNeonPongWave(ctx, width, height, chroma, mel, beatPulse, time) {
+  const settings = getEffectiveWaveformSettings('neon_pong');
+  const courtMidY = height * (settings.basePosition / 100);
+  const paddleRange = height * 0.5 * (settings.maxAmplitude / 100);
+
+  let dt = time - pongState.lastTime;
+  if (dt < 0 || dt > 0.1) dt = 0.016;
+  pongState.lastTime = time;
+
+  // Left paddle chases the BASS, right paddle chases the TREBLE
+  let bass = 0.5, treble = 0.5;
+  if (mel && mel.length) {
+    const third = Math.floor(mel.length / 3);
+    const norm = (v) => Math.max(0, Math.min(1, (v + 10) / 10));
+    bass = norm(mel.slice(0, third).reduce((a, b) => a + b, 0) / third);
+    treble = norm(mel.slice(-third).reduce((a, b) => a + b, 0) / third);
+  }
+  const leftTarget = 0.5 - (bass - 0.5) * 0.9;
+  const rightTarget = 0.5 - (treble - 0.5) * 0.9;
+  pongState.leftY += (leftTarget - pongState.leftY) * Math.min(1, dt * 5);
+  pongState.rightY += (rightTarget - pongState.rightY) * Math.min(1, dt * 5);
+
+  // Ball physics: energy sets pace, beats kick it harder
+  const energy = (bass + treble) / 2;
+  const speed = (0.25 + energy * 0.5) * (1 + beatPulse * 0.9);
+  pongState.x += pongState.vx * speed * dt * 2.2;
+  pongState.y += pongState.vy * speed * dt * 2.2;
+
+  let domIdx = 0;
+  for (let i = 1; i < 12; i++) if (chroma[i] > chroma[domIdx]) domIdx = i;
+  const ballHue = CHROMA_HUES[domIdx];
+
+  // Bounces (paddles always connect — the crowd goes wild forever)
+  const spark = (x, y) => pongState.sparks.push({ x, y, hue: ballHue, born: time });
+  if (pongState.y <= 0.06) { pongState.y = 0.06; pongState.vy = Math.abs(pongState.vy); spark(pongState.x, pongState.y); }
+  if (pongState.y >= 0.94) { pongState.y = 0.94; pongState.vy = -Math.abs(pongState.vy); spark(pongState.x, pongState.y); }
+  if (pongState.x <= 0.06) {
+    pongState.x = 0.06; pongState.vx = Math.abs(pongState.vx);
+    pongState.vy += (Math.random() - 0.5) * 0.15; spark(pongState.x, pongState.y);
+  }
+  if (pongState.x >= 0.94) {
+    pongState.x = 0.94; pongState.vx = -Math.abs(pongState.vx);
+    pongState.vy += (Math.random() - 0.5) * 0.15; spark(pongState.x, pongState.y);
+  }
+  // Keep vy sane
+  pongState.vy = Math.max(-0.5, Math.min(0.5, pongState.vy));
+
+  // Center net: mel spectrum as glowing dashes
+  if (mel && mel.length) {
+    const dashes = 16;
+    for (let i = 0; i < dashes; i++) {
+      const mIdx = Math.floor((i / dashes) * mel.length);
+      const v = Math.max(0, Math.min(1, (mel[mIdx] + 10) / 10));
+      const dy = (i + 0.5) / dashes * height;
+      ctx.fillStyle = `hsla(${CHROMA_HUES[i % 12]}, 80%, 60%, ${0.15 + v * 0.5})`;
+      ctx.fillRect(width / 2 - 2 - v * 3, dy - 8, 4 + v * 6, 16);
+    }
+  }
+
+  // Paddles: neon slabs glowing with their band's energy
+  const padH = paddleRange * 0.5;
+  const padW = Math.max(6, width * 0.012);
+  const drawPaddle = (px, py, hue, level) => {
+    ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.9)`;
+    ctx.shadowBlur = 10 + level * 25 + beatPulse * 10;
+    ctx.fillStyle = `hsla(${hue}, 90%, ${55 + level * 25}%, 0.95)`;
+    ctx.fillRect(px, py - padH / 2, padW, padH);
+  };
+  const leftPy = courtMidY + (pongState.leftY - 0.5) * 2 * paddleRange;
+  const rightPy = courtMidY + (pongState.rightY - 0.5) * 2 * paddleRange;
+  drawPaddle(width * 0.035, leftPy, 200, bass);      // bass = cool blue
+  drawPaddle(width * 0.965 - padW, rightPy, 320, treble); // treble = hot pink
+  ctx.shadowBlur = 0;
+
+  // Ball trail
+  pongState.trail.push({ x: pongState.x, y: pongState.y, born: time });
+  pongState.trail = pongState.trail.filter(t => time - t.born < 0.35);
+  for (const t of pongState.trail) {
+    const a = 1 - (time - t.born) / 0.35;
+    ctx.fillStyle = `hsla(${ballHue}, 95%, 65%, ${a * 0.35})`;
+    ctx.beginPath();
+    ctx.arc(t.x * width, t.y * height, 7 * a, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Ball: dominant-note color, beat-pumped
+  const ballR = (6 + energy * 5) * (1 + beatPulse * 0.4);
+  ctx.shadowColor = `hsla(${ballHue}, 100%, 70%, 1)`;
+  ctx.shadowBlur = 16 + beatPulse * 20;
+  ctx.fillStyle = `hsla(${ballHue}, 95%, 70%, 1)`;
+  ctx.beginPath();
+  ctx.arc(pongState.x * width, pongState.y * height, ballR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Bounce sparks
+  pongState.sparks = pongState.sparks.filter(sp => time - sp.born < 0.4);
+  for (const sp of pongState.sparks) {
+    const a = (time - sp.born) / 0.4;
+    for (let p = 0; p < 6; p++) {
+      const ang = (p / 6) * Math.PI * 2 + sp.born * 7;
+      const d = a * 25;
+      ctx.fillStyle = `hsla(${sp.hue}, 100%, 70%, ${1 - a})`;
+      ctx.fillRect(sp.x * width + Math.cos(ang) * d, sp.y * height + Math.sin(ang) * d, 3, 3);
+    }
+  }
+
+  drawWaveLabels(ctx, width, height, chroma);
+}
+
 // --- LYRIC FLOW STATE ---
 // Remembers word reveal times per line so words pop once and stay (survives
 // seeks: state resets whenever the active line index changes)
@@ -6062,7 +6421,7 @@ function drawLyricFlowWave(ctx, width, height, chroma, mel, beatPulse, time) {
   drawWaveLabels(ctx, width, height, chroma);
 }
 
-function drawWaveLabels(ctx, width, height, chroma) {
+export function drawWaveLabels(ctx, width, height, chroma) {
   const labelY = height - 18; // Fixed at bottom (y=100%)
   ctx.font = '12px "Orbitron", monospace';
   ctx.textAlign = 'center';
@@ -7393,8 +7752,14 @@ function drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time) {
         ctx.beginPath();
         for (let i = 0; i <= sides; i++) {
             const theta = angle + (i / sides) * Math.PI * 2;
-            // Morph shape slightly with beat (make it breathe)
-            const r = radius * (1 + 0.1 * Math.sin(time * 2 + i + beatPulse));
+            // Each vertex rides its own mel band: treble spikes the shape,
+            // quiet passages relax it back to a smooth hexagon
+            let melSpike = 0;
+            if (mel && mel.length) {
+                const mIdx = Math.floor(((i % sides) / sides) * mel.length);
+                melSpike = Math.max(0, (mel[mIdx] + 10) / 10) * 0.35;
+            }
+            const r = radius * (1 + 0.08 * Math.sin(time * 2 + i + beatPulse) + melSpike);
             const px = x + Math.cos(theta) * r;
             const py = y + Math.sin(theta) * r;
             if (i===0) ctx.moveTo(px, py);
@@ -7422,9 +7787,14 @@ function drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time) {
         }
     };
     
-    // Draw Main Fractal
+    // Draw Main Fractal + a counter-rotating mirror twin in the opposite hue —
+    // the two interlock and separate with the energy, way trippier in motion
     const startRadius = Math.min(width, height) * 0.22;
     drawFractal(centerX, centerY, startRadius, fractalState.rotation, maxDepth);
+    const mirrorHueSave = fractalState.hueOffset;
+    fractalState.hueOffset = (fractalState.hueOffset + 180) % 360;
+    drawFractal(centerX, centerY, startRadius * (0.5 + smoothE * 0.3), -fractalState.rotation * 1.3, maxDepth - 1);
+    fractalState.hueOffset = mirrorHueSave;
     
     // Background Tunnel - Smoother and separate from fractal logic
     const tunnelDepth = 8;
@@ -7438,10 +7808,14 @@ function drawFractalVoidWave(ctx, width, height, chroma, mel, beatPulse, time) {
         if (alpha <= 0) continue;
 
         const rot = -fractalState.rotation * (0.5 + i*0.1);
-        const hue = (fractalState.hueOffset + i * 20 - time*20) % 360;
-        
-        ctx.strokeStyle = `hsla(${hue}, 60%, 40%, ${alpha * 0.3})`;
-        ctx.lineWidth = 1;
+        // Tunnel rings take each note's own color and thump with the bass
+        const chromaIdx = i % 12;
+        const hue = (CHROMA_HUES[chromaIdx] + fractalState.hueOffset - time*20) % 360;
+        let bass = 0;
+        if (mel && mel.length) bass = Math.max(0, (mel[0] + 10) / 10);
+
+        ctx.strokeStyle = `hsla(${hue}, 70%, ${35 + (chroma[chromaIdx] || 0) * 25}%, ${alpha * (0.3 + (chroma[chromaIdx] || 0) * 0.4)})`;
+        ctx.lineWidth = 1 + bass * 2.5 + beatPulse * 1.5;
         ctx.beginPath();
         const sides = 6;
         for (let j = 0; j <= sides; j++) {
