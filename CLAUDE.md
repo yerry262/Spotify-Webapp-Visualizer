@@ -1,9 +1,11 @@
 # Spotify Webapp Visualizer - Developer Guide
 
 ## Project Overview
-A React-based music visualizer that analyzes real-time audio from Spotify playback using Web Audio API and custom audio processing. Supports 52 visualization styles with multi-device coordination and intelligent caching.
+A React-based music visualizer that analyzes real-time audio from Spotify playback using Web Audio API and custom audio processing. Supports 56 visualization styles with multi-device coordination and intelligent caching.
 
 ## Adding a Waveform Style
+
+Use the `add-waveform` skill (`.claude/skills/add-waveform/SKILL.md`) — it has the full recipe, data contract, and test harness. Summary:
 
 Each waveform lives in its own file under `src/components/visualizers/waveforms/` (one file per style, private state/helpers included). Shared pieces (`CHROMA_HUES`, `PITCH_CLASSES`, `getEffectiveWaveformSettings`, `drawWaveLabels`, `WAVEFORM_DEFAULTS`) live in `src/components/visualizers/waveformCore.js`. A new style needs four wirings:
 1. New file `waveforms/<name>.js` exporting `draw<Name>Wave(ctx, width, height, chroma, mel, beatPulse, time)`, importing what it needs from `../waveformCore`
@@ -19,12 +21,13 @@ Conventions: get position/size from `getEffectiveWaveformSettings(styleId)`, col
 - **App.jsx**: Main component managing playback polling, track changes, analysis pipeline
 - **youtubeService.js**: YouTube search, MP3 download coordination with multi-device locking
 - **audioAnalysisService.js**: Audio analysis pipeline (mel, chroma, pitch, rhythm extraction)
-- **analysisCache.js**: Server-side analysis caching with normalization
+- **analysisCache.js**: Server-side analysis caching (structural normalization only — values stay raw)
+- **lyricsService.js**: Time-synced lyrics from lrclib.net (client→lrclib direct; 20s timeout, cleaned-title retry, search fallback)
 - **Components**: AudioVisualizer, TrackInfo, PlaybackControls, SideMenu, etc.
 
 ### Backend (Node.js + Express)
 - **server.js**: YouTube search + MP3 conversion, analysis caching, multi-device coordination
-  - `/search-youtube`: Search YouTube via `yt-dlp "ytsearch1:<query>"` (replaced the dead Browser-Use API, July 2026)
+  - `/search-youtube`: yt-dlp `ytsearch8` + candidate scoring vs Spotify artist/title/duration (`server/searchScoring.js`); returns no_results over a wrong song. Legacy query-only requests fall back to top-1.
   - `/get-mp3`: Download from YouTube with locking
   - `/check-status`: Check if analysis/MP3 is cached or in progress
   - `/notify-analyzing`: Acquire analysis lock
@@ -187,7 +190,7 @@ npm run deploy  # GitHub Pages
 - **Platform**: Railway
 - **Frontend**: GitHub Pages (`yerry262.github.io/Spotify-Webapp-Visualizer`)
 - **Backend**: Railway (`spotify-webapp-visualizer-production.up.railway.app`)
-- **Last Deploy**: 2026-07-05 (backend: yt-dlp search fix on Railway; frontend: GitHub Pages) ✅ SUCCESS
+- **Last Deploy**: 2026-07-06 (raw analysis v2, Railway volume, scored YouTube search, rotate bubble UI) ✅ SUCCESS
 - **Build Status**: All CI/CD passing
 - **Dependencies**: All packages up-to-date, 0 vulnerabilities
 
@@ -221,6 +224,8 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 - [ ] Integration with other music services (Apple Music, YouTube Music)
 
 ## Recent Changes Log
+
+- **2026-07-06**: Added `.claude/skills/add-waveform` project skill (full recipe + smoke-test harness for new styles); CLAUDE.md refreshed (56 styles, scored search endpoint, lyricsService in architecture)
 
 - **2026-07-06**: Rotate controls pop-out — drag the Random/Cycle rows out of the sidebar to float them as a draggable bubble (RotateBubble/RotateControls components, position persisted in localStorage)
 
