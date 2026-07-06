@@ -212,9 +212,11 @@ const isDev = process.env.NODE_ENV === 'development';
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Requests with no Origin header (curl, server-to-server) — allowed in dev only
+    // Requests with no Origin header (Railway healthcheck, curl, server-to-server)
+    // are not browser cross-site requests, so CORS doesn't apply — always allow.
+    // (Rejecting these breaks the platform /health probe.)
     if (!origin) {
-      return callback(isDev ? null : new Error('Origin required'), isDev);
+      return callback(null, true);
     }
 
     if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
