@@ -252,11 +252,28 @@ app.get('/health', (req, res) => {
 });
 
 
-// YouTube bot-challenges datacenter IPs ("Sign in to confirm you're not a bot");
-// the tv/web_embedded player clients currently bypass the check without cookies.
-// Formats from all listed clients are merged, so a DRM'd or blocked client
-// degrades to the next one instead of failing the download.
-const YT_DLP_CLIENT_ARGS = ['--extractor-args', 'youtube:player_client=tv,web_embedded,default'];
+// YouTube bot-challenges datacenter IPs ("Sign in to confirm you're not a bot").
+// Downloads are defended by a proof-of-origin token minted locally by the bgutil
+// POT provider (auto-detected by the yt-dlp plugin on 127.0.0.1:4416), plus a
+// rotation of player clients: if one is blocked/DRM'd/challenged, we retry the
+// download with the next. POT tokens are minted fresh per video by the provider,
+// so there is nothing static to rotate — the client is what we vary.
+// Override the provider URL (e.g. a separate service) via POT_PROVIDER_URL.
+const POT_PROVIDER_URL = process.env.POT_PROVIDER_URL || null;
+const YT_DLP_CLIENTS = ['default', 'mweb', 'tv,web_embedded', 'web_safari'];
+
+function buildDownloadArgs(clientSpec, outputPath, youtubeUrl) {
+  const args = [
+    '-x', '--audio-format', 'mp3', '--audio-quality', '0',
+    '--no-playlist', '--force-overwrites',
+    '--extractor-args', `youtube:player_client=${clientSpec}`,
+  ];
+  if (POT_PROVIDER_URL) {
+    args.push('--extractor-args', `youtubepot-bgutilhttp:base_url=${POT_PROVIDER_URL}`);
+  }
+  args.push('-o', outputPath, youtubeUrl);
+  return args;
+}
 
 // ==================== YOUTUBE SEARCH (yt-dlp) ====================
 // Search YouTube via yt-dlp's built-in ytsearch — no API key, no external service.
@@ -703,39 +720,34 @@ app.post('/get-mp3', async (req, res) => {
     finalFilename = null; // Will be determined after download
   }
 
-  // yt-dlp command to extract audio as MP3
-  // Options:
-  //   -x: Extract audio
-  //   --audio-format mp3: Convert to MP3
-  //   --audio-quality 0: Best quality
-  //   --no-playlist: Don't download playlists
-  //   --force-overwrites: Overwrite any existing partial/corrupt files
-  
-  // Use globally installed yt-dlp and ffmpeg (installed via winget/pip)
-  // Both Windows and Linux should have these in PATH.
-  // execFile + args array: outputPath/URL are passed as literal arguments,
-  // never through a shell (defense-in-depth; URL is already regex-validated).
-  const args = [
-    '-x', '--audio-format', 'mp3', '--audio-quality', '0',
-    '--no-playlist', '--force-overwrites',
-    ...YT_DLP_CLIENT_ARGS,
-    '-o', outputPath, youtubeUrl
-  ];
+  // Extract audio as MP3 via yt-dlp, rotating through player clients on failure.
+  // execFile + args array: outputPath/URL are literal arguments, never parsed
+  // by a shell (defense-in-depth; URL is already regex-validated). A local POT
+  // provider supplies proof-of-origin tokens so YouTube trusts the request.
+  const tryDownload = (attempt) => {
+    const clientSpec = YT_DLP_CLIENTS[attempt];
+    const args = buildDownloadArgs(clientSpec, outputPath, youtubeUrl);
+    console.log(`⬇️ Download attempt ${attempt + 1}/${YT_DLP_CLIENTS.length} (client=${clientSpec}): ${youtubeUrl}`);
 
-  execFile('yt-dlp', args, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+    execFile('yt-dlp', args, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
     console.log('📋 yt-dlp stdout:', stdout);
     console.log('📋 yt-dlp stderr:', stderr);
-    
+
     if (error) {
-      console.error('❌ yt-dlp error:', error.message);
+      console.error(`❌ yt-dlp error (client=${clientSpec}):`, error.message);
       console.error('stderr:', stderr);
+      // Retry with the next player client if any remain
+      if (attempt + 1 < YT_DLP_CLIENTS.length) {
+        console.log('🔄 Retrying download with next player client...');
+        return tryDownload(attempt + 1);
+      }
       // Release lock on failure
       if (artist && song) {
         releaseDownloadLock(artist, song, false);
       }
       return res.status(500).json({
         error: 'Failed to download MP3',
-        details: error.message
+        details: stderr || error.message
       });
     }
 
@@ -801,7 +813,10 @@ app.post('/get-mp3', async (req, res) => {
       path: mp3Path,
       cached: false
     });
-  });
+    });
+  };
+
+  tryDownload(0);
 });
 
 // List all downloaded MP3 files
