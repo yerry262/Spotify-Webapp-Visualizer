@@ -203,6 +203,8 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 
 ## Recent Changes Log
 
+- **2026-07-06**: Minion Mayhem 2.0 — airship dropping banana-bombs, minion-piloted rockets bursting into banana fireworks, foreground minions sprinting after bananas, full explosion system (fireball/shockwave/debris)
+
 - **2026-07-06**: Added Matrix Rain 2 waveform (layered parallax rain, glowing heads, beat bursts, glitch flicker) — 52 total
 
 - **2026-07-05**: Replaced dead Browser-Use YouTube search with yt-dlp `ytsearch` (backend was returning 404 on every search, breaking the whole pipeline)
