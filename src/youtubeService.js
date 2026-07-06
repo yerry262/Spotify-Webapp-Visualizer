@@ -454,7 +454,7 @@ export const YouTubeService = {
       let data;
       try {
         data = await response.json();
-      } catch (jsonError) {
+      } catch {
         console.error('MP3 server returned non-JSON response');
         return null;
       }

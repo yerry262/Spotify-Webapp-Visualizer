@@ -51,9 +51,8 @@ const generateCodeChallenge = async (codeVerifier) => {
 
 // Spotify Auth Service
 export const SpotifyAuth = {
-  // Initiate login with PKCE
-  // forceLogin: if true, forces Spotify to show login dialog (allows switching accounts)
-  async login(forceLogin = false) {
+  // Initiate login with PKCE (always shows the Spotify dialog so accounts can be switched)
+  async login() {
     const codeVerifier = generateRandomString(64);
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     
