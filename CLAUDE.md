@@ -222,6 +222,8 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 
 ## Recent Changes Log
 
+- **2026-07-06**: YouTube search accuracy — /search-youtube now fetches 8 candidates and scores them against Spotify artist/title/duration (server/searchScoring.js); rejects wrong songs instead of trusting ytsearch1 (fixes Łaszewo/HAPPY LANDING wrong-download bug)
+
 - **2026-07-06**: Raw analysis v2 (mel/chroma saved unflattened, render-time track-global scaling, melRaw/chromaRaw for waveforms); MP3s retained on Railway volume (DATA_DIR) with size-cap eviction (MP3_CACHE_MAX_MB)
 
 - **2026-07-06**: Refactored VisualizerAudio.js (8,947 lines) into per-waveform files under `visualizers/waveforms/` + shared `waveformCore.js`; dispatch switch replaced by `WAVEFORM_RENDERERS` registry

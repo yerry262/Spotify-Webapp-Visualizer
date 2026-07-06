@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const { pickBestCandidate } = require('./searchScoring');
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Use Railway's PORT or default to 3001
@@ -331,20 +332,24 @@ function buildDownloadArgs(clientSpec, outputPath, youtubeUrl) {
 // Search YouTube via yt-dlp's built-in ytsearch — no API key, no external service.
 // Response shape matches the old Browser-Use proxy so the frontend needs no changes.
 app.post('/search-youtube', expensiveLimiter, async (req, res) => {
-  const { query } = req.body;
+  const { query, artist, song, durationSec } = req.body;
 
   if (!query) {
     return res.status(400).json({ error: 'Query is required' });
   }
 
-  console.log('🔍 Searching YouTube via yt-dlp:', query);
+  // With artist/song metadata we can fetch several candidates and score them
+  // against the Spotify track; without it (legacy clients) take the top hit.
+  const haveMeta = typeof artist === 'string' && typeof song === 'string' && artist && song;
+  const numResults = haveMeta ? 8 : 1;
+  console.log(`🔍 Searching YouTube via yt-dlp (top ${numResults}):`, query);
 
   // execFile with an args array — the query is passed as a single argument and
   // is never parsed by a shell, so shell metacharacters ($(), backticks, ;)
   // in the query cannot inject commands.
   // --flat-playlist returns search metadata without hitting the player API,
   // so the search step can never trip YouTube's datacenter-IP bot challenge.
-  const args = [`ytsearch1:${query}`, '--dump-json', '--flat-playlist', '--no-download'];
+  const args = [`ytsearch${numResults}:${query}`, '--dump-json', '--flat-playlist', '--no-download'];
 
   execFile('yt-dlp', args, { maxBuffer: 1024 * 1024 * 10, timeout: 30000 }, (error, stdout, stderr) => {
     if (error) {
@@ -353,22 +358,49 @@ app.post('/search-youtube', expensiveLimiter, async (req, res) => {
     }
 
     try {
-      const info = JSON.parse(stdout.trim().split('\n')[0]);
+      const candidates = stdout.trim().split('\n').filter(Boolean).map(line => {
+        try {
+          const info = JSON.parse(line);
+          return {
+            id: info.id,
+            title: info.title || '',
+            channel: info.channel || info.uploader || '',
+            duration: info.duration || null,
+            url: info.webpage_url || `https://www.youtube.com/watch?v=${info.id}`,
+          };
+        } catch {
+          return null;
+        }
+      }).filter(Boolean);
 
-      if (!info || !info.id) {
+      if (candidates.length === 0) {
         console.warn('No YouTube results found for:', query);
         return res.json({ success: false, error: 'no_results' });
       }
 
-      console.log('✅ Found video:', info.title, 'by', info.channel || info.uploader);
+      let picked;
+      if (haveMeta) {
+        const target = { artist, song, durationSec: Number(durationSec) || null };
+        const best = pickBestCandidate(candidates, target);
+        if (!best) {
+          console.warn(`❌ No candidate matched "${artist} - ${song}" (dur ${durationSec || '?'}s). Top hit was: ${candidates[0].title}`);
+          return res.json({ success: false, error: 'no_results' });
+        }
+        picked = best.candidate;
+        console.log(`✅ Picked (score ${best.score.toFixed(1)}): ${picked.title} by ${picked.channel}` +
+          (picked.duration && durationSec ? ` [${picked.duration}s vs ${Math.round(durationSec)}s]` : ''));
+      } else {
+        picked = candidates[0];
+        console.log('✅ Found video:', picked.title, 'by', picked.channel);
+      }
 
       res.json({
         success: true,
         data: {
-          video_id: info.id,
-          video_url: info.webpage_url || `https://www.youtube.com/watch?v=${info.id}`,
-          title: info.title,
-          channel: info.channel || info.uploader || ''
+          video_id: picked.id,
+          video_url: picked.url,
+          title: picked.title,
+          channel: picked.channel
         }
       });
     } catch (parseError) {
