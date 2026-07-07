@@ -3,7 +3,7 @@
 # matched pair (mismatches silently fail and YouTube bot-challenges return).
 FROM brainicism/bgutil-ytdlp-pot-provider:1.3.1-node AS pot
 
-FROM node:20-slim
+FROM node:24-slim
 
 # Install yt-dlp, ffmpeg, and deno (required for yt-dlp YouTube extraction)
 RUN apt-get update && apt-get install -y \
