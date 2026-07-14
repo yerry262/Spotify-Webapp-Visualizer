@@ -49,6 +49,16 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  // Set while polling waitForReady() for ANOTHER device's download/analysis
+  // (vs. isAnalyzing, which also covers our own work) so the visualizer can
+  // show an honest "waiting on another device" message instead of implying
+  // this device is doing the work.
+  const [waitingFor, setWaitingFor] = useState(null); // null | 'download' | 'analysis'
+  // Set when the pipeline gives up on the current track (download/analysis
+  // failed after retries). Distinguishes "stalled while music is playing"
+  // from genuine idle, so the UI doesn't lie and say "Waiting for music..."
+  // when a track is actively playing but its visuals failed to load.
+  const [pipelineStalled, setPipelineStalled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Waveform selection state
@@ -226,6 +236,8 @@ function App() {
           
           // Clear old audio data immediately
           setAnalysisData(null);
+          setWaitingFor(null);
+          setPipelineStalled(false);
 
           // Fetch synced lyrics for the Lyric Flow visualizer (fire-and-forget)
           clearLyrics();
@@ -272,11 +284,13 @@ function App() {
               // NOTE: getMP3ForTrack handles unified status check + server cache + locking
               console.log(ts(), '🔍 Step 2: Fetching MP3 (Unified status check + Cache + YouTube)...');
               const mp3Result = await YouTubeService.getMP3ForTrack(
-                artistName, 
+                artistName,
                 trackName,
                 () => setIsSearching(true),  // onSearchStart
                 () => { setIsSearching(false); setIsDownloading(true); },  // onDownloadStart
-                state.item.duration_ms / 1000
+                state.item.duration_ms / 1000,
+                (kind) => setWaitingFor(kind),  // onWaitStart - polling for another device
+                () => setWaitingFor(null)       // onWaitEnd
               );
 
               if (!mp3Result) {
@@ -284,6 +298,7 @@ function App() {
                 setIsSearching(false);
                 setIsDownloading(false);
                 setIsAnalyzing(false);
+                setPipelineStalled(true);
                 isProcessingRef.current = false;
                 return;
               }
@@ -325,8 +340,9 @@ function App() {
               // Check if another device is already analyzing
               if (!lockResult.acquired) {
                 console.log(ts(), '⏳ Another device is analyzing, waiting...');
+                setWaitingFor('analysis');
                 try {
-                  const status = await YouTubeService.waitForReady(artistName, trackName);
+                  const status = await YouTubeService.waitForReady(artistName, trackName, 'analysis');
                   if (status.status === 'analysis_ready') {
                     console.log(ts(), '✅ Other device finished analysis');
                     // Small debounce to ensure file is fully written
@@ -377,6 +393,8 @@ function App() {
                   setIsAnalyzing(false);
                   isProcessingRef.current = false;
                   return;
+                } finally {
+                  setWaitingFor(null);
                 }
               }
 
@@ -397,7 +415,22 @@ function App() {
               } catch (analysisError) {
                 console.error(ts(), '❌ Analysis failed:', analysisError);
                 await YouTubeService.releaseAnalysisLock(artistName, trackName, false);
+
+                // Before giving up: another device may have raced us and
+                // already finished + saved analysis for this track while we
+                // were failing. Check the server cache once more rather than
+                // stranding the UI on a track that's actually available.
+                const rescueAnalysis = await getCachedAnalysis(artistName, trackName);
+                if (rescueAnalysis && YouTubeService.shouldContinue(artistName, trackName)) {
+                  console.log(ts(), '📦 Found analysis from another device after our failure, using it');
+                  setAnalysisData(rescueAnalysis);
+                  setIsAnalyzing(false);
+                  isProcessingRef.current = false;
+                  return;
+                }
+
                 setIsAnalyzing(false);
+                setPipelineStalled(true);
                 isProcessingRef.current = false;
                 return;
               }
@@ -423,6 +456,8 @@ function App() {
             } catch (err) {
               console.error(ts(), '❌ Audio pipeline failed:', err);
               setIsAnalyzing(false);
+              setWaitingFor(null);
+              setPipelineStalled(true);
               isProcessingRef.current = false;
             }
           }, TRACK_CHANGE_DEBOUNCE);
@@ -798,13 +833,15 @@ function App() {
           <>
             {/* Top Half - Audio Visualizer */}
             <div className={`visualizer-section ${isVisualizerExpanded ? 'expanded' : ''}`}>
-              <AudioVisualizer 
+              <AudioVisualizer
                 analysisData={analysisData}
                 isPlaying={playbackState?.is_playing}
                 progress={playbackState?.progress_ms}
                 isAnalyzing={isAnalyzing}
                 isSearching={isSearching}
                 isDownloading={isDownloading}
+                waitingFor={waitingFor}
+                stalled={pipelineStalled}
                 trackId={playbackState?.item?.id}
               />
             </div>

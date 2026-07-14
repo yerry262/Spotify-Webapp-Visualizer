@@ -5,14 +5,15 @@
  */
 
 /**
- * Draw the idle animation - shown when waiting for music
- * EXACT MATCH TO TEST-RUNNER
+ * Draw the idle animation - shown when nothing is playing, or the pipeline
+ * gave up on the current track (download/analysis failed after retries).
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  * @param {number} width - Canvas width
  * @param {number} height - Canvas height
  * @param {number} time - Current time in seconds
+ * @param {boolean} stalled - true if a track IS playing but visuals failed to load
  */
-export function drawIdleAnimation(ctx, width, height, time) {
+export function drawIdleAnimation(ctx, width, height, time, stalled = false) {
   const centerX = width / 2;
   const centerY = height / 2;
   
@@ -73,9 +74,14 @@ export function drawIdleAnimation(ctx, width, height, time) {
     ctx.stroke();
   }
   
-  // "Waiting" text - EXACT MATCH TO TEST-RUNNER
+  // Status text - distinguishes genuine idle from a stalled pipeline so we
+  // never claim to be "waiting for music" while a track is actually playing
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
   ctx.font = '14px "Orbitron", monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('Waiting for music...', centerX, height - 40);
+  ctx.fillText(
+    stalled ? "Couldn't load visuals for this track" : 'Waiting for music...',
+    centerX,
+    height - 40
+  );
 }

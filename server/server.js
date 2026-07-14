@@ -221,6 +221,23 @@ const allowedOrigins = [
 // to arbitrary origins (which, with credentials:true, is a real vulnerability).
 const isDev = process.env.NODE_ENV === 'development';
 
+// Exact-match an Origin header against the allowlist. Comparing hostnames
+// via URL parsing (not origin.startsWith(allowed)) closes a bypass where
+// e.g. "https://yerry262.github.io.attacker.io" is a literal string prefix
+// of an allowed origin and would otherwise pass.
+function isAllowedOrigin(origin) {
+  let parsed;
+  try {
+    parsed = new URL(origin);
+  } catch {
+    return false;
+  }
+  return allowedOrigins.some(allowed => {
+    const allowedParsed = new URL(allowed);
+    return parsed.protocol === allowedParsed.protocol && parsed.host === allowedParsed.host;
+  });
+}
+
 app.use(cors({
   origin: function(origin, callback) {
     // Requests with no Origin header (Railway healthcheck, curl, server-to-server)
@@ -230,7 +247,7 @@ app.use(cors({
       return callback(null, true);
     }
 
-    if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
@@ -914,8 +931,10 @@ app.post('/get-mp3', expensiveLimiter, async (req, res) => {
   tryDownload(0);
 });
 
-// List all downloaded MP3 files
-app.get('/mp3files/list', (req, res) => {
+// List all downloaded MP3 files. Not used by the web client (which discovers
+// files via /check-status et al) — admin-gated like the other /mp3files
+// endpoints instead of leaving a public filename/size dump.
+app.get('/mp3files/list', requireAdmin, (req, res) => {
   try {
     const files = fs.readdirSync(MP3_DIR)
       .filter(f => f.endsWith('.mp3'))
@@ -1248,8 +1267,9 @@ app.post('/save-analysis', writeLimiter, (req, res) => {
   }
 });
 
-// List all analysis files
-app.get('/analysis/list', (req, res) => {
+// List all analysis files. Not used by the web client — admin-gated like
+// the other /analysis endpoints instead of leaving a public dump.
+app.get('/analysis/list', requireAdmin, (req, res) => {
   try {
     const files = fs.readdirSync(ANALYSIS_DIR)
       .filter(f => f.endsWith('.json'))

@@ -24,7 +24,16 @@ const ts = () => {
 const CACHE_KEY_PREFIX = 'yt_cache_v2_';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days for YouTube URL cache
 const POLL_INTERVAL_MS = 2000;  // Poll every 2s when waiting for another device
-const MAX_WAIT_MS = 20000;      // 20s max wait (server download lock is 15s, analysis is 90s)
+
+// Max time to poll waitForReady() before giving up on another device and
+// doing the work ourselves. Must comfortably exceed the server-side lock
+// timeout it's paired with, or we give up on a device that's still working
+// and end up analyzing the same track twice (confirmed in prod logs:
+// analysis routinely takes ~30s, so the old flat 20s cap raced every time).
+const WAIT_TIMEOUTS_MS = {
+  download: 20000,  // server download lock is 15s
+  analysis: 95000,  // server analysis lock is 90s
+};
 
 // ==================== DEVICE ID ====================
 // Unique device identifier for multi-device coordination
@@ -225,13 +234,15 @@ export const YouTubeService = {
 
   /**
    * Wait for a song to become ready (poll server when another device is processing)
+   * @param {string} kind - 'download' or 'analysis', picks the matching WAIT_TIMEOUTS_MS budget
    * @returns {Promise<{status: string, mp3Url?: string, analysisUrl?: string}>}
    */
-  async waitForReady(artistName, songName) {
+  async waitForReady(artistName, songName, kind = 'download') {
     const startTime = Date.now();
-    console.log(`⏳ Waiting for another device to finish processing ${artistName} - ${songName}...`);
+    const maxWaitMs = WAIT_TIMEOUTS_MS[kind] || WAIT_TIMEOUTS_MS.download;
+    console.log(`⏳ Waiting for another device to finish ${kind} for ${artistName} - ${songName}...`);
 
-    while (Date.now() - startTime < MAX_WAIT_MS) {
+    while (Date.now() - startTime < maxWaitMs) {
       // Check if track changed (abort early)
       if (!this.shouldContinue(artistName, songName)) {
         throw new Error('Track changed while waiting');
@@ -261,7 +272,7 @@ export const YouTubeService = {
       await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
     }
 
-    console.warn(`⏰ Timeout waiting for song to be ready after ${MAX_WAIT_MS / 1000}s`);
+    console.warn(`⏰ Timeout waiting for song to be ready after ${maxWaitMs / 1000}s (${kind})`);
     return { status: 'timeout' };
   },
 
@@ -521,8 +532,10 @@ export const YouTubeService = {
    * 
    * @param {function} onSearchStart - Optional callback when YouTube search begins
    * @param {function} onDownloadStart - Optional callback when MP3 download begins
+   * @param {function} onWaitStart - Optional callback(kind) when we start polling for another device ('download'|'analysis')
+   * @param {function} onWaitEnd - Optional callback when that polling stops (ready, timeout, or aborted)
    */
-  async getMP3ForTrack(artistName, songName, onSearchStart = null, onDownloadStart = null, durationSec = null) {
+  async getMP3ForTrack(artistName, songName, onSearchStart = null, onDownloadStart = null, durationSec = null, onWaitStart = null, onWaitEnd = null) {
     // Acquire processing lock
     if (processingLock) {
       console.warn(ts(), '⏳ Already processing a track locally, skipping...');
@@ -548,14 +561,18 @@ export const YouTubeService = {
 
       // STEP 2: If another device is processing, wait for it
       if (status.status === 'downloading' || status.status === 'analyzing') {
+        const waitKind = status.status === 'analyzing' ? 'analysis' : 'download';
         console.log(ts(), `⏳ Another device is ${status.status}, waiting...`);
+        if (onWaitStart) onWaitStart(waitKind);
         try {
-          status = await this.waitForReady(artistName, songName);
+          status = await this.waitForReady(artistName, songName, waitKind);
         } catch (waitError) {
           console.log(ts(), '🛑 Aborted while waiting:', waitError.message);
           currentProcessingTrack = null;
           processingLock = false;
           return null;
+        } finally {
+          if (onWaitEnd) onWaitEnd();
         }
       }
 
@@ -630,8 +647,9 @@ export const YouTubeService = {
       // Handle 202 "in progress" response (another device started downloading)
       if (mp3Info && mp3Info.inProgress) {
         console.log(ts(), '⏳ Server says another device started download, waiting...');
+        if (onWaitStart) onWaitStart('download');
         try {
-          status = await this.waitForReady(artistName, songName);
+          status = await this.waitForReady(artistName, songName, 'download');
           if (status.status === 'mp3_ready' || status.status === 'analysis_ready') {
             lastCompletedTrack = { artist, song };
             currentProcessingTrack = null;
@@ -665,6 +683,8 @@ export const YouTubeService = {
           currentProcessingTrack = null;
           processingLock = false;
           return null;
+        } finally {
+          if (onWaitEnd) onWaitEnd();
         }
         // If we get here, the other device's download failed - return null
         console.error(ts(), '❌ Other device download failed');

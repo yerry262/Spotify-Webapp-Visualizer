@@ -4,6 +4,7 @@ import { drawIdleAnimation } from './visualizers/VisualizerIdle';
 import { drawLoadingAnimation } from './visualizers/VisualizerLoading';
 import { drawSearchingAnimation } from './visualizers/VisualizerSearching';
 import { drawDownloadingAnimation } from './visualizers/VisualizerDownloading';
+import { drawWaitingAnimation } from './visualizers/VisualizerWaiting';
 import { drawAudioVisualization, initParticles, resetWaveformTiming } from './visualizers/VisualizerAudio';
 import { getAnalysisAtTime } from '../audioAnalysisService';
 
@@ -15,14 +16,16 @@ import { getAnalysisAtTime } from '../audioAnalysisService';
  * - Internal time tracking with periodic Spotify sync
  * - Continuous playback visualization
  */
-const AudioVisualizer = ({ 
-  analysisData, 
-  isPlaying, 
-  progress, 
+const AudioVisualizer = ({
+  analysisData,
+  isPlaying,
+  progress,
   isAnalyzing,
   isSearching,
   isDownloading,
-  trackId 
+  waitingFor,
+  stalled,
+  trackId
 }) => {
   const canvasRef = useRef(null);
   const animationIdRef = useRef(null);
@@ -86,12 +89,24 @@ const AudioVisualizer = ({
     const deltaTime = (timestamp - lastTimestampRef.current) / 1000;
     lastTimestampRef.current = timestamp;
 
-    // IDLE STATE - no analysis data and not analyzing
-    if (!analysisData && !isAnalyzing && !isSearching && !isDownloading) {
-      // Clear canvas solid for idle
+    // IDLE / STALLED STATE - no analysis data and nothing in progress.
+    // "stalled" (pipeline gave up on this track) gets different wording than
+    // genuine idle (nothing playing) so the UI doesn't lie about what's
+    // happening while a track is actively playing.
+    if (!analysisData && !isAnalyzing && !isSearching && !isDownloading && !waitingFor) {
       ctx.fillStyle = 'rgb(10, 10, 15)';
       ctx.fillRect(0, 0, width, height);
-      drawIdleAnimation(ctx, width, height, timestamp / 1000);
+      drawIdleAnimation(ctx, width, height, timestamp / 1000, stalled && isPlaying);
+      animationIdRef.current = requestAnimationFrame(animate);
+      return;
+    }
+
+    // WAITING STATE - polling because another device is already downloading
+    // or analyzing this track (not us — don't imply we're doing the work)
+    if (waitingFor) {
+      ctx.fillStyle = 'rgb(10, 10, 15)';
+      ctx.fillRect(0, 0, width, height);
+      drawWaitingAnimation(ctx, width, height, timestamp / 1000, waitingFor);
       animationIdRef.current = requestAnimationFrame(animate);
       return;
     }
@@ -151,7 +166,7 @@ const AudioVisualizer = ({
     }
 
     animationIdRef.current = requestAnimationFrame(animate);
-  }, [analysisData, isPlaying, isAnalyzing, isSearching, isDownloading]);
+  }, [analysisData, isPlaying, isAnalyzing, isSearching, isDownloading, waitingFor, stalled]);
 
   // Handle resize - only initial setup and cleanup
   // Actual resizing is now handled in the animation loop for smoothness
