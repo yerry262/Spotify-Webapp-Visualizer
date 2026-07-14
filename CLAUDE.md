@@ -94,6 +94,42 @@ Sync visualization with playback
 - **Timeouts**: Download (15s), Analysis (90s) - prevent stale locks
 - **Polling**: Devices poll status endpoint and wait for others to finish
 - **Caching Strategy**: Check server cache → Check lock status → Download/analyze → Cache result
+- **Client wait budget must exceed the server lock it's waiting on** (`youtubeService.js`
+  `WAIT_TIMEOUTS_MS`: `download: 20000` vs the 15s download lock,
+  `analysis: 95000` vs the 90s analysis lock). Analysis routinely takes ~30s
+  in production (confirmed via Railway logs); a flat 20s wait cap used to
+  make a waiting device give up before the real work finished, fall through
+  to `getMP3ForTrack`'s "not found" branch, and duplicate the analysis
+  itself — two devices calling `/release-analysis-lock` microseconds apart
+  for the same track, one success and one failure. If you touch
+  `waitForReady()`, keep its per-`kind` timeout comfortably above the
+  matching server lock timeout, or this comes back.
+- Search itself is **not** locked — two devices can both hit `/search-youtube`
+  for the same "not found" track at once (wasted yt-dlp calls, rate-limited
+  by `expensiveLimiter`). Only download and analysis are deduped, via the
+  server-side `Map`-based locks in `server.js`. This is intentional (search
+  is cheap and free); don't add search locking without a reason.
+
+### Pipeline UI State Machine (top-half visualizer)
+`AudioVisualizer.jsx` picks ONE state per frame, in this priority order:
+`waitingFor` (another device is working) → `isSearching` → `isDownloading` →
+`isAnalyzing` (this device is working) → has `analysisData` (real
+visualization) → idle/stalled fallback.
+- `waitingFor` (`'download'|'analysis'|null`, set in `App.jsx`) is distinct
+  from `isAnalyzing` — it means "polling `waitForReady()` because someone
+  else already has the lock", not "this device is doing the work". Shows
+  `VisualizerWaiting.js` with copy that names the other device, not this one.
+- The idle animation (`VisualizerIdle.js`) also carries a `stalled` flag: if
+  the pipeline exhausts retries on a track that's still actively playing
+  (`pipelineStalled` in `App.jsx`, set in every terminal failure branch of
+  the debounced processing block), it shows "Couldn't load visuals for this
+  track" instead of "Waiting for music..." — the old code showed the latter
+  even while music was audibly playing, which is what actually prompted this
+  fix (confirmed live via Railway logs + user report, 2026-07-14).
+- Before marking a track `pipelineStalled`, the analysis-failure path
+  re-checks the server analysis cache once (`getCachedAnalysis`) in case the
+  other device that raced us already saved it — cheap defense against the
+  residual version of the race above.
 - **MP3 retention** (`/clear-mp3s`): MP3s and analysis JSON are BOTH durable
   artifacts, stored on a Railway volume (`DATA_DIR=/app/data`) that survives
   deploys. `.part` files → deleted after 10min. MP3s are retained until the
@@ -190,7 +226,7 @@ npm run deploy  # GitHub Pages
 - **Platform**: Railway
 - **Frontend**: GitHub Pages (`yerry262.github.io/Spotify-Webapp-Visualizer`)
 - **Backend**: Railway (`spotify-webapp-visualizer-production.up.railway.app`)
-- **Last Deploy**: 2026-07-06 (raw analysis v2, Railway volume, scored YouTube search, rotate bubble UI) ✅ SUCCESS
+- **Last Deploy**: 2026-07-14 (multi-device wait-timeout fix, waiting/stalled UI states, CORS + admin-gate + token-refresh hardening) ✅ SUCCESS
 - **Build Status**: All CI/CD passing
 - **Dependencies**: All packages up-to-date, 0 vulnerabilities
 
@@ -208,6 +244,23 @@ VITE_API_URL=https://spotify-webapp-visualizer-production.up.railway.app
 VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 ```
 
+## Security Notes
+
+- **CORS origin check must be an exact host match**, not `origin.startsWith(allowed)`
+  (`server.js` `isAllowedOrigin`). A prefix check lets
+  `https://yerry262.github.io.attacker.io` pass as a literal string prefix of
+  an allowed origin — a real bypass given `credentials: true`. Compare
+  `new URL(origin).host`/`.protocol` against the allowlist, not raw strings.
+- `/mp3files/list` and `/analysis/list` are `requireAdmin`-gated like the
+  other `/mp3files`/`/analysis` endpoints, even though they're read-only —
+  they're unused by the web client and would otherwise dump every cached
+  artist-song filename to anyone (CORS doesn't stop `curl`).
+- `SpotifyAuth.refreshToken()` (`spotifyService.js`) is single-flight: concurrent
+  `getValidToken()` callers (1s playback poll, queue prefetch, `getMe`) share
+  one in-flight refresh promise instead of each firing their own request at
+  Spotify right at token expiry, which could race Spotify's refresh-token
+  rotation.
+
 ## Known Limitations
 
 1. YouTube search is free but not 100% reliable (yt-dlp `ytsearch1` returns top result; if searches break, update yt-dlp in the Railway container)
@@ -224,6 +277,17 @@ VITE_SPOTIFY_CLIENT_ID=6ada4e42731d48f9ad85fab1764aca89
 - [ ] Integration with other music services (Apple Music, YouTube Music)
 
 ## Recent Changes Log
+
+- **2026-07-14**: Fixed the multi-device wait-timeout mismatch that caused
+  duplicate analysis and the misleading "Waiting for music..." message while
+  a track was actively playing (root-caused via Railway logs — analysis
+  takes ~30s, wait cap was 20s). Added a distinct "another device is
+  downloading/analyzing" UI state (`VisualizerWaiting.js`) and a "couldn't
+  load visuals" stalled state, separate from genuine idle. Also fixed a CORS
+  origin-check bypass (`startsWith` → exact host match), admin-gated the two
+  unauthenticated `/mp3files/list` and `/analysis/list` endpoints, and made
+  Spotify token refresh single-flight to stop concurrent pollers racing
+  Spotify's refresh-token rotation.
 
 - **2026-07-06**: Added `.claude/skills/add-waveform` project skill (full recipe + smoke-test harness for new styles); CLAUDE.md refreshed (56 styles, scored search endpoint, lyricsService in architecture)
 

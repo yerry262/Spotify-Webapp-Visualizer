@@ -51,6 +51,14 @@ const generateCodeChallenge = async (codeVerifier) => {
   return base64urlencode(hashed);
 };
 
+// In-flight token refresh promise, shared across concurrent getValidToken()
+// callers (playback polling, queue prefetch, getMe) so a burst of near-
+// simultaneous calls right at token expiry fires ONE refresh request instead
+// of one each — avoids racing Spotify's refresh-token rotation, where a
+// losing concurrent request can get invalid_grant on an already-consumed
+// refresh token.
+let refreshPromise = null;
+
 // Spotify Auth Service
 export const SpotifyAuth = {
   // Initiate login with PKCE (always shows the Spotify dialog so accounts can be switched)
@@ -102,12 +110,22 @@ export const SpotifyAuth = {
     return data;
   },
   
-  // Refresh token
+  // Refresh token. Single-flight: if a refresh is already in progress,
+  // concurrent callers await the same request rather than each firing their
+  // own (see refreshPromise comment above).
   async refreshToken() {
+    if (refreshPromise) return refreshPromise;
+    refreshPromise = this._doRefreshToken().finally(() => {
+      refreshPromise = null;
+    });
+    return refreshPromise;
+  },
+
+  async _doRefreshToken() {
     const refreshToken = localStorage.getItem('refresh_token');
-    
+
     if (!refreshToken) return null;
-    
+
     const response = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -119,9 +137,9 @@ export const SpotifyAuth = {
         refresh_token: refreshToken,
       }),
     });
-    
+
     const data = await response.json();
-    
+
     if (data.access_token) {
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('token_expiry', Date.now() + (data.expires_in * 1000));
@@ -129,7 +147,7 @@ export const SpotifyAuth = {
         localStorage.setItem('refresh_token', data.refresh_token);
       }
     }
-    
+
     return data;
   },
   
